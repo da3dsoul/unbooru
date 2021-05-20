@@ -26,7 +26,7 @@ namespace ImageInfrastructure.Database
             _context = context;
         }
         
-        [ModulePostConfiguration(Priority = ModuleInitializationPriority.High)]
+        [ModulePostConfiguration(Priority = ModuleInitializationPriority.Database)]
         public void PostConfigure(IServiceProvider provider)
         {
             var imageProviders = provider.GetServices<IImageProvider>().ToList();
@@ -63,7 +63,7 @@ namespace ImageInfrastructure.Database
                     {
                         new()
                         {
-                            Source = sender.GetType().Name,
+                            Source = ((IImageProvider)sender).Source,
                             OriginalFilename = e.OriginalFilename,
                             Uri = e.Uri,
                             Title = e.Title,
@@ -91,8 +91,8 @@ namespace ImageInfrastructure.Database
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            var count = _context.Images.Include(a => a.Sources).Count(a => a.Sources.Where(b => b.Uri == e.ImageUri.AbsoluteUri).Take(1).Any());
-            if (count == 0) return;
+            var any = _context.Images.Include(a => a.Sources).Any(a => a.Sources.Any(b => b.Uri == e.ImageUri.AbsoluteUri));
+            if (!any) return;
             _logger.LogInformation("Image already exists for {Uri}. Skipping!", e.ImageUri.AbsoluteUri);
             e.Cancel = true;
         }

@@ -3,14 +3,16 @@ using System;
 using ImageInfrastructure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageInfrastructure.Core.Migrations
 {
     [DbContext(typeof(CoreContext))]
-    partial class CoreContextModelSnapshot : ModelSnapshot
+    [Migration("20210519213738_AddImageSourceIndices")]
+    partial class AddImageSourceIndices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,12 +117,7 @@ namespace ImageInfrastructure.Core.Migrations
                     b.Property<int>("Safety")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Type")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("ImageTagId");
-
-                    b.HasIndex("Name", "Safety", "Type");
 
                     b.ToTable("ImageTags");
                 });

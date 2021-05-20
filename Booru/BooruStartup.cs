@@ -4,16 +4,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ImageInfrastructure.Booru
 {
-    public class Startup : IInfrastructureStartup
+    public class BooruStartup : IInfrastructureStartup
     {
-        public string Id => "BooruDownloader";
-        public string Description => "Downloads images from boorus with via various filters";
+        public string Id => "Booru";
+        public string Description => "lorem ipsum";
         public Version Version => new Version("0.0.0.1");
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IModule, BooruModule>();
-            services.AddSingleton<Settings>();
         }
     }
 }

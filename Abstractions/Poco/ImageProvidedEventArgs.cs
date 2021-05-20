@@ -10,6 +10,7 @@ namespace ImageInfrastructure.Abstractions.Poco
         public string ArtistName { get; set; }
         public string ArtistUrl { get; set; }
         public string Uri { get; set; }
+        public long Size { get; set; }
         public byte[] Data { get; set; }
     }
 }

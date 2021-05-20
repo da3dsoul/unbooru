@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Interfaces;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -8,7 +9,6 @@ namespace ImageInfrastructure.JsonSettingsProvider
 {
     public class JsonSettingsProvider<T> : ISettingsProvider<T> where T : new()
     {
-        public static string SettingsPath = "C:\\Users\\da3ds\\Desktop\\temp\\Settings";
         private T Settings { get; }
         private readonly ILogger<JsonSettingsProvider<T>> _logger;
     
@@ -17,7 +17,7 @@ namespace ImageInfrastructure.JsonSettingsProvider
             _logger = logger;
             try
             {
-                var path = Path.Combine(SettingsPath, typeof(T).FullName + ".json");
+                var path = Path.Combine(Arguments.DataPath, "Settings", typeof(T).FullName + ".json");
                 if (!File.Exists(path))
                 {
                     Settings = new T();
@@ -52,8 +52,9 @@ namespace ImageInfrastructure.JsonSettingsProvider
         {
             try
             {
-                if (!Directory.Exists(SettingsPath)) Directory.CreateDirectory(SettingsPath);
-                var path = Path.Combine(SettingsPath, typeof(T).FullName + ".json");
+                var path = Path.Combine(Arguments.DataPath, "Settings");
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                path = Path.Combine(path, typeof(T).FullName + ".json");
                 var text = JsonConvert.SerializeObject(Settings, new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,

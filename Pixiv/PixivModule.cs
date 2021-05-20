@@ -18,6 +18,8 @@ namespace ImageInfrastructure.Pixiv
         
         private ISettingsProvider<PixivSettings> SettingsProvider { get; set; }
 
+        public string Source => "Pixiv";
+
         public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider)
         {
             _logger = logger;
@@ -77,6 +79,7 @@ namespace ImageInfrastructure.Pixiv
                             {
                                 OriginalFilename = fileName,
                                 Data = data,
+                                Size = (long) image.SizePixels.Width << 32 | (uint) image.SizePixels.Height,
                                 Uri = content.Uri.AbsoluteUri,
                                 Title = image.Title,
                                 Description = image.Description,

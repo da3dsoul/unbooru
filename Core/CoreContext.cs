@@ -1,5 +1,5 @@
 using System.IO;
-using ImageInfrastructure.Abstractions.Interfaces;
+using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Core.Models;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -13,22 +13,19 @@ namespace ImageInfrastructure.Core
         [UsedImplicitly] public DbSet<ImageSource> ImageSources { get; set; }
         [UsedImplicitly] public DbSet<ImageTag> ImageTags { get; set; }
 
-        private ISettingsProvider<CoreSettings> SettingsProvider { get; set; }
-
         public CoreContext() {}
         
-        public CoreContext(DbContextOptions<CoreContext> options, ISettingsProvider<CoreSettings> settingsProvider) : base(options)
+        public CoreContext(DbContextOptions<CoreContext> options) : base(options)
         {
-            SettingsProvider = settingsProvider;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string path;
-            if (!string.IsNullOrEmpty(SettingsProvider?.Get(a => a.DatabasePath)))
+            string path = string.IsNullOrEmpty(Arguments.DataPath) ? null : Path.Combine(Arguments.DataPath, "Database");
+            if (!string.IsNullOrEmpty(path))
             {
-                Directory.CreateDirectory(SettingsProvider.Get(a => a.DatabasePath));
-                path = Path.Combine(SettingsProvider.Get(a => a.DatabasePath), "Core.db3");
+                Directory.CreateDirectory(path);
+                path = Path.Combine(path, "Core.db3");
             }
             else
             {

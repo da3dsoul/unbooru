@@ -1,19 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>ImageInfrastructure.Booru</RootNamespace>
         <AssemblyName>ImageInfrastructure.Booru</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="BooruSharp" Version="3.0.2" />
-      <PackageReference Include="BooruSharp.Others" Version="2.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.3.21201.4" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+      <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
 
 </Project>

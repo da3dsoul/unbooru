@@ -2,10 +2,11 @@ namespace ImageInfrastructure.Abstractions.Enums
 {
     public enum ModuleInitializationPriority
     {
-        First,
-        High,
-        Normal,
-        Low,
-        Last
+        PreDatabase,
+        Database,
+        SourceData,
+        Metadata,
+        PostProcess,
+        Saving
     }
 }

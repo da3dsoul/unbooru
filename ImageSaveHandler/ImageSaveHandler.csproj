@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>ImageInfrastructure.ImageSaveHandler</RootNamespace>
         <AssemblyName>ImageInfrastructure.ImageSaveHandler</AssemblyName>
     </PropertyGroup>
@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+      <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
 
 </Project>

@@ -22,7 +22,7 @@ namespace ImageInfrastructure.ImageCompressor
             _logger = logger;
         }
         
-        [ModulePostConfiguration(Priority = ModuleInitializationPriority.First)]
+        [ModulePostConfiguration(Priority = ModuleInitializationPriority.PreDatabase)]
         public void PostConfigure(IServiceProvider provider)
         {
             var imageProviders = provider.GetServices<IImageProvider>().ToList();

@@ -7,6 +7,6 @@ namespace ImageInfrastructure.Abstractions.Attributes
     [System.AttributeUsage(System.AttributeTargets.Method)]
     public class ModulePostConfigurationAttribute : System.Attribute
     {
-        public ModuleInitializationPriority Priority { get; set; } = ModuleInitializationPriority.Normal;
+        public ModuleInitializationPriority Priority { get; set; } = ModuleInitializationPriority.Metadata;
     }
 }

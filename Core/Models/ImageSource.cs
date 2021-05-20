@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace ImageInfrastructure.Core.Models
 {
+    [Index(nameof(Uri), nameof(Source))]
     public class ImageSource
     {
         public int ImageSourceId { get; set; }

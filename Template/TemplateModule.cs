@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Interfaces;
@@ -19,7 +20,8 @@ namespace ImageInfrastructure.Template
 
         public Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
-            _logger.LogInformation("Running {ModuleType} module with settings of type {SettingsType}", GetType(), SettingsProvider.GetType().GenericTypeArguments.FirstOrDefault());
+            _logger.LogInformation("Running {ModuleType} module with settings of type {SettingsType}", GetType(),
+                SettingsProvider.GetType().GenericTypeArguments.FirstOrDefault());
             return Task.CompletedTask;
         }
     }

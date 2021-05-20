@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Attributes;
+using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Core;
@@ -29,7 +29,7 @@ namespace ImageInfrastructure.Iqdb
             _context = context;
         }
         
-        [ModulePostConfiguration]
+        [ModulePostConfiguration(Priority = ModuleInitializationPriority.SourceData)]
         public void PostConfigure(IServiceProvider provider)
         {
             var imageProviders = provider.GetServices<IImageProvider>().ToList();
@@ -54,10 +54,10 @@ namespace ImageInfrastructure.Iqdb
 
         private void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
-            FindTags(e).Wait();
+            FindSources(e).Wait();
         }
 
-        private async Task FindTags(ImageProvidedEventArgs e)
+        private async Task FindSources(ImageProvidedEventArgs e)
         {
             try
             {
@@ -66,38 +66,27 @@ namespace ImageInfrastructure.Iqdb
                 await using var stream = new MemoryStream(e.Data);
                 var results = await client.SearchFile(stream);
                 if (!results.IsFound) return;
-                var match = results.Matches.FirstOrDefault(a => a.MatchType == MatchType.Best);
-                if (match == null) return;
+                var matches = results.Matches.Where(a => a.MatchType == MatchType.Best).ToList();
+                if (!matches.Any()) return;
                 _logger.LogInformation("iqdb found match for {Image}", e.OriginalFilename);
-                var image = await _context.Images.Include(a => a.Tags)
-                    .Include(a => a.Sources.Where(b => b.Uri == e.Uri).Take(1)).AsSplitQuery().FirstOrDefaultAsync(a => a.Sources.Any());
+                var image = await _context.Images.Include(a => a.Sources).FirstOrDefaultAsync(a => a.Sources.Any(b => b.Uri == e.Uri));
                 if (image == null)
                 {
-                    _logger.LogError("Unable to get image for {Image} in {Type}", e.OriginalFilename, GetType().Name);
+                    _logger.LogError("Unable to get image for {Image} in {Type}", e.Uri, GetType().Name);
                     return;
                 }
-                foreach (var matchTag in match.Tags)
+
+                foreach (var match in matches)
                 {
-                    var imageTag = await _context.ImageTags.Include(a => a.Images).FirstOrDefaultAsync(a => a.Name == matchTag);
-                    if (imageTag != null)
+                    image.Sources.Add(new ImageSource
                     {
-                        image.Tags.Add(imageTag);
-                        imageTag.Images.Add(image);
-                        await _context.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        imageTag = new ImageTag()
-                        {
-                            Name = matchTag
-                        };
-                        imageTag.Images ??= new List<Image>();
-                        imageTag.Images.Add(image);
-                        image.Tags.Add(imageTag);
-                        await _context.SaveChangesAsync();
-                    }
+                        Source = match.Source.ToString(),
+                        Uri = match.Url
+                    });
                 }
-                _logger.LogInformation("Finished saving iqdb tags for {Image}", e.OriginalFilename);
+
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Finished saving sources from iqdb for {Image}", e.OriginalFilename);
             }
             catch (IqdbApi.Exceptions.ImageTooLargeException)
             {

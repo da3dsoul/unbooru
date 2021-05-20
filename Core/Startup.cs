@@ -4,12 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Extensions.Logging;
+using NLog.Targets;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace ImageInfrastructure.Core
 {
@@ -142,7 +148,6 @@ namespace ImageInfrastructure.Core
             }
             hostBuilder = hostBuilder.ConfigureServices((_, services) =>
             {
-                services.AddSingleton<CoreSettings>();
                 services.AddDbContext<CoreContext>(options =>
                 {
                     //options.EnableSensitiveDataLogging();
@@ -151,13 +156,35 @@ namespace ImageInfrastructure.Core
                         builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
                     });
                 }, ServiceLifetime.Transient);
-                services.AddLogging(a => a.ClearProviders().AddConsole());
+                services.AddLogging(a =>
+                {
+                    a.ClearProviders();
+                    a.AddNLog();
+                    ConfigureNLog();
+                });
                 foreach (var module in Modules)
                 {
                     module.ConfigureServices(services);
                 }
             });
             return hostBuilder;
+        }
+
+        private void ConfigureNLog()
+        {
+            var configuration = new NLog.Config.LoggingConfiguration();
+            Target target = new FileTarget("file")
+            {
+                FileName = Path.Combine(Arguments.DataPath, "Logs", "${shortdate}.log")
+            };
+            configuration.AddTarget(target);
+            configuration.AddRule(NLog.LogLevel.Info, NLog.LogLevel.Fatal, target);
+
+            target = new ConsoleTarget("console");
+            configuration.AddTarget(target);
+            configuration.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, target);
+
+            LogManager.Configuration = configuration;
         }
         
         private void FindTypes()

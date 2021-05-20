@@ -7,5 +7,6 @@ namespace ImageInfrastructure.Abstractions.Interfaces
     {
         EventHandler<ImageDiscoveredEventArgs> ImageDiscovered { get; set; }
         EventHandler<ImageProvidedEventArgs> ImageProvided { get; set; }
+        string Source { get; }
     }
 }
