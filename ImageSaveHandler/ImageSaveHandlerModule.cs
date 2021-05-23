@@ -86,6 +86,8 @@ namespace ImageInfrastructure.ImageSaveHandler
                 }
 
                 var path = GetImagePath(e);
+                if (string.IsNullOrEmpty(path)) return;
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
                 _logger.LogInformation("Saving image to {Path}", path);
                 await using var stream = File.OpenWrite(path);
                 await stream.WriteAsync(e.Data);
@@ -136,7 +138,6 @@ namespace ImageInfrastructure.ImageSaveHandler
             }
             if (SettingsProvider.Get(a => a.UseFilesystemFriendlyTree))
                 path = Path.Combine(path, originalName[..3]);
-            Directory.CreateDirectory(path);
             var i = originalName.LastIndexOf('.');
             var ext = Path.GetExtension(originalName);
             var name = originalName[..i] + " - " + ReplaceInvalidPathCharacters(title) + ext;

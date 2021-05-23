@@ -8,8 +8,9 @@ bin/
 obj/
 
 # Common node modules locations
-/node_modules
-/wwwroot/node_modules
+/**/node_modules
+/**/wwwroot/node_modules
+/**/wwwroot/dist
 
 ### Rider ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

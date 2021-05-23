@@ -11,7 +11,7 @@ namespace ImageInfrastructure.Web.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ImageController : ControllerBase
+    public class ImageController : Controller
     {
 
         [HttpGet("{id:int}")]
@@ -47,6 +47,23 @@ namespace ImageInfrastructure.Web.Controllers
                 images = await context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery().OrderByDescending(a => a.ImageId).Skip(offset).ToListAsync();
             if (images.Count == 0) return new NotFoundResult();
             return images;
+        }
+        
+        public async Task<ActionResult> Index()
+        {
+            return View(new IndexViewModel()
+            {
+                Images = (await GetLatest(20)).Value.AsReadOnly(),
+                ImagesPerPage = 20,
+                Page = 1
+            });
+        }
+        
+        public class IndexViewModel
+        {
+            public IReadOnlyList<Image> Images { get; set; }
+            public int ImagesPerPage { get; set; }
+            public int Page { get; set; }
         }
     }
 }

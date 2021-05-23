@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using ImageInfrastructure.Abstractions.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ namespace ImageInfrastructure.Core.Models
         public string Type { get; set; }
         
         [JsonIgnore]
+        [IgnoreDataMember]
         public List<Image> Images { get; set; }
     }
 }

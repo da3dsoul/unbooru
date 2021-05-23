@@ -1,24 +1,43 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
-        <RootNamespace>ImageInfrastructure.Web</RootNamespace>
-        <AssemblyName>ImageInfrastructure.Web</AssemblyName>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-preview.3.21201.4" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.3.21201.4" />
-      <FrameworkReference Include="Microsoft.AspNetCore.App" />
-      <PackageReference Include="MimeTypes" Version="2.2.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
-      <ProjectReference Include="..\Core\Core.csproj" />
-    </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>ImageInfrastructure.Web</RootNamespace>
+    <AssemblyName>ImageInfrastructure.Web</AssemblyName>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--<FrameworkReference Include="Microsoft.AspNetCore.App" />-->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.6" />
+    <PackageReference Include="MimeTypes" Version="2.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore" Version="3.1.8" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.linux-x64" Version="3.1.8" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.osx-x64" Version="3.1.8" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.win-x86" Version="3.1.8" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.win-x64" Version="3.1.8" />
+    <PackageReference Include="JavaScriptEngineSwitcher.Extensions.MsDependencyInjection" Version="3.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.4" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.13.0-readme-preview" />
+    <PackageReference Include="React.AspNet" Version="5.2.11" />
+    <PackageReference Include="React.Router" Version="5.2.11" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+  <Target Name="ReactBuild" AfterTargets="Build">
+    <Exec Command="npm i &amp;&amp; npm run build" />
+    <Copy SourceFiles="@(NPM)" DestinationFolder="$(OutDir)/%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+  <ItemGroup>
+    <NPM Include="wwwroot/dist/*.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
+  </ItemGroup>
 </Project>

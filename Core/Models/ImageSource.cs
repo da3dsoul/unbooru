@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ namespace ImageInfrastructure.Core.Models
         public string Description { get; set; }
         
         [JsonIgnore]
+        [IgnoreDataMember]
         public Image Image { get; set; }
     }
 }
