@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
+using ImageInfrastructure.Abstractions.Poco.Ingest;
 using Meowtrix.PixivApi;
 using Microsoft.Extensions.Logging;
 
@@ -40,121 +41,123 @@ namespace ImageInfrastructure.Pixiv
                     Logger.LogError(s);
                     return Task.FromResult(new Uri("pixiv://account/login?code=-YitIvIn34acMvakDx0xIVR0HKnpmGZintYzKKyuAcg&via=login"));
                 });*/
-                var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation:token);
-                var iterator = userBookmarks.GetAsyncEnumerator(token);
-                var i = 0;
-                
-                do
-                {
-                    if (i >= SettingsProvider.Get(a => a.MaxImagesToDownload)) break;
-                    if (!await iterator.MoveNextAsync()) break;
-                    if (i >= SettingsProvider.Get(a => a.MaxImagesToDownload)) break;
-                    var image = iterator.Current;
-
-                    _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1,
-                        SettingsProvider.Get(a => a.MaxImagesToDownload), image.Id, image.Title);
-                    
-                    var disc = new ImageDiscoveredEventArgs
-                    {
-                        Post = new Post
-                        {
-                            Title = image.Title,
-                            Description = image.Description,
-                            ArtistName = image.User.Name,
-                            ArtistUrl = $"https://pixiv.net/users/{image.User.Id}",
-                        },
-                        Attachments = image.Pages.OrderBy(a => a.Index).Select(a =>
-                        {
-                            var content = a.Original;
-                            return new Attachment
-                            {
-                                Uri = content.Uri.AbsoluteUri,
-                                // this is used for identity verification, so it being accurate isn't as important as being unique
-                                Size = (image.SizePixels.Width, image.SizePixels.Height),
-                            };
-                        }).ToList(),
-                        Images = image.Pages.OrderBy(a => a.Index).Select(a => new Image
-                        {
-                            Width = image.SizePixels.Width,
-                            Height = image.SizePixels.Height,
-                            Sources = new List<ImageSource>
-                            {
-                                new()
-                                {
-                                    Source = Source,
-                                    Title = image.Title,
-                                    Description = image.Description,
-                                    Uri = a.Original.Uri.AbsoluteUri,
-                                    OriginalFilename = Path.GetFileName(a.Original.Uri.AbsoluteUri)
-                                }
-                            },
-                            ArtistAccounts = new List<ArtistAccount>
-                            {
-                                new()
-                                {
-                                    Name = image.User.Name,
-                                    Url = image.User.Account
-                                }
-                            },
-                            Tags = new List<ImageTag>()
-                        }).ToList()
-                    };
-
-                    foreach (var source in disc.Images.SelectMany(a => a.Sources))
-                    {
-                        source.RelatedImages = disc.Images
-                            .Select(a => new RelatedImage {Image = a, ImageSource = source}).ToList();
-                    }
-                    disc.Attachments.ForEach(a => a.Post = disc.Post);
-                    
-                    ImageDiscovered?.Invoke(this, disc);
-                    if (disc.Cancel || disc.Attachments.All(a => a.Cancelled))
-                    {
-                        _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
-                        continue;
-                    }
-                    
-                    var prov = new ImageProvidedEventArgs
-                    {
-                        Post = disc.Post,
-                        Attachments = disc.Attachments,
-                        Images = disc.Images
-                    };
-
-                    foreach (var page in image.Pages)
-                    {
-                        var content = page.Original;
-                        if (disc.Attachments[page.Index].Cancelled)
-                        {
-                            _logger.LogInformation("Downloading Pixiv Url Cancelled by Discovery Subscriber: {Url}", content.Uri);
-                            continue;
-                        }
-
-                        await using var stream = await content.RequestStreamAsync(token);
-                        await using var memoryStream = new MemoryStream();
-                        _logger.LogInformation("Downloading from {Uri}", content.Uri);
-                        await stream.CopyToAsync(memoryStream, token);
-                        var data = memoryStream.ToArray();
-                        prov.Attachments[page.Index].Data = data;
-                        prov.Attachments[page.Index].Filesize = data.LongLength;
-                        prov.Images[page.Index].Blob = data;
-                    }
-                    
-                    ImageProvided?.Invoke(this, prov);
-                    if (prov.Cancel)
-                    {
-                        _logger.LogInformation("Further Pixiv Downloading cancelled by provider subscriber");
-                        break;
-                    }
-
-                    i++;
-                } while (true);
+                await DownloadBookmarks(token, pixivClient);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
+        }
+
+        private async Task DownloadBookmarks(CancellationToken token, PixivClient pixivClient)
+        {
+            var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation: token);
+            var iterator = userBookmarks.GetAsyncEnumerator(token);
+            var i = 0;
+
+            do
+            {
+                if (i >= SettingsProvider.Get(a => a.MaxImagesToDownload)) break;
+                if (!await iterator.MoveNextAsync()) break;
+                if (i >= SettingsProvider.Get(a => a.MaxImagesToDownload)) break;
+                var image = iterator.Current;
+
+                _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1,
+                    SettingsProvider.Get(a => a.MaxImagesToDownload), image.Id, image.Title);
+
+                var disc = new ImageDiscoveredEventArgs
+                {
+                    Post = new Post
+                    {
+                        Title = image.Title,
+                        Description = image.Description,
+                        ArtistName = image.User.Name,
+                        ArtistUrl = $"https://pixiv.net/users/{image.User.Id}",
+                        PostDate = image.Created.DateTime
+                    },
+                    Attachments = image.Pages.OrderBy(a => a.Index).Select(a =>
+                    {
+                        var content = a.Original;
+                        return new Attachment
+                        {
+                            Uri = content.Uri.AbsoluteUri,
+                            // this is used for identity verification, so it being accurate isn't as important as being unique
+                            Size = (image.SizePixels.Width, image.SizePixels.Height),
+                        };
+                    }).ToList(),
+                    Images = image.Pages.OrderBy(a => a.Index).Select(a => new Image
+                    {
+                        Width = image.SizePixels.Width,
+                        Height = image.SizePixels.Height,
+                        Sources = new List<ImageSource>
+                        {
+                            new()
+                            {
+                                Source = Source,
+                                Title = image.Title,
+                                Description = image.Description,
+                                Uri = a.Original.Uri.AbsoluteUri,
+                                OriginalFilename = Path.GetFileName(a.Original.Uri.AbsoluteUri)
+                            }
+                        },
+                        ArtistAccounts = new List<ArtistAccount>
+                        {
+                            new()
+                            {
+                                Name = image.User.Name,
+                                Url = image.User.Account
+                            }
+                        },
+                        Tags = new List<ImageTag>()
+                    }).ToList()
+                };
+
+                foreach (var source in disc.Images.SelectMany(a => a.Sources))
+                {
+                    source.RelatedImages = disc.Images
+                        .Select(a => new RelatedImage {Image = a, ImageSource = source}).ToList();
+                }
+
+                disc.Attachments.ForEach(a => a.Post = disc.Post);
+
+                ImageDiscovered?.Invoke(this, disc);
+                if (disc.Cancel || !disc.Attachments.Any())
+                {
+                    _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
+                    continue;
+                }
+
+                var prov = new ImageProvidedEventArgs
+                {
+                    Post = disc.Post,
+                    Attachments = disc.Attachments,
+                    Images = disc.Images
+                };
+
+                foreach (var page in image.Pages)
+                {
+                    var content = page.Original;
+
+                    await using var stream = await content.RequestStreamAsync(token);
+                    await using var memoryStream = new MemoryStream();
+                    _logger.LogInformation("Downloading from {Uri}", content.Uri);
+                    await stream.CopyToAsync(memoryStream, token);
+                    var data = memoryStream.ToArray();
+                    prov.Attachments[page.Index].Data = data;
+                    prov.Attachments[page.Index].Filesize = data.LongLength;
+                    prov.Images[page.Index].Blob = data;
+                }
+
+                ImageProvided?.Invoke(this, prov);
+                if (prov.Cancel)
+                {
+                    _logger.LogInformation("Further Pixiv Downloading cancelled by provider subscriber");
+                    break;
+                }
+
+                i++;
+            } while (true);
         }
     }
 }

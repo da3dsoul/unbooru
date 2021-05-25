@@ -70,12 +70,12 @@ namespace ImageInfrastructure.Database
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            foreach (var image in e.Attachments)
+            foreach (var attachment in e.Attachments)
             {
-                var any = _context.Images.Include(a => a.Sources).Any(a => a.Sources.Any(b => b.Uri == image.Uri));
+                var any = _context.Images.Include(a => a.Sources).Any(a => a.Sources.Any(b => b.Uri == attachment.Uri));
                 if (!any) return;
-                _logger.LogInformation("Image already exists for {Uri}. Skipping!", image.Uri);
-                image.Cancelled = true;
+                _logger.LogInformation("Image already exists for {Uri}. Skipping!", attachment.Uri);
+                e.CancelAttachmentDownload(_logger, attachment);
             }
         }
 

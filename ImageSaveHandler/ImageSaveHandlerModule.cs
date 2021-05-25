@@ -9,6 +9,7 @@ using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
+using ImageInfrastructure.Abstractions.Poco.Ingest;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -85,7 +86,8 @@ namespace ImageInfrastructure.ImageSaveHandler
 
                     var path = GetImagePath(image);
                     if (string.IsNullOrEmpty(path)) return;
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    Directory.CreateDirectory(Path.GetDirectoryName(path) ??
+                                              throw new NullReferenceException("Image path cannot be null"));
                     _logger.LogInformation("Saving image to {Path}", path);
                     await using var stream = File.OpenWrite(path);
                     await stream.WriteAsync(image.Blob);
@@ -99,12 +101,12 @@ namespace ImageInfrastructure.ImageSaveHandler
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            foreach (var image in e.Attachments)
+            foreach (var attachment in e.Attachments)
             {
-                var path = GetImagePath(image);
+                var path = GetImagePath(attachment);
                 if (!File.Exists(path)) return;
                 _logger.LogInformation("Image already exists at {Path}. Skipping!", path);
-                image.Cancelled = true;
+                e.CancelAttachmentDownload(_logger, attachment);
             }
         }
         
@@ -131,7 +133,14 @@ namespace ImageInfrastructure.ImageSaveHandler
 
         private string GetImagePath(string originalName, string title, double aspectRatio)
         {
-            var path = Path.Combine(Arguments.DataPath, "Images");
+            var path = SettingsProvider.Get(a => a.ImagePath);
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Path.Combine(Arguments.DataPath, "Images");
+                var update = path;
+                SettingsProvider.Update(a => a.ImagePath = update);
+            }
+
             if (SettingsProvider.Get(a => a.EnableAspectRatioSplitting))
             {
                 path = Path.Combine(path, aspectRatio < 1 ? "Mobile" : "Desktop");

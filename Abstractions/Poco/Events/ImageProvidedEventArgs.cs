@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using ImageInfrastructure.Abstractions.Poco.Ingest;
 
 namespace ImageInfrastructure.Abstractions.Poco.Events
 {
