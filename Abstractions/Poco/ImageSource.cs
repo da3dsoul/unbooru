@@ -1,10 +1,7 @@
 using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore;
 
-namespace ImageInfrastructure.Core.Models
+namespace ImageInfrastructure.Abstractions.Poco
 {
-    [Index(nameof(Uri), nameof(Source))]
     public class ImageSource
     {
         public int ImageSourceId { get; set; }
@@ -15,8 +12,7 @@ namespace ImageInfrastructure.Core.Models
 
         public string Title { get; set; }
         public string Description { get; set; }
-        
-        [JsonIgnore]
+
         [IgnoreDataMember]
         public Image Image { get; set; }
     }

@@ -1,5 +1,5 @@
 using System;
-using ImageInfrastructure.Abstractions.Poco;
+using ImageInfrastructure.Abstractions.Poco.Events;
 
 namespace ImageInfrastructure.Abstractions.Interfaces
 {

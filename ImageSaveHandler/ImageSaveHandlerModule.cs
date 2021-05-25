@@ -8,8 +8,7 @@ using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Core;
-using Microsoft.EntityFrameworkCore;
+using ImageInfrastructure.Abstractions.Poco.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -19,13 +18,11 @@ namespace ImageInfrastructure.ImageSaveHandler
     {
         private ISettingsProvider<ImageSaveHandlerSettings> SettingsProvider { get; set; }
         private readonly ILogger<ImageSaveHandlerModule> _logger;
-        private readonly CoreContext _context;
         
-        public ImageSaveHandlerModule(ISettingsProvider<ImageSaveHandlerSettings> settingsProvider, ILogger<ImageSaveHandlerModule> logger, CoreContext context)
+        public ImageSaveHandlerModule(ISettingsProvider<ImageSaveHandlerSettings> settingsProvider, ILogger<ImageSaveHandlerModule> logger)
         {
             SettingsProvider = settingsProvider;
             _logger = logger;
-            _context = context;
         }
         
         [ModulePostConfiguration(Priority = ModuleInitializationPriority.Saving)]
@@ -60,82 +57,86 @@ namespace ImageInfrastructure.ImageSaveHandler
 
         private async Task SaveImage(ImageProvidedEventArgs e)
         {
-            try
+            foreach (var image in e.Images)
             {
-                var tags = (await _context.ImageSources.Include(a => a.Image).ThenInclude(a => a.Tags)
-                    .FirstOrDefaultAsync(a => a.Uri == e.Uri))?.Image?.Tags;
-                if (tags == null || !tags.Any())
+                try
                 {
-                    if (SettingsProvider.Get(a => a.ExcludeMissingInfo))
+                    var tags = image.Tags;
+                    if (tags == null || !tags.Any())
                     {
-                        _logger.LogInformation(
-                            "ImageSaveHandler set to exclude images with missing info, and no tags were found. Skipping!");
-                        return;
+                        if (SettingsProvider.Get(a => a.ExcludeMissingInfo))
+                        {
+                            _logger.LogInformation(
+                                "ImageSaveHandler set to exclude images with missing info, and no tags were found. Skipping!");
+                            return;
+                        }
                     }
-                }
-                else
-                {
-                    var exclude = SettingsProvider.Get(a => a.ExcludeTags);
-                    if (tags.Select(a => a.Name).Any(a =>
-                        exclude.Any(b => a.Equals(b, StringComparison.InvariantCultureIgnoreCase))))
+                    else
                     {
-                        _logger.LogInformation(
-                            "ImageSaveHandler set to exclude images with certain tags, and tags matched. Skipping!");
-                        return;
+                        var exclude = SettingsProvider.Get(a => a.ExcludeTags);
+                        if (tags.Select(a => a.Name).Any(a =>
+                            exclude.Any(b => a.Equals(b, StringComparison.InvariantCultureIgnoreCase))))
+                        {
+                            _logger.LogInformation(
+                                "ImageSaveHandler set to exclude images with certain tags, and tags matched. Skipping!");
+                            return;
+                        }
                     }
-                }
 
-                var path = GetImagePath(e);
-                if (string.IsNullOrEmpty(path)) return;
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                _logger.LogInformation("Saving image to {Path}", path);
-                await using var stream = File.OpenWrite(path);
-                await stream.WriteAsync(e.Data);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "Unable to write {File}", e.OriginalFilename);
+                    var path = GetImagePath(image);
+                    if (string.IsNullOrEmpty(path)) return;
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    _logger.LogInformation("Saving image to {Path}", path);
+                    await using var stream = File.OpenWrite(path);
+                    await stream.WriteAsync(image.Blob);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Unable to write {File}", image.ImageId);
+                }
             }
         }
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            var path = GetImagePath(e);
-            if (!File.Exists(path)) return;
-            _logger.LogInformation("Image already exists at {Path}. Skipping!", path);
-            e.Cancel = true;
+            foreach (var image in e.Attachments)
+            {
+                var path = GetImagePath(image);
+                if (!File.Exists(path)) return;
+                _logger.LogInformation("Image already exists at {Path}. Skipping!", path);
+                image.Cancelled = true;
+            }
         }
         
-        private string GetImagePath(object input)
+        private string GetImagePath(Attachment image)
         {
-            string originalName;
-            string title;
-            double aspectRatio;
-            if (input is ImageDiscoveredEventArgs d)
-            {
-                originalName = Path.GetFileName(d.ImageUri.AbsolutePath);
-                title = d.Title;
-                int width = (int) (d.Size >> 32);
-                int height = (int) (d.Size << 32 >> 32);
-                aspectRatio = (float) width / height;
-            } else if (input is ImageProvidedEventArgs p)
-            {
-                originalName = p.OriginalFilename;
-                title = p.Title;
-                int width = (int) (p.Size >> 32);
-                int height = (int) (p.Size << 32 >> 32);
-                aspectRatio = (float) width / height;
-            }
-            else
-            {
-                return null;
-            }
+            var originalName = Path.GetFileName(image.Uri);
+            var title = image.Post.Title;
+            var aspectRatio = (float) image.Size.Width / image.Size.Height;
+            var path = GetImagePath(originalName, title, aspectRatio);
+            return path;
+        }
+        
+        private string GetImagePath(Image image)
+        {
+            var source = image.Sources.FirstOrDefault(a => a.Source == "Pixiv");
+            if (source == null) return null;
 
+            var originalName = Path.GetFileName(source.Uri);
+            var title = source.Title;
+            var aspectRatio = (float) image.Width / image.Height;
+            var path = GetImagePath(originalName, title, aspectRatio);
+            return path;
+        }
+
+        private string GetImagePath(string originalName, string title, double aspectRatio)
+        {
             var path = Path.Combine(Arguments.DataPath, "Images");
             if (SettingsProvider.Get(a => a.EnableAspectRatioSplitting))
             {
                 path = Path.Combine(path, aspectRatio < 1 ? "Mobile" : "Desktop");
             }
+
             if (SettingsProvider.Get(a => a.UseFilesystemFriendlyTree))
                 path = Path.Combine(path, originalName[..3]);
             var i = originalName.LastIndexOf('.');

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,11 +8,10 @@ using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Core;
-using ImageInfrastructure.Core.Models;
-using Microsoft.EntityFrameworkCore;
+using ImageInfrastructure.Abstractions.Poco.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SearchResult = BooruSharp.Search.Post.SearchResult;
 
 namespace ImageInfrastructure.Booru
 {
@@ -21,13 +19,13 @@ namespace ImageInfrastructure.Booru
     {
         private ISettingsProvider<BooruSettings> SettingsProvider { get; set; }
         private readonly ILogger<BooruModule> _logger;
-        private readonly CoreContext _context;
+        private readonly ITagContext _tagContext;
         
-        public BooruModule(ISettingsProvider<BooruSettings> settingsProvider, ILogger<BooruModule> logger, CoreContext context)
+        public BooruModule(ISettingsProvider<BooruSettings> settingsProvider, ILogger<BooruModule> logger, ITagContext tagContext)
         {
             SettingsProvider = settingsProvider;
             _logger = logger;
-            _context = context;
+            _tagContext = tagContext;
         }
         
         [ModulePostConfiguration(Priority = ModuleInitializationPriority.Metadata)]
@@ -60,124 +58,91 @@ namespace ImageInfrastructure.Booru
 
         private async Task FindTags(ImageProvidedEventArgs e)
         {
-            try
+            foreach (var image in e.Images)
             {
-                var image = _context.Images.Include(a => a.Sources).Include(a => a.Tags).AsSplitQuery()
-                    .FirstOrDefault(a => a.Sources.Any(b => b.Uri == e.Uri));
-                if (image == null)
+                try
                 {
-                    _logger.LogError("Unable to get image for {Image} in {Type}", e.Uri, GetType().Name);
-                    return;
-                }
-
-                var sources = image.Sources.Where(a => a.Source != "Pixiv").ToList();
-                var tags = new HashSet<ImageTag>();
-                foreach (var source in sources)
-                {
-                    switch (source.Source.ToLower())
+                    int count = 0;
+                    var sources = image.Sources.Where(a => a.Source != "Pixiv").ToList();
+                    foreach (var source in sources)
                     {
-                        case "gelbooru":
+                        ABooru booru;
+                        Func<object, Task<SearchResult>> getPost;
+                        object arg;
+                        
+                        switch (source.Source.ToLower())
                         {
-                            var gelbooru = new Gelbooru();
-                            var i = source.Uri.LastIndexOf("md5=", StringComparison.Ordinal) + 4;
-                            var id = source.Uri[i..];
-                            i = id.IndexOf('&');
-                            if (i > -1) id = id[..i];
-                            try
+                            case "gelbooru":
                             {
-                                var post = await gelbooru.GetPostByMd5Async(id);
-                                foreach (var postTag in post.Tags)
-                                {
-                                    if (postTag == null) continue;
-                                    var tagName = postTag.Replace("_", " ");
-                                    var existingTag = tags.FirstOrDefault(a => a.Name == tagName);
-                                    existingTag ??= await _context.ImageTags.FirstOrDefaultAsync(a => a.Name == tagName);
-                                    if (existingTag == null)
-                                    {
-                                        try
-                                        {
-                                            var tagInfo = await gelbooru.GetTagAsync(postTag);
-                                            if (tagInfo.Type == TagType.Artist) continue;
-                                            existingTag = new ImageTag
-                                            {
-                                                Name = tagName,
-                                                Type = tagInfo.Type.ToString()
-                                            };
-                                        }
-                                        catch (Exception exception)
-                                        {
-                                            _logger.LogError(exception, "");
-                                        }
-                                    }
+                                booru = new Gelbooru();
+                                var i = source.Uri.LastIndexOf("md5=", StringComparison.Ordinal) + 4;
+                                var id = source.Uri[i..];
+                                i = id.IndexOf('&');
+                                if (i > -1) id = id[..i];
+                                arg = id;
+                                getPost = o => booru.GetPostByMd5Async((string) o);
+                                break;
+                            }
+                            case "danbooru":
+                            {
+                                booru = new DanbooruDonmai();
+                                var i = source.Uri.LastIndexOf("/", StringComparison.Ordinal) + 1;
+                                var idString = source.Uri[i..];
+                                if (!int.TryParse(idString, out int id)) continue;
+                                arg = id;
+                                getPost = o => booru.GetPostByIdAsync((int) o);
+                                break;
+                            }
+                            default:
+                            {
+                                _logger.LogInformation("Found source that wasn't handled: {Source}", source.Source);
+                                return;
+                            }
+                        }
+                        
+                        try
+                        {
+                            var post = await getPost(arg);
+                            foreach (var postTag in post.Tags)
+                            {
+                                if (postTag == null) continue;
+                                var tagName = postTag.Replace("_", " ");
 
-                                    if (existingTag != null && tags.All(a => a.Name != existingTag.Name)) tags.Add(existingTag);
+                                bool updateTag = false;
+                                var existingTag = new ImageTag
+                                {
+                                    Name = tagName
+                                };
+
+                                if (!_tagContext.GetTag(existingTag, out existingTag)) updateTag = true;
+                                if (!image.Tags.Contains(existingTag)) image.Tags.Add(existingTag);
+                                count++;
+
+                                if (!updateTag) continue;
+                                try
+                                {
+                                    var tagInfo = await booru.GetTagAsync(postTag);
+                                    if (tagInfo.Type == TagType.Artist) continue;
+
+                                    existingTag.Type = tagInfo.Type.ToString();
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.LogError(exception, "");
                                 }
                             }
-                            catch (Exception exception)
-                            {
-                                _logger.LogError(exception, "");
-                            }
-
-                            break;
                         }
-                        case "danbooru":
+                        catch (Exception exception)
                         {
-                            var danbooru = new DanbooruDonmai();
-                            var i = source.Uri.LastIndexOf("/", StringComparison.Ordinal) + 1;
-                            var idString = source.Uri[i..];
-                            if (!int.TryParse(idString, out int id)) continue;
-                            try
-                            {
-                                var post = await danbooru.GetPostByIdAsync(id);
-                                foreach (var postTag in post.Tags)
-                                {
-                                    if (postTag == null) continue;
-                                    var tagName = postTag.Replace("_", " ");
-                                    var existingTag = tags.FirstOrDefault(a => a.Name == tagName);
-                                    existingTag ??= await _context.ImageTags.FirstOrDefaultAsync(a => a.Name == tagName);
-                                    if (existingTag == null)
-                                    {
-                                        try
-                                        {
-                                            var tagInfo = await danbooru.GetTagAsync(postTag);
-                                            if (tagInfo.Type == TagType.Artist) continue;
-                                            existingTag = new ImageTag
-                                            {
-                                                Name = tagName,
-                                                Type = tagInfo.Type.ToString()
-                                            };
-                                        }
-                                        catch (Exception exception)
-                                        {
-                                            _logger.LogError(exception, "");
-                                        }
-                                    }
-
-                                    if (existingTag != null && tags.All(a => a.Name != existingTag.Name)) tags.Add(existingTag);
-                                }
-                            }
-                            catch (Exception exception)
-                            {
-                                _logger.LogError(exception, "");
-                            }
-
-                            break;
-                        }
-                        default:
-                        {
-                            _logger.LogInformation("Found source that wasn't handled: {Source}", source.Source);
-                            break;
+                            _logger.LogError(exception, "");
                         }
                     }
+                    _logger.LogInformation("Finished Saving {Count} tags for {Image}", count, image.ImageId);
                 }
-
-                image.Tags.AddRange(tags);
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Finished Saving {Count} tags for {Image}", tags.Count, e.OriginalFilename);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "Unable to write {File}", e.OriginalFilename);
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Unable to get tags for {ImageId}", image.ImageId);
+                }
             }
         }
 

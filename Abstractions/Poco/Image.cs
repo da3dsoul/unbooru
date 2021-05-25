@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
 
-namespace ImageInfrastructure.Core.Models
+namespace ImageInfrastructure.Abstractions.Poco
 {
     public class Image
     {
         public int ImageId { get; set; }
-        
-        [JsonIgnore]
+        public int Width { get; set; }
+        public int Height { get; set; }
+
         [IgnoreDataMember]
         public byte[] Blob { get; set; }
         

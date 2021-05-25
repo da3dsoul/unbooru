@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
+using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -49,26 +49,32 @@ namespace ImageInfrastructure.ImageCompressor
 
         private void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
-            try
+            foreach (var img in e.Images)
             {
-                _logger.LogInformation("Compressing {Path}", Path.GetFileNameWithoutExtension(e.OriginalFilename) + ".jpg");
-                using var image = new MagickImage(e.Data) { Format = MagickFormat.Pjpeg, Quality = 100};
-                var data = image.ToByteArray();
-                e.Data = data;
-                e.OriginalFilename = Path.GetFileNameWithoutExtension(e.OriginalFilename) + ".jpg";
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "Unable to compress {File}", e.OriginalFilename);
+                try
+                {
+                    _logger.LogInformation("Compressing {Path}", img.ImageId);
+                    using var image = new MagickImage(img.Blob) {Format = MagickFormat.Pjpeg, Quality = 100};
+                    var data = image.ToByteArray();
+                    img.Blob = data;
+                    img.Sources.ForEach(a => a.OriginalFilename = Path.GetFileNameWithoutExtension(a.OriginalFilename) + ".jpg");
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Unable to compress {File}", img.ImageId);
+                }
             }
         }
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            var path = e.ImageUri.AbsoluteUri;
-            var i = path.LastIndexOf(".", StringComparison.Ordinal);
-            path = path[..i] + ".jpg";
-            e.ImageUri = new Uri(path);
+            foreach (var source in e.Images.SelectMany(a => a.Sources))
+            {
+                var path = source.OriginalFilename;
+                var i = path.LastIndexOf(".", StringComparison.Ordinal);
+                path = path[..i] + ".jpg";
+                source.OriginalFilename = path;
+            }
         }
 
         public Task RunAsync(IServiceProvider provider, CancellationToken token)

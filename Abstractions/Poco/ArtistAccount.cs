@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Core.Models
+namespace ImageInfrastructure.Abstractions.Poco
 {
     public class ArtistAccount
     {

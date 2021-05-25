@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
+using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageInfrastructure.Core;
-using ImageInfrastructure.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -53,48 +52,31 @@ namespace ImageInfrastructure.Database
         
         private void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
-            try
+            foreach (var image in e.Images)
             {
-                _logger.LogInformation("Saving {Image} to database", e.OriginalFilename);
-                var image = new Image()
+                try
                 {
-                    Blob = e.Data,
-                    Sources = new List<ImageSource>
-                    {
-                        new()
-                        {
-                            Source = ((IImageProvider)sender).Source,
-                            OriginalFilename = e.OriginalFilename,
-                            Uri = e.Uri,
-                            Title = e.Title,
-                            Description = e.Description
-                        }
-                    },
-                    ArtistAccounts = new List<ArtistAccount>
-                    {
-                        new()
-                        {
-                            Name = e.ArtistName,
-                            Url = e.ArtistUrl
-                        }
-                    }
-                };
-                _context.Images.Add(image);
-                _context.SaveChanges();
-                _logger.LogInformation("Finished saving {Image} to database", e.OriginalFilename);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "Unable to write {File}", e.OriginalFilename);
+                    _logger.LogInformation("Saving {Image} to database", image.GetPixivFilename());
+                    _context.Images.Add(image);
+                    _context.SaveChanges();
+                    _logger.LogInformation("Finished saving {Image} to database", image.GetPixivFilename());
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Unable to write {File}", image.GetPixivFilename());
+                }
             }
         }
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            var any = _context.Images.Include(a => a.Sources).Any(a => a.Sources.Any(b => b.Uri == e.ImageUri.AbsoluteUri));
-            if (!any) return;
-            _logger.LogInformation("Image already exists for {Uri}. Skipping!", e.ImageUri.AbsoluteUri);
-            e.Cancel = true;
+            foreach (var image in e.Attachments)
+            {
+                var any = _context.Images.Include(a => a.Sources).Any(a => a.Sources.Any(b => b.Uri == image.Uri));
+                if (!any) return;
+                _logger.LogInformation("Image already exists for {Uri}. Skipping!", image.Uri);
+                image.Cancelled = true;
+            }
         }
 
         public Task RunAsync(IServiceProvider provider, CancellationToken token)

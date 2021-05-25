@@ -156,6 +156,7 @@ namespace ImageInfrastructure.Core
                         builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
                     });
                 }, ServiceLifetime.Transient);
+                services.AddSingleton<ITagContext>(x => x.GetRequiredService<CoreContext>());
                 services.AddLogging(a =>
                 {
                     a.ClearProviders();

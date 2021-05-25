@@ -7,9 +7,7 @@ using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Core;
-using ImageInfrastructure.Core.Models;
-using Microsoft.EntityFrameworkCore;
+using ImageInfrastructure.Abstractions.Poco.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MatchType = IqdbApi.Enums.MatchType;
@@ -20,15 +18,13 @@ namespace ImageInfrastructure.Iqdb
     {
         private ISettingsProvider<IqdbSettings> SettingsProvider { get; set; }
         private readonly ILogger<IqdbModule> _logger;
-        private readonly CoreContext _context;
-        
-        public IqdbModule(ISettingsProvider<IqdbSettings> settingsProvider, ILogger<IqdbModule> logger, CoreContext context)
+
+        public IqdbModule(ISettingsProvider<IqdbSettings> settingsProvider, ILogger<IqdbModule> logger)
         {
             SettingsProvider = settingsProvider;
             _logger = logger;
-            _context = context;
         }
-        
+
         [ModulePostConfiguration(Priority = ModuleInitializationPriority.SourceData)]
         public void PostConfigure(IServiceProvider provider)
         {
@@ -39,7 +35,7 @@ namespace ImageInfrastructure.Iqdb
                 imageProvider.ImageProvided += ImageProvided;
             }
         }
-        
+
         [ModuleShutdown]
         public void Shutdown(IServiceProvider provider)
         {
@@ -59,50 +55,45 @@ namespace ImageInfrastructure.Iqdb
 
         private async Task FindSources(ImageProvidedEventArgs e)
         {
-            try
+            foreach (var image in e.Images)
             {
-                _logger.LogInformation("Querying iqdb for {Image}", e.OriginalFilename);
-                using var client = new IqdbApi.IqdbClient();
-                await using var stream = new MemoryStream(e.Data);
-                var results = await client.SearchFile(stream);
-                if (!results.IsFound) return;
-                var matches = results.Matches.Where(a => a.MatchType == MatchType.Best).ToList();
-                if (!matches.Any()) return;
-                _logger.LogInformation("iqdb found match for {Image}", e.OriginalFilename);
-                var image = await _context.Images.Include(a => a.Sources).FirstOrDefaultAsync(a => a.Sources.Any(b => b.Uri == e.Uri));
-                if (image == null)
+                try
                 {
-                    _logger.LogError("Unable to get image for {Image} in {Type}", e.Uri, GetType().Name);
-                    return;
-                }
+                    _logger.LogInformation("Querying iqdb for {Image}", image.ImageId);
+                    using var client = new IqdbApi.IqdbClient();
+                    await using var stream = new MemoryStream(image.Blob);
+                    var results = await client.SearchFile(stream);
+                    if (!results.IsFound) return;
+                    var matches = results.Matches.Where(a => a.MatchType == MatchType.Best).ToList();
+                    if (!matches.Any()) return;
+                    _logger.LogInformation("iqdb found match for {Image}", image.ImageId);
 
-                foreach (var match in matches)
-                {
-                    image.Sources.Add(new ImageSource
+                    foreach (var match in matches)
                     {
-                        Source = match.Source.ToString(),
-                        Uri = match.Url
-                    });
+                        image.Sources.Add(new ImageSource
+                        {
+                            Source = match.Source.ToString(),
+                            Uri = match.Url
+                        });
+                    }
+                    _logger.LogInformation("Finished saving sources from iqdb for {Image}", image.ImageId);
                 }
+                catch (IqdbApi.Exceptions.ImageTooLargeException)
+                {
 
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Finished saving sources from iqdb for {Image}", e.OriginalFilename);
-            }
-            catch (IqdbApi.Exceptions.ImageTooLargeException)
-            {
-                
-            }
-            catch (IqdbApi.Exceptions.HttpRequestFailed)
-            {
-                
-            }
-            catch (IqdbApi.Exceptions.InvalidFileFormatException)
-            {
-                
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, "Unable to write {File}", e.OriginalFilename);
+                }
+                catch (IqdbApi.Exceptions.HttpRequestFailed)
+                {
+
+                }
+                catch (IqdbApi.Exceptions.InvalidFileFormatException)
+                {
+
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Unable to write {File}", image.ImageId);
+                }
             }
         }
 

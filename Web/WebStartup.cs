@@ -3,7 +3,6 @@ using ImageInfrastructure.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NLog.Extensions.Logging;
 using NLog.Web;
 
 namespace ImageInfrastructure.Web

@@ -21,4 +21,8 @@
       <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Models" />
+    </ItemGroup>
+
 </Project>
