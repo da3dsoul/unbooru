@@ -99,6 +99,12 @@ namespace ImageInfrastructure.Pixiv
                             Tags = new List<ImageTag>()
                         }).ToList()
                     };
+
+                    foreach (var source in disc.Images.SelectMany(a => a.Sources))
+                    {
+                        source.RelatedImages = disc.Images
+                            .Select(a => new RelatedImage {Image = a, ImageSource = source}).ToList();
+                    }
                     disc.Attachments.ForEach(a => a.Post = disc.Post);
                     
                     ImageDiscovered?.Invoke(this, disc);

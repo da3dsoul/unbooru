@@ -31,7 +31,7 @@ namespace ImageInfrastructure.Core.Migrations
                     b.ToTable("ImageImageTag");
                 });
 
-            modelBuilder.Entity("ImageInfrastructure.Core.Models.ArtistAccount", b =>
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ArtistAccount", b =>
                 {
                     b.Property<int>("ArtistAccountId")
                         .ValueGeneratedOnAdd()
@@ -53,7 +53,7 @@ namespace ImageInfrastructure.Core.Migrations
                     b.ToTable("ArtistAccounts");
                 });
 
-            modelBuilder.Entity("ImageInfrastructure.Core.Models.Image", b =>
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.Image", b =>
                 {
                     b.Property<int>("ImageId")
                         .ValueGeneratedOnAdd()
@@ -62,12 +62,18 @@ namespace ImageInfrastructure.Core.Migrations
                     b.Property<byte[]>("Blob")
                         .HasColumnType("BLOB");
 
+                    b.Property<int>("Height")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("ImageId");
 
                     b.ToTable("Images");
                 });
 
-            modelBuilder.Entity("ImageInfrastructure.Core.Models.ImageSource", b =>
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ImageSource", b =>
                 {
                     b.Property<int>("ImageSourceId")
                         .ValueGeneratedOnAdd()
@@ -95,12 +101,10 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.HasIndex("Uri", "Source");
-
                     b.ToTable("ImageSources");
                 });
 
-            modelBuilder.Entity("ImageInfrastructure.Core.Models.ImageTag", b =>
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ImageTag", b =>
                 {
                     b.Property<int>("ImageTagId")
                         .ValueGeneratedOnAdd()
@@ -120,47 +124,88 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasKey("ImageTagId");
 
-                    b.HasIndex("Name", "Safety", "Type");
-
                     b.ToTable("ImageTags");
+                });
+
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.RelatedImage", b =>
+                {
+                    b.Property<int>("RelatedImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ImageId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ImageSourceId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("RelatedImageId");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("ImageSourceId");
+
+                    b.ToTable("RelatedImages");
                 });
 
             modelBuilder.Entity("ImageImageTag", b =>
                 {
-                    b.HasOne("ImageInfrastructure.Core.Models.Image", null)
+                    b.HasOne("ImageInfrastructure.Abstractions.Poco.Image", null)
                         .WithMany()
                         .HasForeignKey("ImagesImageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ImageInfrastructure.Core.Models.ImageTag", null)
+                    b.HasOne("ImageInfrastructure.Abstractions.Poco.ImageTag", null)
                         .WithMany()
                         .HasForeignKey("TagsImageTagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ImageInfrastructure.Core.Models.ArtistAccount", b =>
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ArtistAccount", b =>
                 {
-                    b.HasOne("ImageInfrastructure.Core.Models.Image", null)
+                    b.HasOne("ImageInfrastructure.Abstractions.Poco.Image", null)
                         .WithMany("ArtistAccounts")
                         .HasForeignKey("ImageId");
                 });
 
-            modelBuilder.Entity("ImageInfrastructure.Core.Models.ImageSource", b =>
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ImageSource", b =>
                 {
-                    b.HasOne("ImageInfrastructure.Core.Models.Image", "Image")
+                    b.HasOne("ImageInfrastructure.Abstractions.Poco.Image", "Image")
                         .WithMany("Sources")
                         .HasForeignKey("ImageId");
 
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("ImageInfrastructure.Core.Models.Image", b =>
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.RelatedImage", b =>
+                {
+                    b.HasOne("ImageInfrastructure.Abstractions.Poco.Image", "Image")
+                        .WithMany("RelatedImages")
+                        .HasForeignKey("ImageId");
+
+                    b.HasOne("ImageInfrastructure.Abstractions.Poco.ImageSource", "ImageSource")
+                        .WithMany("RelatedImages")
+                        .HasForeignKey("ImageSourceId");
+
+                    b.Navigation("Image");
+
+                    b.Navigation("ImageSource");
+                });
+
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.Image", b =>
                 {
                     b.Navigation("ArtistAccounts");
 
+                    b.Navigation("RelatedImages");
+
                     b.Navigation("Sources");
+                });
+
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ImageSource", b =>
+                {
+                    b.Navigation("RelatedImages");
                 });
 #pragma warning restore 612, 618
         }

@@ -16,5 +16,8 @@ namespace ImageInfrastructure.Abstractions.Poco
 
         public List<ImageSource> Sources { get; set; }
         public List<ImageTag> Tags { get; set; }
+
+        [IgnoreDataMember]
+        public List<RelatedImage> RelatedImages { get; set; }
     }
 }

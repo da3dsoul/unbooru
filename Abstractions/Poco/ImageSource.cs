@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace ImageInfrastructure.Abstractions.Poco
@@ -15,5 +18,10 @@ namespace ImageInfrastructure.Abstractions.Poco
 
         [IgnoreDataMember]
         public Image Image { get; set; }
+
+        [IgnoreDataMember]
+        public List<RelatedImage> RelatedImages { get; set; }
+
+        [NotMapped] public List<int> RelatedImageIds => RelatedImages.Select(a => a.Image.ImageId).ToList();
     }
 }

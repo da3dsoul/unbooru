@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
@@ -22,7 +23,7 @@ namespace ImageInfrastructure.ImageCompressor
             _logger = logger;
         }
         
-        [ModulePostConfiguration(Priority = ModuleInitializationPriority.PreDatabase)]
+        [ModulePostConfiguration(Priority = ModuleInitializationPriority.PreProcessing)]
         public void PostConfigure(IServiceProvider provider)
         {
             var imageProviders = provider.GetServices<IImageProvider>().ToList();
@@ -53,7 +54,7 @@ namespace ImageInfrastructure.ImageCompressor
             {
                 try
                 {
-                    _logger.LogInformation("Compressing {Path}", img.ImageId);
+                    _logger.LogInformation("Compressing {Path}", img.GetPixivFilename());
                     using var image = new MagickImage(img.Blob) {Format = MagickFormat.Pjpeg, Quality = 100};
                     var data = image.ToByteArray();
                     img.Blob = data;
@@ -61,7 +62,7 @@ namespace ImageInfrastructure.ImageCompressor
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Unable to compress {File}", img.ImageId);
+                    _logger.LogError(exception, "Unable to compress {File}", img.GetPixivFilename());
                 }
             }
         }

@@ -52,19 +52,19 @@ namespace ImageInfrastructure.Database
         
         private void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
-            foreach (var image in e.Images)
+            using var trans = _context.Database.BeginTransaction();
+            try
             {
-                try
-                {
-                    _logger.LogInformation("Saving {Image} to database", image.GetPixivFilename());
-                    _context.Images.Add(image);
-                    _context.SaveChanges();
-                    _logger.LogInformation("Finished saving {Image} to database", image.GetPixivFilename());
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError(exception, "Unable to write {File}", image.GetPixivFilename());
-                }
+                _logger.LogInformation("Saving {Count} to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
+                _context.Images.AddRange(e.Images);
+                _context.SaveChanges();
+                trans.Commit();
+                _logger.LogInformation("Finished saving {Count} to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
+            }
+            catch (Exception exception)
+            {
+                trans.Rollback();
+                _logger.LogError(exception, "Unable to write {File}", e.Images.FirstOrDefault()?.GetPixivFilename());
             }
         }
 

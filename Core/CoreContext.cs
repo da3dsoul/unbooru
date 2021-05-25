@@ -16,6 +16,7 @@ namespace ImageInfrastructure.Core
         [UsedImplicitly] public DbSet<Image> Images { get; set; }
         [UsedImplicitly] public DbSet<ArtistAccount> ArtistAccounts { get; set; }
         [UsedImplicitly] public DbSet<ImageSource> ImageSources { get; set; }
+        [UsedImplicitly] public DbSet<RelatedImage> RelatedImages { get; set; }
         [UsedImplicitly] public DbSet<ImageTag> ImageTags { get; set; }
 
         private readonly Dictionary<string, ImageTag> _tagNames = new();
@@ -30,7 +31,7 @@ namespace ImageInfrastructure.Core
         {
             if (_tagNames.ContainsKey(tag.Name))
             {
-                existing = tag;
+                existing = _tagNames[tag.Name];
                 return true;
             }
 
@@ -95,5 +96,12 @@ namespace ImageInfrastructure.Core
             optionsBuilder.UseSqlite(
                 $"Data Source={path};");
         }
+
+        /*protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ImageSource>().HasMany(a => a.RelatedImages).WithOne(a => a.ImageSource);
+            modelBuilder.Entity<Image>().HasMany(a => a.RelatedImages).WithOne(a => a.Image);
+            modelBuilder.Entity<ImageSource>().HasOne(a => a.Image).WithMany(a => a.Sources);
+        }*/
     }
 }

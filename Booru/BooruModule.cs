@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BooruSharp.Booru;
 using BooruSharp.Search.Tag;
+using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
@@ -108,19 +109,21 @@ namespace ImageInfrastructure.Booru
                                 if (postTag == null) continue;
                                 var tagName = postTag.Replace("_", " ");
 
-                                bool updateTag = false;
-                                var existingTag = new ImageTag
-                                {
-                                    Name = tagName
-                                };
-
-                                if (!_tagContext.GetTag(existingTag, out existingTag)) updateTag = true;
-                                if (!image.Tags.Contains(existingTag)) image.Tags.Add(existingTag);
-                                count++;
-
-                                if (!updateTag) continue;
                                 try
                                 {
+                                    bool updateTag = false;
+                                    var existingTag = new ImageTag
+                                    {
+                                        Name = tagName
+                                    };
+
+                                    if (!_tagContext.GetTag(existingTag, out var outputTag)) updateTag = true;
+                                    else existingTag = outputTag;
+                                    if (!image.Tags.Contains(existingTag)) image.Tags.Add(existingTag);
+                                    count++;
+
+                                    if (!updateTag) continue;
+                                
                                     var tagInfo = await booru.GetTagAsync(postTag);
                                     if (tagInfo.Type == TagType.Artist) continue;
 
@@ -128,20 +131,20 @@ namespace ImageInfrastructure.Booru
                                 }
                                 catch (Exception exception)
                                 {
-                                    _logger.LogError(exception, "");
+                                    _logger.LogError(exception, "{Exception}", exception.ToString());
                                 }
                             }
                         }
                         catch (Exception exception)
                         {
-                            _logger.LogError(exception, "");
+                            _logger.LogError(exception, "{Exception}", exception.ToString());
                         }
                     }
-                    _logger.LogInformation("Finished Saving {Count} tags for {Image}", count, image.ImageId);
+                    _logger.LogInformation("Finished Saving {Count} tags for {Image}", count, image.GetPixivFilename());
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Unable to get tags for {ImageId}", image.ImageId);
+                    _logger.LogError(exception, "Unable to get tags for {Image}", image.GetPixivFilename());
                 }
             }
         }

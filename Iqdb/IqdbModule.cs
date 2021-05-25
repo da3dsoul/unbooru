@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
@@ -59,14 +60,14 @@ namespace ImageInfrastructure.Iqdb
             {
                 try
                 {
-                    _logger.LogInformation("Querying iqdb for {Image}", image.ImageId);
+                    _logger.LogInformation("Querying iqdb for {Image}", image.GetPixivFilename());
                     using var client = new IqdbApi.IqdbClient();
                     await using var stream = new MemoryStream(image.Blob);
                     var results = await client.SearchFile(stream);
                     if (!results.IsFound) return;
                     var matches = results.Matches.Where(a => a.MatchType == MatchType.Best).ToList();
                     if (!matches.Any()) return;
-                    _logger.LogInformation("iqdb found match for {Image}", image.ImageId);
+                    _logger.LogInformation("iqdb found match for {Image}", image.GetPixivFilename());
 
                     foreach (var match in matches)
                     {
@@ -76,7 +77,7 @@ namespace ImageInfrastructure.Iqdb
                             Uri = match.Url
                         });
                     }
-                    _logger.LogInformation("Finished saving sources from iqdb for {Image}", image.ImageId);
+                    _logger.LogInformation("Finished saving sources from iqdb for {Image}", image.GetPixivFilename());
                 }
                 catch (IqdbApi.Exceptions.ImageTooLargeException)
                 {
@@ -92,7 +93,7 @@ namespace ImageInfrastructure.Iqdb
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Unable to write {File}", image.ImageId);
+                    _logger.LogError(exception, "Unable to write {File}", image.GetPixivFilename());
                 }
             }
         }

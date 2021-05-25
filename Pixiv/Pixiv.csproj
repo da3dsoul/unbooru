@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
         <RootNamespace>ImageInfrastructure.Pixiv</RootNamespace>
         <AssemblyName>ImageInfrastructure.Pixiv</AssemblyName>
+        <LangVersion>Latest</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
