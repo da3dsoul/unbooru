@@ -52,27 +52,36 @@ namespace ImageInfrastructure.Database
         
         private void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
-            using var trans = _context.Database.BeginTransaction();
+            Save(e).Wait();
+        }
+
+        private async Task Save(ImageProvidedEventArgs e)
+        {
+            await using var trans = await _context.Database.BeginTransactionAsync();
             try
             {
-                _logger.LogInformation("Saving {Count} to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
-                _context.Images.AddRange(e.Images);
-                _context.SaveChanges();
-                trans.Commit();
-                _logger.LogInformation("Finished saving {Count} to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
+                _logger.LogInformation("Saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
+                await _context.ArtistAccounts.AddRangeAsync(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct());
+                await _context.ImageTags.AddRangeAsync(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct());
+                await _context.RelatedImages.AddRangeAsync(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct());
+                await _context.Images.AddRangeAsync(e.Images);
+                await _context.SaveChangesAsync();
+                await trans.CommitAsync();
+                _logger.LogInformation("Finished saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
             }
             catch (Exception exception)
             {
-                trans.Rollback();
+                await trans.RollbackAsync();
                 _logger.LogError(exception, "Unable to write {File}", e.Images.FirstOrDefault()?.GetPixivFilename());
             }
         }
 
-        private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
+        private async void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            foreach (var attachment in e.Attachments)
+            foreach (var attachment in e.Attachments.ToList())
             {
-                var any = _context.Images.Include(a => a.Sources).Any(a => a.Sources.Any(b => b.Uri == attachment.Uri));
+                var any = await _context.Images.AsSplitQuery().Include(a => a.Sources)
+                    .AnyAsync(a => a.Sources.Any(b => b.Uri == attachment.Uri));
                 if (!any) return;
                 _logger.LogInformation("Image already exists for {Uri}. Skipping!", attachment.Uri);
                 e.CancelAttachmentDownload(_logger, attachment);

@@ -20,7 +20,7 @@ namespace ImageInfrastructure.Web.Controllers
             var context = HttpContext.RequestServices.GetService<CoreContext>();
             if (context == null) return new NotFoundResult();
             var image = await context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts)
-                .AsSplitQuery().FirstOrDefaultAsync(a => a.ImageId == id);
+                .AsSplitQuery().OrderBy(a => a.ImageId).FirstOrDefaultAsync(a => a.ImageId == id);
             if (image == null) return new NotFoundResult();
             return image;
         }
@@ -30,7 +30,7 @@ namespace ImageInfrastructure.Web.Controllers
         {
             var context = HttpContext.RequestServices.GetService<CoreContext>();
             if (context == null) return new NotFoundResult();
-            var image = await context.Images.FirstOrDefaultAsync(a => a.ImageId == id);
+            var image = await context.Images.OrderBy(a => a.ImageId).FirstOrDefaultAsync(a => a.ImageId == id);
             if (image == null) return new NotFoundResult();
             return File(image.Blob, MimeTypes.GetMimeType(filename));
         }

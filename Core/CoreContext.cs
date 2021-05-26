@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Abstractions.Interfaces;
+using ImageInfrastructure.Abstractions.Interfaces.Contexts;
 using ImageInfrastructure.Abstractions.Poco;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 
 namespace ImageInfrastructure.Core
 {
-    public class CoreContext : DbContext, ITagContext
+    public class CoreContext : DbContext, ITagContext, IArtistContext
     {
         [UsedImplicitly] public DbSet<Image> Images { get; set; }
         [UsedImplicitly] public DbSet<ArtistAccount> ArtistAccounts { get; set; }
@@ -19,7 +19,8 @@ namespace ImageInfrastructure.Core
         [UsedImplicitly] public DbSet<RelatedImage> RelatedImages { get; set; }
         [UsedImplicitly] public DbSet<ImageTag> ImageTags { get; set; }
 
-        private readonly Dictionary<string, ImageTag> _tagNames = new();
+        private static readonly Dictionary<string, ImageTag> TagNames = new();
+        private static readonly Dictionary<string, ArtistAccount> ArtistIds = new();
 
         public CoreContext() {}
         
@@ -27,57 +28,82 @@ namespace ImageInfrastructure.Core
         {
         }
 
-        public bool GetTag(ImageTag tag, out ImageTag existing)
+        public async Task<ImageTag> GetTag(ImageTag tag)
         {
-            if (_tagNames.ContainsKey(tag.Name))
+            if (TagNames.ContainsKey(tag.Name))
+                return TagNames[tag.Name];
+
+            var existingTag = await ImageTags.AsSplitQuery().Include(a => a.Images).OrderBy(a => a.ImageTagId)
+                .FirstOrDefaultAsync(a => a.Name == tag.Name); if (existingTag != null)
             {
-                existing = _tagNames[tag.Name];
-                return true;
+                TagNames.Add(existingTag.Name, existingTag);
+                return existingTag;
             }
 
-            var existingTag = ImageTags.FirstOrDefault(a => a.Name == tag.Name);
-            if (existingTag != null)
-            {
-                _tagNames.Add(existingTag.Name, existingTag);
-                existing = existingTag;
-                return true;
-            }
-
-            _tagNames.Add(tag.Name, tag);
-            existing = null;
-            return false;
+            TagNames.Add(tag.Name, tag);
+            return null;
         }
 
         public void FlushTags()
         {
-            var changes = ChangeTracker.Entries<ImageTag>().Select(a => a.Entity.Name).ToList();
+            var changes = ChangeTracker.Entries<ImageTag>().Select(a => a.Entity.Name).Distinct().ToList();
             foreach (var change in changes)
             {
-                if (_tagNames.ContainsKey(change)) _tagNames.Remove(change);
+                if (TagNames.ContainsKey(change)) TagNames.Remove(change);
+            }
+        }
+        
+        public async Task<ArtistAccount> GetArtist(ArtistAccount artist)
+        {
+            if (ArtistIds.ContainsKey(artist.Id))
+                return ArtistIds[artist.Id];
+
+            var existingArtist = await ArtistAccounts.AsSplitQuery().Include(a => a.Images)
+                .OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.Id == artist.Id); 
+            if (existingArtist != null)
+            {
+                ArtistIds.Add(existingArtist.Id, existingArtist);
+                return existingArtist;
+            }
+
+            ArtistIds.Add(artist.Id, artist);
+            return null;
+        }
+
+        public void FlushArtists()
+        {
+            var changes = ChangeTracker.Entries<ArtistAccount>().Select(a => a.Entity.Id).Distinct().ToList();
+            foreach (var change in changes)
+            {
+                if (ArtistIds.ContainsKey(change)) ArtistIds.Remove(change);
             }
         }
 
         public override int SaveChanges()
         {
             FlushTags();
+            FlushArtists();
             return base.SaveChanges();
         }
 
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
             FlushTags();
+            FlushArtists();
             return base.SaveChanges(acceptAllChangesOnSuccess);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             FlushTags();
+            FlushArtists();
             return base.SaveChangesAsync(cancellationToken);
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = new CancellationToken())
         {
             FlushTags();
+            FlushArtists();
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
 
@@ -93,15 +119,17 @@ namespace ImageInfrastructure.Core
             {
                 path = "Core.db3";
             }
-            optionsBuilder.UseSqlite(
-                $"Data Source={path};");
+            optionsBuilder.UseSqlite($"Data Source={path};");
         }
 
-        /*protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ImageSource>().HasMany(a => a.RelatedImages).WithOne(a => a.ImageSource);
-            modelBuilder.Entity<Image>().HasMany(a => a.RelatedImages).WithOne(a => a.Image);
-            modelBuilder.Entity<ImageSource>().HasOne(a => a.Image).WithMany(a => a.Sources);
-        }*/
+            modelBuilder.Entity<ImageTag>().HasIndex(a => a.Name).IsUnique();
+            modelBuilder.Entity<ImageTag>().HasIndex(a => new {a.Safety, a.Type});
+            modelBuilder.Entity<ImageSource>().HasIndex(a => new {a.Uri, a.Source});
+            modelBuilder.Entity<ArtistAccount>().HasIndex(a => new {a.Id}).IsUnique();
+            modelBuilder.Entity<ArtistAccount>().HasKey(a => a.ArtistAccountId);
+            modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);
+        }
     }
 }

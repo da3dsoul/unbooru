@@ -3,33 +3,20 @@ using System;
 using ImageInfrastructure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageInfrastructure.Core.Migrations
 {
     [DbContext(typeof(CoreContext))]
-    partial class CoreContextModelSnapshot : ModelSnapshot
+    [Migration("20210526014036_ReaddIndexes")]
+    partial class ReaddIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "6.0.0-preview.3.21201.2");
-
-            modelBuilder.Entity("ArtistAccountImage", b =>
-                {
-                    b.Property<int>("ArtistAccountsArtistAccountId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ImagesImageId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("ArtistAccountsArtistAccountId", "ImagesImageId");
-
-                    b.HasIndex("ImagesImageId");
-
-                    b.ToTable("ArtistAccountImage");
-                });
 
             modelBuilder.Entity("ImageImageTag", b =>
                 {
@@ -55,6 +42,9 @@ namespace ImageInfrastructure.Core.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ImageId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
@@ -65,6 +55,8 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasIndex("Id")
                         .IsUnique();
+
+                    b.HasIndex("ImageId");
 
                     b.ToTable("ArtistAccounts");
                 });
@@ -171,21 +163,6 @@ namespace ImageInfrastructure.Core.Migrations
                     b.ToTable("RelatedImages");
                 });
 
-            modelBuilder.Entity("ArtistAccountImage", b =>
-                {
-                    b.HasOne("ImageInfrastructure.Abstractions.Poco.ArtistAccount", null)
-                        .WithMany()
-                        .HasForeignKey("ArtistAccountsArtistAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ImageInfrastructure.Abstractions.Poco.Image", null)
-                        .WithMany()
-                        .HasForeignKey("ImagesImageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ImageImageTag", b =>
                 {
                     b.HasOne("ImageInfrastructure.Abstractions.Poco.Image", null)
@@ -199,6 +176,13 @@ namespace ImageInfrastructure.Core.Migrations
                         .HasForeignKey("TagsImageTagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ArtistAccount", b =>
+                {
+                    b.HasOne("ImageInfrastructure.Abstractions.Poco.Image", null)
+                        .WithMany("ArtistAccounts")
+                        .HasForeignKey("ImageId");
                 });
 
             modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ImageSource", b =>
@@ -227,6 +211,8 @@ namespace ImageInfrastructure.Core.Migrations
 
             modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.Image", b =>
                 {
+                    b.Navigation("ArtistAccounts");
+
                     b.Navigation("RelatedImages");
 
                     b.Navigation("Sources");

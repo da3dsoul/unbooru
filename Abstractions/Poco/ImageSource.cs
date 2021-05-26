@@ -22,6 +22,37 @@ namespace ImageInfrastructure.Abstractions.Poco
         [IgnoreDataMember]
         public List<RelatedImage> RelatedImages { get; set; }
 
-        [NotMapped] public List<int> RelatedImageIds => RelatedImages.Select(a => a.Image.ImageId).ToList();
+        [NotMapped] public List<int> RelatedImageIds => RelatedImages?.Select(a => a.Image.ImageId).ToList() ?? new List<int>();
+
+        protected bool Equals(ImageSource other)
+        {
+            return Source == other.Source && Uri == other.Uri;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((ImageSource) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((Source != null ? Source.GetHashCode() : 0) * 397) ^ (Uri != null ? Uri.GetHashCode() : 0);
+            }
+        }
+
+        public static bool operator ==(ImageSource left, ImageSource right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(ImageSource left, ImageSource right)
+        {
+            return !Equals(left, right);
+        }
     }
 }

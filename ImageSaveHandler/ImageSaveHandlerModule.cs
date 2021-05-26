@@ -101,7 +101,7 @@ namespace ImageInfrastructure.ImageSaveHandler
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            foreach (var attachment in e.Attachments)
+            foreach (var attachment in e.Attachments.ToList())
             {
                 var path = GetImagePath(attachment);
                 if (!File.Exists(path)) return;

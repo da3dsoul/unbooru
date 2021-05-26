@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
+using ImageInfrastructure.Abstractions.Interfaces.Contexts;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,30 +70,33 @@ namespace ImageInfrastructure.Booru
                     foreach (var source in sources)
                     {
                         ABooru booru;
-                        Func<object, Task<SearchResult>> getPost;
-                        object arg;
-                        
+                        Func<string, Task<SearchResult>> getPost;
+
                         switch (source.Source.ToLower())
                         {
                             case "gelbooru":
                             {
                                 booru = new Gelbooru();
-                                var i = source.Uri.LastIndexOf("md5=", StringComparison.Ordinal) + 4;
-                                var id = source.Uri[i..];
-                                i = id.IndexOf('&');
-                                if (i > -1) id = id[..i];
-                                arg = id;
-                                getPost = o => booru.GetPostByMd5Async((string) o);
+                                getPost = async url =>
+                                {
+                                    var i = url.LastIndexOf("md5=", StringComparison.Ordinal) + 4;
+                                    var id = url[i..];
+                                    i = id.IndexOf('&');
+                                    if (i > -1) id = id[..i];    
+                                    return await booru.GetPostByMd5Async(id);
+                                };
                                 break;
                             }
                             case "danbooru":
                             {
                                 booru = new DanbooruDonmai();
-                                var i = source.Uri.LastIndexOf("/", StringComparison.Ordinal) + 1;
-                                var idString = source.Uri[i..];
-                                if (!int.TryParse(idString, out int id)) continue;
-                                arg = id;
-                                getPost = o => booru.GetPostByIdAsync((int) o);
+                                getPost = async url =>
+                                {
+                                    var i = url.LastIndexOf("/", StringComparison.Ordinal) + 1;
+                                    var idString = url[i..];
+                                    var id = int.Parse(idString);
+                                    return await booru.GetPostByIdAsync(id);
+                                };
                                 break;
                             }
                             default:
@@ -103,7 +108,7 @@ namespace ImageInfrastructure.Booru
                         
                         try
                         {
-                            var post = await getPost(arg);
+                            var post = await getPost(source.Uri);
                             foreach (var postTag in post.Tags)
                             {
                                 if (postTag == null) continue;
@@ -111,15 +116,23 @@ namespace ImageInfrastructure.Booru
 
                                 try
                                 {
-                                    bool updateTag = false;
+                                    var updateTag = false;
                                     var existingTag = new ImageTag
                                     {
-                                        Name = tagName
+                                        Name = tagName,
+                                        Images = new List<Image>()
                                     };
 
-                                    if (!_tagContext.GetTag(existingTag, out var outputTag)) updateTag = true;
+                                    var outputTag = await _tagContext.GetTag(existingTag);
+                                    if (outputTag == null) updateTag = true;
                                     else existingTag = outputTag;
-                                    if (!image.Tags.Contains(existingTag)) image.Tags.Add(existingTag);
+
+                                    if (!image.Tags.Contains(existingTag))
+                                    {
+                                        existingTag.Images.Add(image);
+                                        image.Tags.Add(existingTag);
+                                        if (string.IsNullOrEmpty(existingTag.Type)) updateTag = true;
+                                    }
                                     count++;
 
                                     if (!updateTag) continue;

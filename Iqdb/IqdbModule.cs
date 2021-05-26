@@ -74,7 +74,8 @@ namespace ImageInfrastructure.Iqdb
                         image.Sources.Add(new ImageSource
                         {
                             Source = match.Source.ToString(),
-                            Uri = match.Url
+                            Uri = match.Url,
+                            Image = image
                         });
                     }
                     _logger.LogInformation("Finished saving sources from iqdb for {Image}", image.GetPixivFilename());

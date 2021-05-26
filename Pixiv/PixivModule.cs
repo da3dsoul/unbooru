@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Interfaces;
+using ImageInfrastructure.Abstractions.Interfaces.Contexts;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageInfrastructure.Abstractions.Poco.Ingest;
@@ -16,6 +17,7 @@ namespace ImageInfrastructure.Pixiv
     public class PixivModule : IModule, IServiceModule, IImageProvider
     {
         private readonly ILogger<PixivModule> _logger;
+        private readonly IArtistContext _artistContext;
         
         public EventHandler<ImageDiscoveredEventArgs> ImageDiscovered { get; set; }
         public EventHandler<ImageProvidedEventArgs> ImageProvided { get; set; }
@@ -24,10 +26,11 @@ namespace ImageInfrastructure.Pixiv
 
         public string Source => "Pixiv";
 
-        public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider)
+        public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider, IArtistContext artistContext)
         {
             _logger = logger;
             SettingsProvider = settingsProvider;
+            _artistContext = artistContext;
         }
         
         public async Task RunAsync(IServiceProvider provider, CancellationToken token)
@@ -66,6 +69,16 @@ namespace ImageInfrastructure.Pixiv
                 _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1,
                     SettingsProvider.Get(a => a.MaxImagesToDownload), image.Id, image.Title);
 
+                var newArtist = new ArtistAccount
+                {
+                    Id = image.User.Id.ToString(),
+                    Name = image.User.Name,
+                    Url = image.User.Account,
+                    Images = new List<Image>()
+                };
+                var existingArtist = await _artistContext.GetArtist(newArtist);
+                if (existingArtist != null) newArtist = existingArtist;
+
                 var disc = new ImageDiscoveredEventArgs
                 {
                     Post = new Post
@@ -82,7 +95,6 @@ namespace ImageInfrastructure.Pixiv
                         return new Attachment
                         {
                             Uri = content.Uri.AbsoluteUri,
-                            // this is used for identity verification, so it being accurate isn't as important as being unique
                             Size = (image.SizePixels.Width, image.SizePixels.Height),
                         };
                     }).ToList(),
@@ -101,22 +113,24 @@ namespace ImageInfrastructure.Pixiv
                                 OriginalFilename = Path.GetFileName(a.Original.Uri.AbsoluteUri)
                             }
                         },
-                        ArtistAccounts = new List<ArtistAccount>
-                        {
-                            new()
-                            {
-                                Name = image.User.Name,
-                                Url = image.User.Account
-                            }
-                        },
+                        ArtistAccounts = new List<ArtistAccount> { newArtist },
                         Tags = new List<ImageTag>()
                     }).ToList()
                 };
 
-                foreach (var source in disc.Images.SelectMany(a => a.Sources))
+                // add images to the Artist mapping
+                newArtist.Images.AddRange(disc.Images);
+
+                // Generate Related Images. These are downloaded as pixiv collections, so they are related by nature
+                foreach (var tempImage in disc.Images)
                 {
-                    source.RelatedImages = disc.Images
-                        .Select(a => new RelatedImage {Image = a, ImageSource = source}).ToList();
+                    foreach (var source in tempImage.Sources)
+                    {
+                        source.RelatedImages = disc.Images
+                            .Select(a => new RelatedImage {Image = a, ImageSource = source}).ToList();
+                    }
+
+                    tempImage.RelatedImages = tempImage.Sources.FirstOrDefault()?.RelatedImages;
                 }
 
                 disc.Attachments.ForEach(a => a.Post = disc.Post);
