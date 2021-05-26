@@ -124,11 +124,28 @@ namespace ImageInfrastructure.Core
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // nullability
+            modelBuilder.Entity<Image>().Property(a => a.Blob).IsRequired();
+            modelBuilder.Entity<Image>().Property(a => a.Width).IsRequired();
+            modelBuilder.Entity<Image>().Property(a => a.Height).IsRequired();
+            modelBuilder.Entity<ImageSource>().Property(a => a.Source).IsRequired();
+            modelBuilder.Entity<ImageSource>().Property(a => a.Uri).IsRequired();
+            modelBuilder.Entity<ImageSource>().Property(a => a.Title).IsUnicode();
+            modelBuilder.Entity<ImageTag>().Property(a => a.Name).IsRequired();
+            modelBuilder.Entity<ArtistAccount>().Property(a => a.Id).IsRequired();
+            modelBuilder.Entity<ArtistAccount>().Property(a => a.Url).IsRequired();
+            modelBuilder.Entity<ArtistAccount>().Property(a => a.Name).IsRequired().IsUnicode();
+            
+            // indexes
             modelBuilder.Entity<ImageTag>().HasIndex(a => a.Name).IsUnique();
             modelBuilder.Entity<ImageTag>().HasIndex(a => new {a.Safety, a.Type});
             modelBuilder.Entity<ImageSource>().HasIndex(a => new {a.Uri, a.Source});
             modelBuilder.Entity<ArtistAccount>().HasIndex(a => new {a.Id}).IsUnique();
+            
+            // keys
             modelBuilder.Entity<ArtistAccount>().HasKey(a => a.ArtistAccountId);
+
+            // mappings
             modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);
         }
     }

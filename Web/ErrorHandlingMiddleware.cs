@@ -34,7 +34,7 @@ namespace ImageInfrastructure.Web
             HttpContext context,
             Exception exception)
         {
-            _logger.LogError(exception, "");
+            _logger.LogError(exception, "{Error}", exception);
 
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "text/plain";

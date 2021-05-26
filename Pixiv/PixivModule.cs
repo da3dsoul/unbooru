@@ -136,7 +136,7 @@ namespace ImageInfrastructure.Pixiv
                 disc.Attachments.ForEach(a => a.Post = disc.Post);
 
                 ImageDiscovered?.Invoke(this, disc);
-                if (disc.Cancel || !disc.Attachments.Any())
+                if (disc.Cancel || disc.Attachments.All(a => !a.Download))
                 {
                     _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
                     continue;
@@ -151,6 +151,7 @@ namespace ImageInfrastructure.Pixiv
 
                 foreach (var page in image.Pages)
                 {
+                    if (!prov.Attachments[page.Index].Download) continue;
                     var content = page.Original;
 
                     await using var stream = await content.RequestStreamAsync(token);
@@ -162,6 +163,16 @@ namespace ImageInfrastructure.Pixiv
                     prov.Attachments[page.Index].Filesize = data.LongLength;
                     prov.Images[page.Index].Blob = data;
                 }
+                
+                // filter out the ones we won't download and don't exist
+                var indicesToRemove = prov.Attachments.Select((a, i1) => (a, i1)).Where(a => !a.a.Download)
+                    .Select(a => a.i1).ToList();
+                indicesToRemove.ForEach(a =>
+                {
+                    if (prov.Images[a].ImageId != 0) return;
+                    prov.Attachments.RemoveAt(a);
+                    prov.Images.RemoveAt(a);
+                });
 
                 ImageProvided?.Invoke(this, prov);
                 if (prov.Cancel)

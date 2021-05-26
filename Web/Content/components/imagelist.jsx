@@ -11,7 +11,36 @@ export function ImageList(props) {
         loadingMore: false,
     });
 
-    function loadMoreClicked(evt) {
+    function previousClicked(evt) {
+        let prevPage = (state.page === 1 ? 1 : state.page - 1);
+        let images = state.images;
+        updateState(prevState => ({
+            ...prevState,
+            page: prevPage,
+            loadingMore: true,
+        }));
+
+        let offset = ((state.page - 1) * 20);
+        if (offset < 0) offset = 0;
+        let url = '/Image/Latest?limit=20&offset=' + offset;
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onload = () => {
+            let data = JSON.parse(xhr.responseText);
+            updateState(prevState => ({
+                ...prevState,
+                images: data,
+                hasMore: (data.length === 20),
+                loadingMore: false,
+            }));
+        };
+        xhr.send();
+        evt.preventDefault();
+    }
+
+    function nextClicked(evt) {
         let nextPage = state.page + 1;
         let images = state.images;
         updateState(prevState => ({
@@ -29,7 +58,7 @@ export function ImageList(props) {
             let data = JSON.parse(xhr.responseText);
             updateState(prevState => ({
                 ...prevState,
-                images: images.concat(data),
+                images: data,
                 hasMore: (data.length === 20),
                 loadingMore: false,
             }));
@@ -43,16 +72,31 @@ export function ImageList(props) {
     ));
 
     function renderMoreLink() {
+        let previous = (
+            <Reactstrap.Button onClick={previousClicked}>
+                Previous
+            </Reactstrap.Button>
+        );
+        let next = (
+            <Reactstrap.Button onClick={nextClicked}>
+                Next
+            </Reactstrap.Button>
+        );
         if (state.loadingMore) {
             return <em>Loading...</em>;
-        } else if (state.hasMore) {
+        } else if (state.hasMore && state.page > 1) {
             return (
-                <Reactstrap.Button onClick={loadMoreClicked}>
-                    Load More
-                </Reactstrap.Button>
+                <div>
+                    {previous}
+                    {next}
+                </div>
             );
+        } else if (state.hasMore) {
+            return next;
+        } else if (state.page > 1) {
+            return previous;
         } else {
-            return <em>No more images</em>;
+            return (<em>No more images...</em>);
         }
     }
 
@@ -76,7 +120,7 @@ class ImageBox extends React.Component {
                 <h4>By: {this.props.image.artistAccounts[0].name}</h4>
                 <LazyLoadImage src={"/Image/" + this.props.image.imageId + "/file.jpg"}
                      alt={this.props.image.sources[0].title}
-                     width={350} style={{"max-height": 650 + "pt"}}
+                     width={350} style={{"maxHeight": 650 + "pt"}}
                 />
             </li>
         );

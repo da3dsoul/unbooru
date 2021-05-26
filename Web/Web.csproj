@@ -7,6 +7,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Properties" />
+    <None Include="wwwroot/**/*.*" >
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <!--<FrameworkReference Include="Microsoft.AspNetCore.App" />-->
@@ -32,12 +35,5 @@
   </ItemGroup>
   <Target Name="ReactBuild" AfterTargets="Build">
     <Exec Command="npm i &amp;&amp; npm run build" />
-    <Copy SourceFiles="@(NPM)" DestinationFolder="$(OutDir)/%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
-  <ItemGroup>
-    <NPM Include="wwwroot/dist/*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
-  </ItemGroup>
 </Project>

@@ -53,12 +53,16 @@ namespace ImageInfrastructure.Core.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Id")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .IsUnicode(true)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Url")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("ArtistAccountId");
@@ -76,6 +80,7 @@ namespace ImageInfrastructure.Core.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<byte[]>("Blob")
+                        .IsRequired()
                         .HasColumnType("BLOB");
 
                     b.Property<int>("Height")
@@ -105,12 +110,15 @@ namespace ImageInfrastructure.Core.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Source")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
+                        .IsUnicode(true)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Uri")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("ImageSourceId");
@@ -132,6 +140,7 @@ namespace ImageInfrastructure.Core.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Safety")

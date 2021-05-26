@@ -23,6 +23,7 @@ namespace ImageInfrastructure.Web
         {
             return hostBuilder.ConfigureWebHostDefaults(options =>
             {
+                //
                 options.UseStartup<AspNetCoreStartup>().ConfigureLogging(a => a.AddNLogWeb());
             });
         }
