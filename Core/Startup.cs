@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Interfaces.Contexts;
+using ImageInfrastructure.Abstractions.Poco;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -166,8 +166,9 @@ namespace ImageInfrastructure.Core
                         builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
                     });
                 });
-                services.AddScoped<ITagContext>(x => x.GetRequiredService<CoreContext>());
-                services.AddScoped<IArtistContext>(x => x.GetRequiredService<CoreContext>());
+                services.AddScoped<IContext<ImageTag>>(x => x.GetRequiredService<CoreContext>());
+                services.AddScoped<IContext<ArtistAccount>>(x => x.GetRequiredService<CoreContext>());
+                services.AddScoped<IContext<Image>>(x => x.GetRequiredService<CoreContext>());
                 services.AddLogging(a =>
                 {
                     a.ClearProviders();

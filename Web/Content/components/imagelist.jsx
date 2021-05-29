@@ -20,7 +20,7 @@ export function ImageList(props) {
             loadingMore: true,
         }));
 
-        let offset = ((state.page - 1) * 20);
+        let offset = (state.page - 1) * 20;
         if (offset < 0) offset = 0;
         let url = '/Image/Latest?limit=20&offset=' + offset;
         let xhr = new XMLHttpRequest();
@@ -49,7 +49,7 @@ export function ImageList(props) {
             loadingMore: true,
         }));
 
-        let url = '/Image/Latest?limit=20&offset=' + ((state.page + 1) * 20);
+        let url = '/Image/Latest?limit=20&offset=' + ((state.page - 1) * 20);
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');

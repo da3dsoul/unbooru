@@ -9,7 +9,6 @@ using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Attributes;
 using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Interfaces.Contexts;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,9 +21,9 @@ namespace ImageInfrastructure.Booru
     {
         private ISettingsProvider<BooruSettings> SettingsProvider { get; set; }
         private readonly ILogger<BooruModule> _logger;
-        private readonly ITagContext _tagContext;
+        private readonly IContext<ImageTag> _tagContext;
         
-        public BooruModule(ISettingsProvider<BooruSettings> settingsProvider, ILogger<BooruModule> logger, ITagContext tagContext)
+        public BooruModule(ISettingsProvider<BooruSettings> settingsProvider, ILogger<BooruModule> logger, IContext<ImageTag> tagContext)
         {
             SettingsProvider = settingsProvider;
             _logger = logger;
@@ -123,7 +122,7 @@ namespace ImageInfrastructure.Booru
                                         Images = new List<Image>()
                                     };
 
-                                    var outputTag = await _tagContext.GetTag(existingTag);
+                                    var outputTag = await _tagContext.Get(existingTag);
                                     if (outputTag == null) updateTag = true;
                                     else existingTag = outputTag;
 

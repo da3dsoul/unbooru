@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Interfaces.Contexts;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageInfrastructure.Abstractions.Poco.Ingest;
@@ -17,7 +16,7 @@ namespace ImageInfrastructure.Pixiv
     public class PixivModule : IModule, IServiceModule, IImageProvider
     {
         private readonly ILogger<PixivModule> _logger;
-        private readonly IArtistContext _artistContext;
+        private readonly IContext<ArtistAccount> _artistContext;
         
         public EventHandler<ImageDiscoveredEventArgs> ImageDiscovered { get; set; }
         public EventHandler<ImageProvidedEventArgs> ImageProvided { get; set; }
@@ -26,7 +25,7 @@ namespace ImageInfrastructure.Pixiv
 
         public string Source => "Pixiv";
 
-        public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider, IArtistContext artistContext)
+        public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider, IContext<ArtistAccount> artistContext)
         {
             _logger = logger;
             SettingsProvider = settingsProvider;
@@ -73,10 +72,10 @@ namespace ImageInfrastructure.Pixiv
                 {
                     Id = image.User.Id.ToString(),
                     Name = image.User.Name,
-                    Url = image.User.Account,
+                    Url = $"https://pixiv.net/users/{image.User.Id}",
                     Images = new List<Image>()
                 };
-                var existingArtist = await _artistContext.GetArtist(newArtist);
+                var existingArtist = await _artistContext.Get(newArtist);
                 if (existingArtist != null) newArtist = existingArtist;
 
                 var disc = new ImageDiscoveredEventArgs
