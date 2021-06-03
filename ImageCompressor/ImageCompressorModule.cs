@@ -57,8 +57,16 @@ namespace ImageInfrastructure.ImageCompressor
                     _logger.LogInformation("Compressing {Path}", img.GetPixivFilename());
                     using var image = new MagickImage(img.Blob) {Format = MagickFormat.Pjpeg, Quality = 100};
                     var data = image.ToByteArray();
+                    if (data.LongLength > img.Blob.LongLength)
+                    {
+                        _logger.LogInformation("{Path} was already compressed better than ImageMagick. Keeping original", img.GetPixivFilename());
+                        return;
+                    }
+
+                    var originalBlob = img.Blob;
                     img.Blob = data;
                     img.Sources.ForEach(a => a.OriginalFilename = Path.GetFileNameWithoutExtension(a.OriginalFilename) + ".jpg");
+                    _logger.LogInformation("Compressed {Path} from {Original} to {New}", img.GetPixivFilename(), originalBlob.LongLength, img.Blob.LongLength);
                 }
                 catch (Exception exception)
                 {
@@ -69,12 +77,12 @@ namespace ImageInfrastructure.ImageCompressor
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            foreach (var source in e.Images.SelectMany(a => a.Sources))
+            foreach (var attachment in e.Attachments)
             {
-                var path = source.OriginalFilename;
+                var path = attachment.Filename;
                 var i = path.LastIndexOf(".", StringComparison.Ordinal);
                 path = path[..i] + ".jpg";
-                source.OriginalFilename = path;
+                attachment.Filename = path;
             }
         }
 

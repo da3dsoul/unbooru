@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ImageInfrastructure.Abstractions.Interfaces
@@ -8,9 +7,5 @@ namespace ImageInfrastructure.Abstractions.Interfaces
     {
         Task<T> Get(T item, bool includeDepth = false);
         Task<List<T>> FindAll(T item, bool includeDepth = false);
-        void Remove(T item);
-
-        int SaveChanges();
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken());
     }
 }

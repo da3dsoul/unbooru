@@ -12,12 +12,12 @@ namespace ImageInfrastructure.Abstractions.Poco
         [IgnoreDataMember]
         public byte[] Blob { get; set; }
         
-        public List<ArtistAccount> ArtistAccounts { get; set; }
+        public virtual List<ArtistAccount> ArtistAccounts { get; set; }
 
-        public List<ImageSource> Sources { get; set; }
-        public List<ImageTag> Tags { get; set; }
+        public virtual List<ImageSource> Sources { get; set; }
+        public virtual List<ImageTag> Tags { get; set; }
 
         [IgnoreDataMember]
-        public List<RelatedImage> RelatedImages { get; set; }
+        public virtual List<RelatedImage> RelatedImages { get; set; }
     }
 }

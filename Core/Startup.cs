@@ -121,10 +121,10 @@ namespace ImageInfrastructure.Core
                     await Task.WhenAll(tasks);
                 }
 
-                tasks.Clear();
-                tasks.AddRange(processes.Select(process => process.RunAsync(host.Services, cancellationToken)));
-
-                await Task.WhenAll(tasks);
+                foreach (var task in processes.Select(process => process.RunAsync(host.Services, cancellationToken)))
+                {
+                    await task;
+                }
 
                 await host.WaitForShutdownAsync(cancellationToken);
             }
@@ -160,7 +160,8 @@ namespace ImageInfrastructure.Core
             {
                 services.AddDbContext<CoreContext>(options =>
                 {
-                    //options.EnableSensitiveDataLogging();
+                    options.EnableSensitiveDataLogging();
+                    options.UseLazyLoadingProxies();
                     options.ConfigureWarnings(builder =>
                     {
                         builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
@@ -169,6 +170,8 @@ namespace ImageInfrastructure.Core
                 services.AddScoped<IContext<ImageTag>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<ArtistAccount>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<Image>>(x => x.GetRequiredService<CoreContext>());
+                services.AddScoped<IReadWriteContext<Image>>(x => x.GetRequiredService<CoreContext>());
+                services.AddScoped<IReadWriteContext<ResponseCache>>(x => x.GetRequiredService<CoreContext>());
                 services.AddLogging(a =>
                 {
                     a.ClearProviders();

@@ -12,15 +12,16 @@ namespace ImageInfrastructure.Abstractions.Poco
         public string Source { get; set; }
         public string OriginalFilename { get; set; }
         public string Uri { get; set; }
+        public string PostUrl { get; set; }
 
         public string Title { get; set; }
         public string Description { get; set; }
 
         [IgnoreDataMember]
-        public Image Image { get; set; }
+        public virtual Image Image { get; set; }
 
         [IgnoreDataMember]
-        public List<RelatedImage> RelatedImages { get; set; }
+        public virtual List<RelatedImage> RelatedImages { get; set; }
 
         [NotMapped] public List<int> RelatedImageIds => RelatedImages?.Select(a => a.Image.ImageId).ToList() ?? new List<int>();
 

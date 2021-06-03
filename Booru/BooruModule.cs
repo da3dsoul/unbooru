@@ -100,7 +100,6 @@ namespace ImageInfrastructure.Booru
                             }
                             default:
                             {
-                                _logger.LogInformation("Found source that wasn't handled: {Source}", source.Source);
                                 return;
                             }
                         }

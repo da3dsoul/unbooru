@@ -3,14 +3,16 @@ using System;
 using ImageInfrastructure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageInfrastructure.Core.Migrations
 {
     [DbContext(typeof(CoreContext))]
-    partial class CoreContextModelSnapshot : ModelSnapshot
+    [Migration("20210530230637_AddPostUrl")]
+    partial class AddPostUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,7 +133,7 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.HasIndex("Uri", "PostUrl", "Source");
+                    b.HasIndex("Uri", "Source");
 
                     b.ToTable("ImageSources");
                 });
@@ -184,34 +186,6 @@ namespace ImageInfrastructure.Core.Migrations
                     b.HasIndex("ImageSourceId");
 
                     b.ToTable("RelatedImages");
-                });
-
-            modelBuilder.Entity("ImageInfrastructure.Abstractions.Poco.ResponseCache", b =>
-                {
-                    b.Property<int>("ResponseCacheId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Response")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("StatusCode")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Uri")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ResponseCacheId");
-
-                    b.HasIndex("Uri")
-                        .IsUnique();
-
-                    b.HasIndex("LastUpdated", "StatusCode");
-
-                    b.ToTable("ResponseCaches");
                 });
 
             modelBuilder.Entity("ArtistAccountImage", b =>

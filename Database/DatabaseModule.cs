@@ -80,7 +80,7 @@ namespace ImageInfrastructure.Database
         {
             foreach (var attachment in e.Attachments.ToList())
             {
-                var any = (await _context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri)) != null;
+                var any = await _context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri) != null;
                 if (!any) return;
                 _logger.LogInformation("Image already exists for {Uri}. Skipping!", attachment.Uri);
                 attachment.Download = false;

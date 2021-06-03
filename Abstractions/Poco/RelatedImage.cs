@@ -4,7 +4,7 @@ namespace ImageInfrastructure.Abstractions.Poco
     {
         public int RelatedImageId { get; set; }
         
-        public Image Image { get; set; }
-        public ImageSource ImageSource { get; set; } 
+        public virtual Image Image { get; set; }
+        public virtual ImageSource ImageSource { get; set; } 
     }
 }

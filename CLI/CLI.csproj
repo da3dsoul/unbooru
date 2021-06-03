@@ -8,14 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0-preview.3.21201.2">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-preview.3.21201.4" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Booru\Booru.csproj" />
       <ProjectReference Include="..\ImageCompressor\ImageCompressor.csproj" />
       <ProjectReference Include="..\Core\Core.csproj" />
@@ -24,6 +16,7 @@
       <ProjectReference Include="..\Iqdb\Iqdb.csproj" />
       <ProjectReference Include="..\JsonSettingsProvider\JsonSettingsProvider.csproj" />
       <ProjectReference Include="..\Pixiv\Pixiv.csproj" />
+      <ProjectReference Include="..\Reimport\Reimport.csproj" />
       <ProjectReference Include="..\Web\Web.csproj" />
     </ItemGroup>
 

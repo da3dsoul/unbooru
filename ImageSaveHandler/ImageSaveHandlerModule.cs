@@ -124,7 +124,7 @@ namespace ImageInfrastructure.ImageSaveHandler
             var source = image.Sources.FirstOrDefault(a => a.Source == "Pixiv");
             if (source == null) return null;
 
-            var originalName = Path.GetFileName(source.Uri);
+            var originalName = source.OriginalFilename;
             var title = source.Title;
             var aspectRatio = (float) image.Width / image.Height;
             var path = GetImagePath(originalName, title, aspectRatio);

@@ -3,14 +3,16 @@ using System;
 using ImageInfrastructure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageInfrastructure.Core.Migrations
 {
     [DbContext(typeof(CoreContext))]
-    partial class CoreContextModelSnapshot : ModelSnapshot
+    [Migration("20210531015149_AddResponseCache")]
+    partial class AddResponseCache
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,7 +133,7 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.HasIndex("Uri", "PostUrl", "Source");
+                    b.HasIndex("Uri", "Source");
 
                     b.ToTable("ImageSources");
                 });

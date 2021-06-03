@@ -13,7 +13,6 @@ namespace ImageInfrastructure.Reimport
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IModule, ReimportModule>();
-            services.AddSingleton<ReimportSettings>();
         }
     }
 }

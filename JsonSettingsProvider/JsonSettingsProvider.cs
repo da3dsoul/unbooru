@@ -31,7 +31,7 @@ namespace ImageInfrastructure.JsonSettingsProvider
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Unable to load settings for {Type}", typeof(T).Name);
+                logger.LogError(e, "Unable to load settings for {Type}: {Error}", typeof(T).Name, e);
             }
         }
 

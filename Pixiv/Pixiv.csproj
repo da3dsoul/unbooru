@@ -9,7 +9,6 @@
 
     <ItemGroup>
       <PackageReference Include="Meowtrix.PixivApi" Version="0.2.0" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.3.21201.4" />
     </ItemGroup>
 
     <ItemGroup>

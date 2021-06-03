@@ -11,7 +11,7 @@ namespace ImageInfrastructure.Abstractions.Poco
         public string Url { get; set; }
         
         [IgnoreDataMember]
-        public List<Image> Images { get; set; }
+        public virtual List<Image> Images { get; set; }
 
         protected bool Equals(ArtistAccount other)
         {

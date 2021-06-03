@@ -15,9 +15,9 @@ namespace ImageInfrastructure.SourceMerger
     public class SourceMergerModule : IModule
     {
         private readonly ILogger<SourceMergerModule> _logger;
-        private readonly IContext<Image> _imageContext;
+        private readonly IReadWriteContext<Image> _imageContext;
         
-        public SourceMergerModule(ILogger<SourceMergerModule> logger, IContext<Image> imageContext)
+        public SourceMergerModule(ILogger<SourceMergerModule> logger, IReadWriteContext<Image> imageContext)
         {
             _logger = logger;
             _imageContext = imageContext;

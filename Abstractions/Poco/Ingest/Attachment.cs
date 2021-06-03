@@ -5,6 +5,7 @@ namespace ImageInfrastructure.Abstractions.Poco.Ingest
 {
     public class Attachment
     {
+        [UsedImplicitly] public string Filename { get; set; }
         [UsedImplicitly] public string Uri { get; set; }
         [UsedImplicitly] public (int Width, int Height) Size { get; set; }
         [UsedImplicitly] public long Filesize { get; set; }

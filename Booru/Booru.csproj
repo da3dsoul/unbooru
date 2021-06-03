@@ -7,8 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BooruSharp" Version="3.0.2" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.3.21201.4" />
+      <PackageReference Include="BooruSharp" Version="3.0.3" />
     </ItemGroup>
 
     <ItemGroup>
