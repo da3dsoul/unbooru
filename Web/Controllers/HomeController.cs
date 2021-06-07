@@ -8,14 +8,16 @@ namespace ImageInfrastructure.Web.Controllers
     [Route("/")]
     public class HomeController : Controller
     {
+        private const int ImagesPerPage = 21;
+        
         public async Task<ActionResult> Index()
         {
             var imageController = HttpContext.RequestServices.GetService<ImageController>();
             if (imageController == null) return NotFound("Unable to find ImageController");
             return View(new IndexViewModel()
             {
-                Images = (await imageController.GetLatest(20)).Value.AsReadOnly(),
-                ImagesPerPage = 20,
+                Images = (await imageController.GetLatest(ImagesPerPage)).Value.AsReadOnly(),
+                ImagesPerPage = ImagesPerPage,
                 Page = 1
             });
         }
@@ -27,8 +29,8 @@ namespace ImageInfrastructure.Web.Controllers
             if (imageController == null) return NotFound("Unable to find ImageController");
             return View(new IndexViewModel()
             {
-                Images = (await imageController.GetLatest(20)).Value.AsReadOnly(),
-                ImagesPerPage = 20,
+                Images = (await imageController.GetLatest(ImagesPerPage)).Value.AsReadOnly(),
+                ImagesPerPage = ImagesPerPage,
                 Page = 1
             });
         }

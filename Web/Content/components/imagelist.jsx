@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import * as Reactstrap from 'reactstrap';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
+import {isPixivSource} from '../modelutils.js'
 
 export function ImageList(props) {
     let [state, updateState] = React.useState({
@@ -19,9 +20,10 @@ export function ImageList(props) {
             loadingMore: true,
         }));
 
-        let offset = (state.page - 1) * 20;
+        const imagesPerPage = props.imagesPerPage;
+        let offset = (prevPage - 1) * imagesPerPage;
         if (offset < 0) offset = 0;
-        let url = '/api/Image/Latest?limit=20&offset=' + offset;
+        let url = '/api/Image/Latest?limit=' + imagesPerPage + '&offset=' + offset;
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -31,7 +33,7 @@ export function ImageList(props) {
             updateState(prevState => ({
                 ...prevState,
                 images: data,
-                hasMore: (data.length === 20),
+                hasMore: (data.length === imagesPerPage),
                 loadingMore: false,
             }));
         };
@@ -47,7 +49,8 @@ export function ImageList(props) {
             loadingMore: true,
         }));
 
-        let url = '/api/Image/Latest?limit=20&offset=' + ((state.page - 1) * 20);
+        const imagesPerPage = props.imagesPerPage;
+        let url = '/api/Image/Latest?limit=' + imagesPerPage + '&offset=' + ((nextPage - 1) * imagesPerPage);
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -57,7 +60,7 @@ export function ImageList(props) {
             updateState(prevState => ({
                 ...prevState,
                 images: data,
-                hasMore: (data.length === 20),
+                hasMore: (data.length === imagesPerPage),
                 loadingMore: false,
             }));
         };
@@ -112,13 +115,15 @@ class ImageBox extends React.Component {
     };
 
     render() {
+        const source = this.props.image.sources.find(isPixivSource);
+        const artist = this.props.image.artistAccounts[0];
         return (
             <li key={this.props.image.imageId.toString()} className="image-container">
                 <div className="image-container-child">
-                    <LazyLoadImage wrapperClassName="image" src={"/api/Image/" + this.props.image.imageId + "/file.jpg"} alt={this.props.image.sources[0].title} />
+                    <LazyLoadImage wrapperClassName="image" src={"/api/Image/" + this.props.image.imageId + "/file.jpg"} alt={source.title} />
                     <div className="info-container">
-                        <a target="_blank" rel="noopener noreferrer" className="title-text" href={this.props.image.sources[0].postUrl}>{this.props.image.sources[0].title}</a>
-                        <a target="_blank" rel="noopener noreferrer" className="artist-text" href={this.props.image.artistAccounts[0].url}>{this.props.image.artistAccounts[0].name}</a>
+                        <a target="_blank" rel="noopener noreferrer" className="title-text" href={source.postUrl}>{source.title}</a>
+                        <a target="_blank" rel="noopener noreferrer" className="artist-text" href={artist.url}>{artist.name}</a>
                     </div>
                 </div>
             </li>

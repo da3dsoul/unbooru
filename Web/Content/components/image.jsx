@@ -16,7 +16,7 @@ export default class ImageLatestComponent extends Component {
             <div>
                 <Switch>
                     <Route path="/" component={() => (
-                        <ImageList initialImages={this.props.initialImages} page={this.props.page} />
+                        <ImageList initialImages={this.props.initialImages} page={this.props.page} imagesPerPage={this.props.imagesPerPage} />
                     )} />
                     <Route path="/Image/:id" component={() => (
                         <ImageDetail initialImages={this.props.initialImages} page={this.props.page} />
