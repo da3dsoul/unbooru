@@ -5,21 +5,24 @@ using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ImageInfrastructure.Web.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ImageController : Controller
     {
+        private readonly CoreContext _context;
+        
+        public ImageController(CoreContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Image>> GetById(int id)
         {
-            var context = HttpContext.RequestServices.GetService<CoreContext>();
-            if (context == null) return new NotFoundResult();
-            var image = await context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts)
+            var image = await _context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts)
                 .AsSplitQuery().OrderBy(a => a.ImageId).FirstOrDefaultAsync(a => a.ImageId == id);
             if (image == null) return new NotFoundResult();
             return image;
@@ -28,9 +31,7 @@ namespace ImageInfrastructure.Web.Controllers
         [HttpGet("{id:int}/{filename}")]
         public async Task<object> GetImageById(int id, string filename)
         {
-            var context = HttpContext.RequestServices.GetService<CoreContext>();
-            if (context == null) return new NotFoundResult();
-            var image = await context.Images.OrderBy(a => a.ImageId).FirstOrDefaultAsync(a => a.ImageId == id);
+            var image = await _context.Images.OrderBy(a => a.ImageId).FirstOrDefaultAsync(a => a.ImageId == id);
             if (image == null) return new NotFoundResult();
             return File(image.Blob, MimeTypes.GetMimeType(filename));
         }
@@ -38,32 +39,13 @@ namespace ImageInfrastructure.Web.Controllers
         [HttpGet("Latest")]
         public async Task<ActionResult<List<Image>>> GetLatest(int limit = 0, int offset = 0)
         {
-            var context = HttpContext.RequestServices.GetService<CoreContext>();
-            if (context == null) return new NotFoundResult();
             List<Image> images;
             if (limit > 0)
-                images = await context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery().OrderByDescending(a => a.ImageId).Skip(offset).Take(limit).ToListAsync();
+                images = await _context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery().OrderByDescending(a => a.ImageId).Skip(offset).Take(limit).ToListAsync();
             else
-                images = await context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery().OrderByDescending(a => a.ImageId).Skip(offset).ToListAsync();
+                images = await _context.Images.Include(a => a.Sources).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery().OrderByDescending(a => a.ImageId).Skip(offset).ToListAsync();
             if (images.Count == 0) return new NotFoundResult();
             return images;
-        }
-        
-        public async Task<ActionResult> Index()
-        {
-            return View(new IndexViewModel()
-            {
-                Images = (await GetLatest(20)).Value.AsReadOnly(),
-                ImagesPerPage = 20,
-                Page = 1
-            });
-        }
-        
-        public class IndexViewModel
-        {
-            public IReadOnlyList<Image> Images { get; set; }
-            public int ImagesPerPage { get; set; }
-            public int Page { get; set; }
         }
     }
 }

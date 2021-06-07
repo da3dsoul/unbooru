@@ -1,0 +1,18 @@
+@using React.RenderFunctions
+@using React.Router
+@model ImageInfrastructure.Web.ViewModel.IndexViewModel
+
+@{
+    Layout = "_Layout";
+    var emotionFunctions = new EmotionFunctions();
+    var styledComponentsFunctions = new StyledComponentsFunctions();
+    var reactJssFunctions = new ReactJssFunctions();
+    var helmetFunctions = new ReactHelmetFunctions();
+
+    var chainedFunctions = new ChainedRenderFunctions(emotionFunctions, styledComponentsFunctions, reactJssFunctions, helmetFunctions);
+}
+@Html.ReactRouter("Components.RootComponent", new { initialImages = Model.Images, page = Model.Page }, renderFunctions: chainedFunctions)
+@{
+    ViewBag.ServerStyles = styledComponentsFunctions.RenderedStyles + reactJssFunctions.RenderedStyles;
+    ViewBag.HelmetTitle = helmetFunctions.RenderedHelmet?.GetValueOrDefault("title");
+}

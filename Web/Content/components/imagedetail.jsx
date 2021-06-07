@@ -2,8 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import * as Reactstrap from 'reactstrap';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
+import { useParams } from 'react-router-dom';
 
-export function ImageList(props) {
+export function ImageDetail(props) {
+    let { id } = useParams();
+
     let [state, updateState] = React.useState({
         images: props.initialImages,
         page: props.page,
@@ -117,8 +120,8 @@ class ImageBox extends React.Component {
                 <div className="image-container-child">
                     <LazyLoadImage wrapperClassName="image" src={"/api/Image/" + this.props.image.imageId + "/file.jpg"} alt={this.props.image.sources[0].title} />
                     <div className="info-container">
-                        <a target="_blank" rel="noopener noreferrer" className="title-text" href={this.props.image.sources[0].postUrl}>{this.props.image.sources[0].title}</a>
-                        <a target="_blank" rel="noopener noreferrer" className="artist-text" href={this.props.image.artistAccounts[0].url}>{this.props.image.artistAccounts[0].name}</a>
+                        <a className="title-text" href={this.props.image.sources[0].postUrl}>{this.props.image.sources[0].title}</a>
+                        <a className="artist-text" href={this.props.image.artistAccounts[0].url}>{this.props.image.artistAccounts[0].name}</a>
                     </div>
                 </div>
             </li>

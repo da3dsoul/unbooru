@@ -14,7 +14,7 @@ namespace ImageInfrastructure.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().AddNewtonsoftJson(
+            services.AddMvc().AddControllersAsServices().AddNewtonsoftJson(
                 options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             );
             services.AddSignalR(o =>
@@ -62,7 +62,6 @@ namespace ImageInfrastructure.Web
             app.UseRouting();
             app.UseEndpoints(conf =>
             {
-                //
                 conf.MapControllers();
             });
         }

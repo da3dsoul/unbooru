@@ -8,16 +8,69 @@
  */
 
 body {
-	font-family: Calibri, Verdana, sans-serif;
+	font-family: "Roboto Light", sans-serif;
+	color: white;
 }
 
-.commentList {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
+.image-list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
 }
 
-.commentList li {
-	border-bottom: 1px solid #999;
-	padding: 0.5em 0;
+.image-container {
+	max-width: 450pt;
+	max-height: 750pt;
+	margin: 15pt;
+	border-radius: 30pt;
+	border: #404558;
+	background-color: #404558;
+	display: flex;
+	box-shadow: 5pt 5pt 10pt black;
+}
+
+.image-container-child {
+	margin: 5%;
+	justify-content: center;
+	display: flex;
+	flex-direction: column;
+}
+
+.image {
+	max-height: 90%;
+	max-width: 100%;
+	height: 100%;
+	background-color: #96a2bb;
+}
+.image > img {
+	max-height: 100%;
+	max-width: 100%;
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+.title-text {
+	color: black;
+	font-weight: bold;
+	font-size: x-large;
+}
+
+.artist-text {
+	color: black;
+	font-size: larger;
+	font-weight: 500;
+}
+
+.info-container {
+	max-width: 100%;
+	max-height: 20%;
+	min-height: 5%;
+	background-color: #96a2bb;
+	display: flex;
+	flex-direction: column;
+	padding: 5%;
+	align-content: stretch;
+	justify-content: center;
+	align-items: center;
 }

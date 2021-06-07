@@ -115,6 +115,8 @@ namespace ImageInfrastructure.Reimport
                         _logger.LogError(e, "{Error}", e);
                     }
                 }
+
+                _logger.LogInformation("Done Reimporting!");
             }
             catch (Exception e)
             {
