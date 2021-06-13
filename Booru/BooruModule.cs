@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,12 +63,13 @@ namespace ImageInfrastructure.Booru
         {
             foreach (var image in e.Images)
             {
-                try
+                _logger.LogInformation("Finding tags for {Images}", image.GetPixivFilename());
+                var sources = image.Sources.Where(a => a.Source != "Pixiv").ToList();
+                foreach (var source in sources)
                 {
-                    int count = 0;
-                    var sources = image.Sources.Where(a => a.Source != "Pixiv").ToList();
-                    foreach (var source in sources)
+                    try
                     {
+                        var sw = Stopwatch.StartNew();
                         ABooru booru;
                         Func<string, Task<SearchResult>> getPost;
 
@@ -79,7 +81,21 @@ namespace ImageInfrastructure.Booru
                                 getPost = async url =>
                                 {
                                     var i = url.LastIndexOf("md5=", StringComparison.Ordinal) + 4;
-                                    var id = url[i..];
+                                    string id;
+                                    if (i <= 3)
+                                    {
+                                        // no md5 found, try id
+                                        i = url.LastIndexOf("id=", StringComparison.Ordinal) + 3;
+                                        if (i <= 2)
+                                            throw new NullReferenceException(
+                                                "no id or md5 found in gelbooru url. URL was: " + url);
+
+                                        id = url[i..];
+                                        i = id.IndexOf('&');
+                                        if (i > -1) id = id[..i];    
+                                        return await booru.GetPostByIdAsync(int.Parse(id));
+                                    }
+                                    id = url[i..];
                                     i = id.IndexOf('&');
                                     if (i > -1) id = id[..i];    
                                     return await booru.GetPostByMd5Async(id);
@@ -99,63 +115,50 @@ namespace ImageInfrastructure.Booru
                                 break;
                             }
                             default:
+                                continue;
+                        }
+
+                        var post = await getPost(source.Uri);
+                        sw.Stop();
+                        _logger.LogInformation("Got post from booru in {Time}", sw.Elapsed.ToString("g"));
+
+                        var postTags = post.Tags.Where(a => a != null).Select(a => new ImageTag
+                        {
+                            Name = a.Replace("_", " "),
+                            Images = new List<Image>()
+                        }).ToList();
+                        var outputTags = await _tagContext.Get(postTags);
+
+                        sw.Restart();
+                        foreach (var tag in outputTags)
+                        {
+                            var updateTag = string.IsNullOrEmpty(tag.Type);
+                            if (!image.Tags.Contains(tag))
                             {
-                                return;
+                                tag.Images.Add(image);
+                                image.Tags.Add(tag);
+                            }
+
+                            if (!updateTag) continue;
+                            try
+                            {
+                                var tagInfo = await booru.GetTagAsync(tag.Name.Replace(" ", "_"));
+                                if (tagInfo.Type == TagType.Artist) continue;
+                                tag.Type = tagInfo.Type.ToString();
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.LogError(exception, "{Exception}", exception.ToString());
                             }
                         }
-                        
-                        try
-                        {
-                            var post = await getPost(source.Uri);
-                            foreach (var postTag in post.Tags)
-                            {
-                                if (postTag == null) continue;
-                                var tagName = postTag.Replace("_", " ");
-
-                                try
-                                {
-                                    var updateTag = false;
-                                    var existingTag = new ImageTag
-                                    {
-                                        Name = tagName,
-                                        Images = new List<Image>()
-                                    };
-
-                                    var outputTag = await _tagContext.Get(existingTag);
-                                    if (outputTag == null) updateTag = true;
-                                    else existingTag = outputTag;
-
-                                    if (!image.Tags.Contains(existingTag))
-                                    {
-                                        existingTag.Images.Add(image);
-                                        image.Tags.Add(existingTag);
-                                        if (string.IsNullOrEmpty(existingTag.Type)) updateTag = true;
-                                    }
-                                    count++;
-
-                                    if (!updateTag) continue;
-                                
-                                    var tagInfo = await booru.GetTagAsync(postTag);
-                                    if (tagInfo.Type == TagType.Artist) continue;
-
-                                    existingTag.Type = tagInfo.Type.ToString();
-                                }
-                                catch (Exception exception)
-                                {
-                                    _logger.LogError(exception, "{Exception}", exception.ToString());
-                                }
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            _logger.LogError(exception, "{Exception}", exception.ToString());
-                        }
+                        sw.Stop();
+                        _logger.LogInformation("Post processing tags finished in {Time}", sw.Elapsed.ToString("g"));
+                        _logger.LogInformation("Finished Getting {Count} tags from {Booru} for {Image}", outputTags.Count, booru.GetType().Name, image.GetPixivFilename());
                     }
-                    _logger.LogInformation("Finished Saving {Count} tags for {Image}", count, image.GetPixivFilename());
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError(exception, "Unable to get tags for {Image}", image.GetPixivFilename());
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(exception, "Unable to get tags for {Image}: {Exception}", image.GetPixivFilename(), exception);
+                    }
                 }
             }
         }

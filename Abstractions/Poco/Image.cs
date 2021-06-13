@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 
 namespace ImageInfrastructure.Abstractions.Poco
@@ -10,7 +11,21 @@ namespace ImageInfrastructure.Abstractions.Poco
         public int Height { get; set; }
 
         [IgnoreDataMember]
-        public byte[] Blob { get; set; }
+        [NotMapped]
+        public virtual byte[] Blob
+        {
+            get => Blobs[0].Data;
+            set
+            {
+                if (Blobs == null)
+                    Blobs = new List<ImageBlob> {new() { Image = this, Data = value}};
+                else if(Blobs.Count == 0)
+                    Blobs.Add(new ImageBlob { Image = this, Data = value});
+                else
+                    Blobs[0].Data = value;
+            }
+        }
+        [IgnoreDataMember] public virtual List<ImageBlob> Blobs { get; set; }
         
         public virtual List<ArtistAccount> ArtistAccounts { get; set; }
 

@@ -82,15 +82,15 @@ namespace ImageInfrastructure.Iqdb
                 }
                 catch (IqdbApi.Exceptions.ImageTooLargeException)
                 {
-
+                    _logger.LogInformation("Not getting sources from Iqdb. {Image} is too large", image.GetPixivFilename());
                 }
                 catch (IqdbApi.Exceptions.HttpRequestFailed)
                 {
-
+                    _logger.LogInformation("Not getting sources from Iqdb. Http Exception for {Image}", image.GetPixivFilename());
                 }
                 catch (IqdbApi.Exceptions.InvalidFileFormatException)
                 {
-
+                    _logger.LogInformation("Not getting sources from Iqdb. {Image} had an invalid format", image.GetPixivFilename());
                 }
                 catch (Exception exception)
                 {

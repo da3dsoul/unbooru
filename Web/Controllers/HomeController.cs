@@ -12,11 +12,11 @@ namespace ImageInfrastructure.Web.Controllers
         
         public async Task<ActionResult> Index()
         {
-            var imageController = HttpContext.RequestServices.GetService<ImageController>();
-            if (imageController == null) return NotFound("Unable to find ImageController");
-            return View(new IndexViewModel()
+            var dbHelper = HttpContext.RequestServices.GetService<DatabaseHelper>();
+            if (dbHelper == null) return NotFound("Unable to find DatabaseHelper");
+            return View(new IndexViewModel
             {
-                Images = (await imageController.GetLatest(ImagesPerPage)).Value.AsReadOnly(),
+                Images = await dbHelper.GetLatest(ImagesPerPage),
                 ImagesPerPage = ImagesPerPage,
                 Page = 1
             });
@@ -25,11 +25,20 @@ namespace ImageInfrastructure.Web.Controllers
         [Route("Image/{id:int}")]
         public async Task<ActionResult> ImageDetail(int id)
         {
-            var imageController = HttpContext.RequestServices.GetService<ImageController>();
-            if (imageController == null) return NotFound("Unable to find ImageController");
-            return View(new IndexViewModel()
+            var dbHelper = HttpContext.RequestServices.GetService<DatabaseHelper>();
+            if (dbHelper == null) return NotFound("Unable to find DatabaseHelper");
+            var image = await dbHelper.GetById(id);
+            return View();
+        }
+        
+        [Route("Safe")]
+        public async Task<ActionResult> Safe()
+        {
+            var dbHelper = HttpContext.RequestServices.GetService<DatabaseHelper>();
+            if (dbHelper == null) return NotFound("Unable to find DatabaseHelper");
+            return View(new IndexViewModel
             {
-                Images = (await imageController.GetLatest(ImagesPerPage)).Value.AsReadOnly(),
+                Images = await dbHelper.GetSafe(ImagesPerPage),
                 ImagesPerPage = ImagesPerPage,
                 Page = 1
             });

@@ -23,7 +23,7 @@ export function ImageList(props) {
         const imagesPerPage = props.imagesPerPage;
         let offset = (prevPage - 1) * imagesPerPage;
         if (offset < 0) offset = 0;
-        let url = '/api/Image/Latest?limit=' + imagesPerPage + '&offset=' + offset;
+        let url = '/api/Image/' + props.browseUrl + '?limit=' + imagesPerPage + '&offset=' + offset;
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -50,7 +50,7 @@ export function ImageList(props) {
         }));
 
         const imagesPerPage = props.imagesPerPage;
-        let url = '/api/Image/Latest?limit=' + imagesPerPage + '&offset=' + ((nextPage - 1) * imagesPerPage);
+        let url = '/api/Image/' + props.browseUrl + '?limit=' + imagesPerPage + '&offset=' + ((nextPage - 1) * imagesPerPage);
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');

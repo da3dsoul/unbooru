@@ -16,7 +16,7 @@ namespace ImageInfrastructure.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IModule, WebModule>();
-
+            services.AddScoped<DatabaseHelper>();
         }
 
         public IHostBuilder Build(IHostBuilder hostBuilder)

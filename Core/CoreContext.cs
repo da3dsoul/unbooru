@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,12 +9,15 @@ using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ImageInfrastructure.Core
 {
     public class CoreContext : DbContext, IContext<ImageTag>, IContext<ArtistAccount>, IReadWriteContext<Image>, IReadWriteContext<ResponseCache>
     {
+        private readonly ILogger<CoreContext> _logger;
         [UsedImplicitly] public DbSet<Image> Images { get; set; }
+        [UsedImplicitly] public DbSet<ImageBlob> ImageBlobs { get; set; }
         [UsedImplicitly] public DbSet<ArtistAccount> ArtistAccounts { get; set; }
         [UsedImplicitly] public DbSet<ImageSource> ImageSources { get; set; }
         [UsedImplicitly] public DbSet<RelatedImage> RelatedImages { get; set; }
@@ -25,18 +29,21 @@ namespace ImageInfrastructure.Core
 
         public CoreContext() {}
         
-        public CoreContext(DbContextOptions<CoreContext> options) : base(options)
+        public CoreContext(DbContextOptions<CoreContext> options, ILogger<CoreContext> logger) : base(options)
         {
+            _logger = logger;
             SavedChanges += OnSavedChanges;
         }
 
         private void OnSavedChanges(object sender, SavedChangesEventArgs e)
         {
             _tagCache.Clear();
+            _artistCache.Clear();
         }
 
-        private static async Task<T> Get<T>(IDictionary<string, T> cache, T item, Func<T, string> selector, Func<string, Task<T>> query) where T : class
+        private async Task<T> Get<T>(IDictionary<string, T> cache, T item, Func<T, string> selector, Func<string, Task<T>> query) where T : class
         {
+            var sw = Stopwatch.StartNew();
             var key = selector.Invoke(item);
             if (cache.ContainsKey(key))
             {
@@ -47,6 +54,8 @@ namespace ImageInfrastructure.Core
             var existingTag = await query.Invoke(key);
             cache.Add(key, existingTag ?? item);
 
+            sw.Stop();
+            _logger.LogInformation("Getting {Type} took {Time}", typeof(T).Name, sw.Elapsed.ToString("g"));
             return existingTag;
         }
 
@@ -56,6 +65,45 @@ namespace ImageInfrastructure.Core
                 ImageTags.AsSplitQuery().OrderBy(a => a.ImageTagId).FirstOrDefaultAsync(a => a.Name == name));
 
             return await Get(_tagCache, tag, a => a.Name, query);
+        }
+
+        public async Task<List<ImageTag>> Get(IReadOnlyList<ImageTag> items, bool includeDepth = false)
+        {
+            var sw = Stopwatch.StartNew();
+            List<ImageTag> cachedTags = new();
+            var tagsToLookup = items.ToList();
+
+            // scan cache
+            foreach (var item in items)
+            {
+                if (!_tagCache.ContainsKey(item.Name)) continue;
+                var temp = _tagCache[item.Name];
+                if (cachedTags.Contains(temp))
+                {
+                    tagsToLookup.Remove(item);
+                    continue;
+                }
+
+                cachedTags.Add(temp);
+                tagsToLookup.Remove(item);
+            }
+
+            var namesToLookup = tagsToLookup.Select(a => a.Name).Distinct().ToList();
+            var existingTags = await ImageTags.AsSingleQuery()
+                .Include(a => a.Images).Where(a => namesToLookup.Contains(a.Name))
+                .ToListAsync();
+
+            foreach (var item in existingTags.Where(item => !_tagCache.ContainsKey(item.Name))) _tagCache.Add(item.Name, item);
+
+            var existingNames = existingTags.Select(a => a.Name).Concat(cachedTags.Select(a => a.Name)).ToHashSet();
+            var nonExistingTags = items.Where(a => !existingNames.Contains(a.Name)).ToList();
+            foreach (var item in nonExistingTags.Where(item => !_tagCache.ContainsKey(item.Name))) _tagCache.Add(item.Name, item);
+
+            var results = existingTags.Concat(cachedTags).Concat(nonExistingTags).ToList();
+
+            sw.Stop();
+            _logger.LogInformation("Getting tags took {Time}", sw.Elapsed.ToString("g"));
+            return results;
         }
 
         public Task<List<ImageTag>> FindAll(ImageTag item, bool includeDepth = false)
@@ -71,6 +119,11 @@ namespace ImageInfrastructure.Core
             return await Get(_artistCache, artist, a => a.Url, query);
         }
 
+        public Task<List<ArtistAccount>> Get(IReadOnlyList<ArtistAccount> items, bool includeDepth = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<List<ArtistAccount>> FindAll(ArtistAccount item, bool includeDepth = false)
         {
             throw new InvalidOperationException("ArtistAccounts are unique per Url");
@@ -81,8 +134,14 @@ namespace ImageInfrastructure.Core
             return (await FindAll(image, includeDepth))?.FirstOrDefault();
         }
 
+        public Task<List<Image>> Get(IReadOnlyList<Image> items, bool includeDepth = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<List<Image>> FindAll(Image image, bool includeDepth = false)
         {
+            var sw = Stopwatch.StartNew();
             var uris = image.Sources.Select(a => a.Uri).Where(a => a != null).ToList();
 
             List<int> sourceIds;
@@ -127,6 +186,8 @@ namespace ImageInfrastructure.Core
                     .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync();
             }
 
+            sw.Stop();
+            _logger.LogInformation("Getting images took {Time}", sw.Elapsed.ToString("g"));
             return existingImages.Any() ? existingImages : new List<Image>();
         }
 
@@ -145,6 +206,11 @@ namespace ImageInfrastructure.Core
         public async Task<ResponseCache> Get(ResponseCache item, bool includeDepth = false)
         {
             return await ResponseCaches.FirstOrDefaultAsync(a => a.Uri == item.Uri);
+        }
+
+        public Task<List<ResponseCache>> Get(IReadOnlyList<ResponseCache> items, bool includeDepth = false)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<List<ResponseCache>> FindAll(ResponseCache item, bool includeDepth = false)
@@ -200,7 +266,6 @@ namespace ImageInfrastructure.Core
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // nullability
-            modelBuilder.Entity<Image>().Property(a => a.Blob).IsRequired();
             modelBuilder.Entity<Image>().Property(a => a.Width).IsRequired();
             modelBuilder.Entity<Image>().Property(a => a.Height).IsRequired();
             modelBuilder.Entity<ImageSource>().Property(a => a.Source).IsRequired();
@@ -210,6 +275,7 @@ namespace ImageInfrastructure.Core
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Id).IsRequired();
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Url).IsRequired();
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Name).IsRequired().IsUnicode();
+            modelBuilder.Entity<ImageBlob>().Property(a => a.Data).IsRequired();
 
             // indexes
             modelBuilder.Entity<ImageTag>().HasIndex(a => a.Name).IsUnique();
@@ -225,6 +291,7 @@ namespace ImageInfrastructure.Core
 
             // mappings
             modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);
+            modelBuilder.Entity<ImageBlob>().HasOne(a => a.Image).WithMany(a => a.Blobs).IsRequired();
         }
     }
 }
