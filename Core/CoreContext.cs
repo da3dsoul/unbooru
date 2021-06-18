@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Abstractions.Interfaces;
@@ -59,15 +60,15 @@ namespace ImageInfrastructure.Core
             return existingTag;
         }
 
-        public async Task<ImageTag> Get(ImageTag tag, bool includeDepth = false)
+        public async Task<ImageTag> Get(ImageTag tag, bool includeDepth = false, CancellationToken token = default)
         {
             var query = new Func<string, Task<ImageTag>>(name =>
-                ImageTags.AsSplitQuery().OrderBy(a => a.ImageTagId).FirstOrDefaultAsync(a => a.Name == name));
+                ImageTags.AsSplitQuery().OrderBy(a => a.ImageTagId).FirstOrDefaultAsync(a => a.Name == name, token));
 
             return await Get(_tagCache, tag, a => a.Name, query);
         }
 
-        public async Task<List<ImageTag>> Get(IReadOnlyList<ImageTag> items, bool includeDepth = false)
+        public async Task<List<ImageTag>> Get(IReadOnlyList<ImageTag> items, bool includeDepth = false, CancellationToken token = default)
         {
             var sw = Stopwatch.StartNew();
             List<ImageTag> cachedTags = new();
@@ -91,7 +92,7 @@ namespace ImageInfrastructure.Core
             var namesToLookup = tagsToLookup.Select(a => a.Name).Distinct().ToList();
             var existingTags = await ImageTags.AsSingleQuery()
                 .Include(a => a.Images).Where(a => namesToLookup.Contains(a.Name))
-                .ToListAsync();
+                .ToListAsync(token);
 
             foreach (var item in existingTags.Where(item => !_tagCache.ContainsKey(item.Name))) _tagCache.Add(item.Name, item);
 
@@ -106,40 +107,40 @@ namespace ImageInfrastructure.Core
             return results;
         }
 
-        public Task<List<ImageTag>> FindAll(ImageTag item, bool includeDepth = false)
+        public Task<List<ImageTag>> FindAll(ImageTag item, bool includeDepth = false, CancellationToken token = default)
         {
             throw new InvalidOperationException("ImageTags are unique per name");
         }
 
-        public async Task<ArtistAccount> Get(ArtistAccount artist, bool includeDepth = false)
+        public async Task<ArtistAccount> Get(ArtistAccount artist, bool includeDepth = false, CancellationToken token = default)
         {
             var query = new Func<string, Task<ArtistAccount>>(url =>
-                ArtistAccounts.OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.Url == url));
+                ArtistAccounts.OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.Url == url, token));
 
             return await Get(_artistCache, artist, a => a.Url, query);
         }
 
-        public Task<List<ArtistAccount>> Get(IReadOnlyList<ArtistAccount> items, bool includeDepth = false)
+        public Task<List<ArtistAccount>> Get(IReadOnlyList<ArtistAccount> items, bool includeDepth = false, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<ArtistAccount>> FindAll(ArtistAccount item, bool includeDepth = false)
+        public Task<List<ArtistAccount>> FindAll(ArtistAccount item, bool includeDepth = false, CancellationToken token = default)
         {
             throw new InvalidOperationException("ArtistAccounts are unique per Url");
         }
 
-        public async Task<Image> Get(Image image, bool includeDepth = false)
+        public async Task<Image> Get(Image image, bool includeDepth = false, CancellationToken token = default)
         {
-            return (await FindAll(image, includeDepth))?.FirstOrDefault();
+            return (await FindAll(image, includeDepth, token))?.FirstOrDefault();
         }
 
-        public Task<List<Image>> Get(IReadOnlyList<Image> items, bool includeDepth = false)
+        public Task<List<Image>> Get(IReadOnlyList<Image> items, bool includeDepth = false, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<List<Image>> FindAll(Image image, bool includeDepth = false)
+        public async Task<List<Image>> FindAll(Image image, bool includeDepth = false, CancellationToken token = default)
         {
             var sw = Stopwatch.StartNew();
             var uris = image.Sources.Select(a => a.Uri).Where(a => a != null).ToList();
@@ -152,18 +153,18 @@ namespace ImageInfrastructure.Core
                 // to perform merge operations, we need everything...
                 // splitting this up to simplify the queries
                 sourceIds = await ImageSources.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Image)
-                    .Where(a => uris.Any(b => b == a.PostUrl)).Select(a => a.ImageSourceId).ToListAsync();
+                    .Where(a => uris.Any(b => b == a.PostUrl)).Select(a => a.ImageSourceId).ToListAsync(token);
 
                 if (includeDepth)
                 {
                     existingImages = await Images.AsSplitQuery()
-                        .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync();
+                        .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
                 }
                 else
                 {
                     existingImages = await Images.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Sources)
                         .Include(a => a.ArtistAccounts).Include(a => a.RelatedImages)
-                        .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync();
+                        .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
                 }
 
                 return existingImages.Any() ? existingImages : new List<Image>();
@@ -172,18 +173,18 @@ namespace ImageInfrastructure.Core
             // to perform merge operations, we need everything...
             // splitting this up to simplify the queries
             sourceIds = await ImageSources.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Image)
-                .Where(a => uris.Any(b => b == a.Uri)).Select(a => a.ImageSourceId).ToListAsync();
+                .Where(a => uris.Any(b => b == a.Uri)).Select(a => a.ImageSourceId).ToListAsync(token);
 
             if (includeDepth)
             {
                 existingImages = await Images.AsSplitQuery()
-                    .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync();
+                    .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
             }
             else
             {
                 existingImages = await Images.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Sources)
                     .Include(a => a.ArtistAccounts).Include(a => a.RelatedImages)
-                    .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync();
+                    .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
             }
 
             sw.Stop();
@@ -203,17 +204,17 @@ namespace ImageInfrastructure.Core
             Images.Remove(item);
         }
 
-        public async Task<ResponseCache> Get(ResponseCache item, bool includeDepth = false)
+        public async Task<ResponseCache> Get(ResponseCache item, bool includeDepth = false, CancellationToken token = default)
         {
-            return await ResponseCaches.FirstOrDefaultAsync(a => a.Uri == item.Uri);
+            return await ResponseCaches.FirstOrDefaultAsync(a => a.Uri == item.Uri, token);
         }
 
-        public Task<List<ResponseCache>> Get(IReadOnlyList<ResponseCache> items, bool includeDepth = false)
+        public Task<List<ResponseCache>> Get(IReadOnlyList<ResponseCache> items, bool includeDepth = false, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<ResponseCache>> FindAll(ResponseCache item, bool includeDepth = false)
+        public Task<List<ResponseCache>> FindAll(ResponseCache item, bool includeDepth = false, CancellationToken token = default)
         {
             throw new InvalidOperationException("ResponseCache are unique per Uri");
         }

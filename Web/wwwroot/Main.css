@@ -8,8 +8,13 @@
  */
 
 body {
-	font-family: "Roboto Light", sans-serif;
 	color: white;
+	background-color: #404558;
+}
+
+.container-fluid {
+	/*background-color: #404558;*/
+	padding-bottom: 20pt;
 }
 
 .image-list {
@@ -18,35 +23,60 @@ body {
 	justify-content: space-evenly;
 }
 
-.image-container {
-	max-width: 450pt;
-	max-height: 750pt;
-	margin: 15pt;
-	border-radius: 30pt;
-	border: #404558;
-	background-color: #404558;
-	display: flex;
-	box-shadow: 5pt 5pt 10pt black;
+@media (orientation: portrait) {
+	.image-container-portrait {
+		max-width: 100vw;
+		max-height: 100vh;
+		margin: 15pt;
+		display: flex;
+		justify-content: space-evenly;
+	}
+
+	.image-container-landscape {
+		max-width: 100vw;
+		max-height: 110ch;
+		margin: 15pt;
+		display: flex;
+		justify-content: space-evenly;
+	}
+}
+
+@media (orientation: landscape) {
+	.image-container-portrait {
+		max-width: 30vw;
+		max-height: 100vh;
+		margin: 15pt;
+		display: flex;
+		justify-content: space-evenly;
+	}
+
+	.image-container-landscape {
+		max-width: 100vw;
+		max-height: 100vh;
+		margin: 15pt;
+		display: flex;
+		justify-content: space-evenly;
+	}
 }
 
 .image-container-child {
-	margin: 5%;
+	margin: 15pt;
+	padding: 15pt;
 	justify-content: center;
+	align-items: center;
 	display: flex;
 	flex-direction: column;
+	background-color: #8c8f9e;
 }
 
 .image {
 	max-height: 90%;
 	max-width: 100%;
-	height: 100%;
-	background-color: #96a2bb;
+	background-color: #8c8f9e;
 }
 .image > img {
 	max-height: 100%;
 	max-width: 100%;
-	height: 100%;
-	width: 100%;
 	object-fit: contain;
 }
 
@@ -66,11 +96,60 @@ body {
 	max-width: 100%;
 	max-height: 20%;
 	min-height: 5%;
-	background-color: #96a2bb;
+	margin-top: 15pt;
+	background-color: #8c8f9e;
 	display: flex;
 	flex-direction: column;
-	padding: 5%;
 	align-content: stretch;
 	justify-content: center;
 	align-items: center;
+}
+
+.pagination {
+	margin: 15pt auto;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	list-style: none;
+	outline: none;
+}
+
+.pagination > .active > a {
+	border-color: white;
+	color: #a3efff;
+}
+
+.pagination > li > a {
+	border: 1pt solid white;
+	border-radius: 0;
+	padding: 5pt 10pt;
+	cursor: pointer;
+}
+
+.pagination > li > a, .pagination > li > span {
+	color: white;
+}
+
+/* active */
+.pagination > .active > a, .pagination > .active > span, .pagination > .active > a:hover, .pagination > .active > span:hover, .pagination > .active > a:focus, .pagination > .active > span:focus {
+	border-color: white;
+	border-radius: 0;
+	outline: none;
+}
+
+.pagination > li:first-child > a, .pagination > li:first-child > span {
+	border-bottom-left-radius: 5pt;
+	border-top-left-radius: 5pt;
+}
+
+.pagination > li:last-child > a, .pagination > li:last-child > span {
+	border-bottom-right-radius: 5pt;
+	border-top-right-radius: 5pt;
+}
+
+@media (orientation: portrait) {
+	.pagination > .active > a, .pagination > li > a, .pagination > li > span, .pagination > .active > span {
+		font-size: 2rem;
+		padding: 2rem;
+	}
 }

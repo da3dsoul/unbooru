@@ -7,6 +7,7 @@
     "build": "rimraf wwwroot/dist && webpack"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "emotion": "^9.2.12",
     "emotion-server": "^9.2.12",
     "react": "^16.8.2",
@@ -14,6 +15,7 @@
     "react-emotion": "^9.2.12",
     "react-helmet": "^6.0.0",
     "react-jss": "^8.6.1",
+    "react-paginate": "^7.1.3",
     "react-router-dom": "^5.0.0",
     "react-select": "^3.0.4",
     "reactstrap": "^8.0.0",

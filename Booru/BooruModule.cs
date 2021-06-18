@@ -127,7 +127,7 @@ namespace ImageInfrastructure.Booru
                             Name = a.Replace("_", " "),
                             Images = new List<Image>()
                         }).ToList();
-                        var outputTags = await _tagContext.Get(postTags);
+                        var outputTags = await _tagContext.Get(postTags, token:e.CancellationToken);
 
                         sw.Restart();
                         foreach (var tag in outputTags)

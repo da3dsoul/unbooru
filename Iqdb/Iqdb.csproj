@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="IqdbApi" Version="2.1.0" />
+      <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.24.1" />
     </ItemGroup>
 
     <ItemGroup>

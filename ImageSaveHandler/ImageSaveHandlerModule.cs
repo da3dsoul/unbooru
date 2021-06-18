@@ -53,7 +53,7 @@ namespace ImageInfrastructure.ImageSaveHandler
 
         private void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
-            SaveImage(e).Wait();
+            SaveImage(e).Wait(e.CancellationToken);
         }
 
         private async Task SaveImage(ImageProvidedEventArgs e)
@@ -90,7 +90,7 @@ namespace ImageInfrastructure.ImageSaveHandler
                                               throw new NullReferenceException("Image path cannot be null"));
                     _logger.LogInformation("Saving image to {Path}", path);
                     await using var stream = File.OpenWrite(path);
-                    await stream.WriteAsync(image.Blob);
+                    await stream.WriteAsync(image.Blob, e.CancellationToken);
                 }
                 catch (Exception exception)
                 {

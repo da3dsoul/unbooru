@@ -40,6 +40,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreTest", "CoreTest\CoreTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceMerger", "SourceMerger\SourceMerger.csproj", "{68EF9E76-61A0-4627-B8DA-EAA9A541F299}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SauceNao", "SauceNao\SauceNao.csproj", "{B2878B4A-D0D3-4756-8FD6-6F568723BD31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,5 +128,9 @@ Global
 		{68EF9E76-61A0-4627-B8DA-EAA9A541F299}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68EF9E76-61A0-4627-B8DA-EAA9A541F299}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68EF9E76-61A0-4627-B8DA-EAA9A541F299}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2878B4A-D0D3-4756-8FD6-6F568723BD31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2878B4A-D0D3-4756-8FD6-6F568723BD31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2878B4A-D0D3-4756-8FD6-6F568723BD31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2878B4A-D0D3-4756-8FD6-6F568723BD31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -9,6 +9,7 @@ using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
+using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MatchType = IqdbApi.Enums.MatchType;
@@ -62,8 +63,12 @@ namespace ImageInfrastructure.Iqdb
                 {
                     _logger.LogInformation("Querying iqdb for {Image}", image.GetPixivFilename());
                     using var client = new IqdbApi.IqdbClient();
-                    await using var stream = new MemoryStream(image.Blob);
-                    var results = await client.SearchFile(stream);
+                    // shrink to improve bandwidth and make searching easier
+                    using var input = new MagickImage(image.Blob) {Format = MagickFormat.Jpeg, Quality = 70};
+                    input.Resize(new MagickGeometry("x600>"));
+                    var data = input.ToByteArray();
+                    await using var stream = new MemoryStream(data);
+                    var results = await client.SearchFile(stream, e.CancellationToken);
                     if (!results.IsFound) return;
                     var matches = results.Matches.Where(a => a.MatchType == MatchType.Best).ToList();
                     if (!matches.Any()) return;
@@ -92,6 +97,8 @@ namespace ImageInfrastructure.Iqdb
                 {
                     _logger.LogInformation("Not getting sources from Iqdb. {Image} had an invalid format", image.GetPixivFilename());
                 }
+                catch (TaskCanceledException)
+                {}
                 catch (Exception exception)
                 {
                     _logger.LogError(exception, "Unable to write {File}", image.GetPixivFilename());

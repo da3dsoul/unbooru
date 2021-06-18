@@ -55,7 +55,7 @@ namespace ImageInfrastructure.Reimport
                     {
                         Uri = uri
                     };
-                    var responseCache = await _responseContext.Get(response);
+                    var responseCache = await _responseContext.Get(response, token: token);
                     if (responseCache != null)
                     {
                         if (responseCache.StatusCode == HttpStatusCode.NotFound || DateTime.Now - responseCache.LastUpdated < TimeSpan.FromDays(30)) continue;
@@ -72,7 +72,7 @@ namespace ImageInfrastructure.Reimport
                             }
                         }
                     };
-                    var existing = _imageContext.FindAll(dummy);
+                    var existing = _imageContext.FindAll(dummy, token: token);
                     if ((await existing).Any())
                     {
                         _logger.LogInformation("Image exists for Pixiv ID: {Id}. Skipping!", id);

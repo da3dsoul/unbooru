@@ -39,10 +39,17 @@ namespace ImageInfrastructure.Pixiv
         {
             _logger.LogInformation("Running {ModuleType} module with settings of type {SettingsType}", GetType(),
                 SettingsProvider.GetType().GenericTypeArguments.FirstOrDefault());
+
+            var discoveryInvocationList = ImageDiscovered?.GetInvocationList();
+            var providerInvocationList = ImageProvided?.GetInvocationList();
+            discoveryInvocationList?.ToList().ForEach(a => _logger.LogInformation("Pixiv is providing images to {Item} for cancellation", a.Target?.GetType().FullName));
+            providerInvocationList?.ToList().ForEach(a => _logger.LogInformation("Pixiv is providing images to {Item} for consuming", a.Target?.GetType().FullName));
+
             try
             {
                 using var pixivClient = new PixivClient();
-                await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ?? throw new InvalidOperationException("Settings can't be null"));
+                await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
+                                             throw new InvalidOperationException("Settings can't be null"));
                 /*var refresh = await pixivClient.LoginAsync(s =>
                 {
                     Logger.LogError(s);
@@ -50,10 +57,12 @@ namespace ImageInfrastructure.Pixiv
                 });*/
                 await DownloadBookmarks(token, pixivClient);
             }
+            catch (TaskCanceledException)
+            {
+            }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                _logger.LogError(e, "{Message}", e);
             }
         }
 
@@ -73,14 +82,15 @@ namespace ImageInfrastructure.Pixiv
                 _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1,
                     SettingsProvider.Get(a => a.MaxImagesToDownload), image.Id, image.Title);
 
-                var disc = ImageDiscovery(image);
+                var disc = ImageDiscovery(image, token:token);
                 if (disc.Cancel || disc.Attachments.All(a => !a.Download))
                 {
                     _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
+                    i++;
                     continue;
                 }
 
-                var prov = await ImageProviding(disc, image, null, token);
+                var prov = await ImageProviding(disc, image, token:token);
                 if (prov.Cancel)
                 {
                     _logger.LogInformation("Further Pixiv Downloading cancelled by provider subscriber");
@@ -91,12 +101,13 @@ namespace ImageInfrastructure.Pixiv
             } while (true);
         }
 
-        public ImageDiscoveredEventArgs ImageDiscovery(Illust image, IList<IllustPage> pages = null)
+        public ImageDiscoveredEventArgs ImageDiscovery(Illust image, IList<IllustPage> pages = null, CancellationToken token = default)
         {
             pages ??= image.Pages.ToList();
 
             var disc = new ImageDiscoveredEventArgs
             {
+                CancellationToken = token,
                 Post = new Post
                 {
                     Title = image.Title,
@@ -124,7 +135,7 @@ namespace ImageInfrastructure.Pixiv
             return disc;
         }
 
-        public async Task<ImageProvidedEventArgs> ImageProviding(ImageDiscoveredEventArgs disc, Illust image, IList<IllustPage> pages = null, CancellationToken token = new())
+        public async Task<ImageProvidedEventArgs> ImageProviding(ImageDiscoveredEventArgs disc, Illust image, IList<IllustPage> pages = null, CancellationToken token = default)
         {
             pages ??= image.Pages.ToList();
             var newArtist = new ArtistAccount
@@ -134,10 +145,11 @@ namespace ImageInfrastructure.Pixiv
                 Url = $"https://pixiv.net/users/{image.User.Id}",
                 Images = new List<Image>()
             };
-            var existingArtist = await _artistContext.Get(newArtist);
+            var existingArtist = await _artistContext.Get(newArtist, token:token);
             if (existingArtist != null) newArtist = existingArtist;
             var prov = new ImageProvidedEventArgs
             {
+                CancellationToken = token,
                 Post = disc.Post,
                 Attachments = disc.Attachments,
                 Images = disc.Attachments.Select(a => new Image
@@ -161,23 +173,19 @@ namespace ImageInfrastructure.Pixiv
                 }).ToList()
             };
 
-            var i = 0;
-            for (var index = 0; index < pages.Count; index++)
+            for (var i = 0; i < pages.Count; i++)
             {
-                var existingImage = await _imageContext.Get(prov.Images[i]);
+                var existingImage = await _imageContext.Get(prov.Images[i], token:token);
                 if (existingImage != null)
                 {
                     prov.Images[i] = existingImage;
-                    i++;
                     continue;
                 }
 
-                if (!prov.Attachments[index].Download)
-                {
-                    i++;
+                if (!prov.Attachments[i].Download)
                     continue;
-                }
-                var page = pages[index];
+
+                var page = pages[i];
                 var content = page.Original;
 
                 _logger.LogInformation("Downloading from {Uri}", content.Uri);
@@ -186,26 +194,32 @@ namespace ImageInfrastructure.Pixiv
                 await stream.CopyToAsync(memoryStream, token);
                 var data = memoryStream.ToArray();
                 _logger.LogInformation("Downloaded {Count} bytes from {Uri}", data.LongLength, content.Uri);
-                prov.Attachments[index].Data = data;
-                prov.Attachments[index].Filesize = data.LongLength;
+                prov.Attachments[i].Data = data;
+                prov.Attachments[i].Filesize = data.LongLength;
                 prov.Images[i].Blob = data;
-                i++;
             }
 
             // filter out the ones we won't download and don't exist
-            var indicesToRemove = prov.Attachments.Select((a, i1) => (a, i1)).Where(a => !a.a.Download)
-                .Select(a => a.i1).ToList();
-            indicesToRemove.ForEach(a =>
+            if (prov.Attachments.Any(a => !a.Download))
             {
-                if (prov.Images[a].ImageId != 0) return;
-                prov.Attachments.RemoveAt(a);
-            });
+                var newAttachments = new List<Attachment>();
+                var newImages = new List<Image>();
+                for (var i = 0; i < prov.Attachments.Count; i++)
+                {
+                    if (!prov.Attachments[i].Download && prov.Images[i].ImageId == 0) continue;
+                    newAttachments.Add(prov.Attachments[i]);
+                    newImages.Add(prov.Images[i]);
+                }
+
+                prov.Attachments = newAttachments;
+                prov.Images = newImages;
+            }
 
             // add images to the Artist mapping
-            newArtist.Images.AddRange(prov.Images);
+            newArtist.Images.AddRange(prov.Images.Where(a => !newArtist.Images.Contains(a)).ToList());
 
             // Generate Related Images. These are downloaded as pixiv collections, so they are related by nature
-            foreach (var tempImage in prov.Images)
+            foreach (var tempImage in prov.Images.Where(a => a.ImageId == 0))
             {
                 foreach (var source in tempImage.Sources)
                 {

@@ -52,7 +52,7 @@ namespace ImageInfrastructure.Database
         
         private void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
-            Save(e).Wait();
+            Save(e).Wait(e.CancellationToken);
         }
 
         private async Task Save(ImageProvidedEventArgs e)
@@ -61,17 +61,17 @@ namespace ImageInfrastructure.Database
             try
             {
                 _logger.LogInformation("Saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
-                await _context.ArtistAccounts.AddRangeAsync(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct());
-                await _context.ImageTags.AddRangeAsync(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct());
-                await _context.RelatedImages.AddRangeAsync(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct());
-                await _context.Images.AddRangeAsync(e.Images);
-                await _context.SaveChangesAsync();
-                await trans.CommitAsync();
+                await _context.ArtistAccounts.AddRangeAsync(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct(), e.CancellationToken);
+                await _context.ImageTags.AddRangeAsync(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct(), e.CancellationToken);
+                await _context.RelatedImages.AddRangeAsync(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct(), e.CancellationToken);
+                await _context.Images.AddRangeAsync(e.Images, e.CancellationToken);
+                await _context.SaveChangesAsync(e.CancellationToken);
+                await trans.CommitAsync(e.CancellationToken);
                 _logger.LogInformation("Finished saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
             }
             catch (Exception exception)
             {
-                await trans.RollbackAsync();
+                await trans.RollbackAsync(e.CancellationToken);
                 _logger.LogError(exception, "Unable to write {File}", e.Images.FirstOrDefault()?.GetPixivFilename());
             }
         }
@@ -80,7 +80,7 @@ namespace ImageInfrastructure.Database
         {
             foreach (var attachment in e.Attachments.ToList())
             {
-                var any = await _context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri) != null;
+                var any = await _context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri, e.CancellationToken) != null;
                 if (!any) return;
                 _logger.LogInformation("Image already exists for {Uri}. Skipping!", attachment.Uri);
                 attachment.Download = false;

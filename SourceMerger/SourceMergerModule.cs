@@ -29,7 +29,7 @@ namespace ImageInfrastructure.SourceMerger
         {
             var results = await Task.WhenAll(e.Images.Select(async image =>
             {
-                var images = await _imageContext.FindAll(image);
+                var images = await _imageContext.FindAll(image, token:e.CancellationToken);
                 var toRemove = images.ToList();
                 var result = MergeImages(images);
                 toRemove.Remove(result);
@@ -37,7 +37,7 @@ namespace ImageInfrastructure.SourceMerger
                 return result;
             }));
             e.Images = results.ToList();
-            await _imageContext.SaveChangesAsync();
+            await _imageContext.SaveChangesAsync(e.CancellationToken);
         }
         
         private static Image MergeImages(IReadOnlyCollection<Image> images)
