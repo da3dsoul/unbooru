@@ -21,6 +21,7 @@ body {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-evenly;
+	min-height: 100vh;
 }
 
 @media (orientation: portrait) {
@@ -74,7 +75,7 @@ body {
 	max-width: 100%;
 	background-color: #8c8f9e;
 }
-.image > img {
+.image img {
 	max-height: 100%;
 	max-width: 100%;
 	object-fit: contain;

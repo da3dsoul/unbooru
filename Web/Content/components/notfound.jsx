@@ -1,12 +1,11 @@
 import React, {useEffect} from 'react';
-import ReactPaginate from 'react-paginate';
-import {useLocation} from "react-router-dom";
+import ImageBox from "./imagebox.js";
 import axios from "axios";
-import ImageBox from './imagebox.js'
+import ReactPaginate from "react-paginate";
 
-export default function Search() {
-    const imagesPerPage = 21;
-    let query = useLocation().search.slice(1)
+export default function NotFound() {
+    const imagesPerPage = 3;
+    let query = 'tag=!pussy&tag=!penis&tag=!vaginal&tag=!sex&tag=!cunnilingus&tag=!paizuri&tag=!fellatio'
     let [state, updateState] = React.useState({
         images: [],
         page: 1,
@@ -50,11 +49,11 @@ export default function Search() {
         return (<ImageBox id={image.imageId} key={image.imageId} image={image} />);
     });
 
+
     return (
         <div id="main" className="container-fluid">
-            <ol id="image-list" className="image-list">
-                {imageNodes}
-            </ol>
+            <h1>Page Not Found! Here's some pics.</h1>
+            <ol id="image-list" className="image-list">{imageNodes}</ol>
             <ReactPaginate
                 previousLabel={"<"}
                 nextLabel={">"}
