@@ -30,7 +30,6 @@ namespace ImageInfrastructure.Core
         {
             try
             {
-                FindTypes();
                 using var host = CreateHostBuilder(args).Build();
 
                 var lifetime = host.Services.GetService<IHostApplicationLifetime>();
@@ -146,8 +145,9 @@ namespace ImageInfrastructure.Core
             Task.WhenAll(tasks).Wait();
         }
 
-        private IHostBuilder CreateHostBuilder(string[] args)
+        public IHostBuilder CreateHostBuilder(string[] args)
         {
+            FindTypes();
             var hostBuilder = Host.CreateDefaultBuilder(args);
             foreach (var startup in Modules)
             {

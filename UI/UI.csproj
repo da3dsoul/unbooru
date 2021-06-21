@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.6" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.6" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.6" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.8.0" />
+    <PackageReference Include="WebViewControl-Avalonia" Version="2.85.39" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Booru\Booru.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="..\ImageCompressor\ImageCompressor.csproj" />
+    <ProjectReference Include="..\ImageSaveHandler\ImageSaveHandler.csproj" />
+    <ProjectReference Include="..\Iqdb\Iqdb.csproj" />
+    <ProjectReference Include="..\JsonSettingsProvider\JsonSettingsProvider.csproj" />
+    <ProjectReference Include="..\Pixiv\Pixiv.csproj" />
+    <ProjectReference Include="..\Web\Web.csproj" />
+  </ItemGroup>
+</Project>
