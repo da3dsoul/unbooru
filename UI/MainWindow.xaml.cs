@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -7,24 +6,25 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using CefGlue.Avalonia;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Pixiv;
 using Meowtrix.PixivApi;
 using Microsoft.Extensions.DependencyInjection;
-using UI.ViewModels;
-using WebViewControl;
 
-namespace UI.Views
+namespace UI
 {
-    public partial class MainWindow : Window
+    public class MainWindow : Window
     {
-        private Uri? _result;
+        private Uri _result;
         public MainWindow()
         {
             InitializeComponent();
 #if DEBUG
             this.AttachDevTools();
 #endif
+            this.FindControl<Button>("BtnLogin").Click += BtnLogin_Click;
+            this.FindControl<AvaloniaCefBrowser>("WebView").LoadStart += WebView_OnLoadStart;
         }
 
         private void InitializeComponent()
@@ -41,9 +41,8 @@ namespace UI.Views
                 {
                     Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        var context = DataContext as MainWindowViewModel;
-                        Debug.Assert(context != null, nameof(context) + " != null");
-                        context.CurrentAddress = uri;
+                        var webview = this.FindControl<AvaloniaCefBrowser>("WebView");
+                        webview.Browser.GetMainFrame().LoadUrl(uri);
                     });
 
                     while (true)
@@ -59,13 +58,12 @@ namespace UI.Views
             });
         }
 
-        private void WebView_OnBeforeNavigate(Request request)
+        private void WebView_OnLoadStart(object sender, LoadStartEventArgs e)
         {
-            var uri = new Uri(request.Url);
+            var uri = new Uri(e.Frame.Url);
             if (uri.Scheme == "pixiv")
             {
                 _result = uri;
-                request.Cancel();
             }
         }
     }

@@ -1,14 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.ReactiveUI;
+using CefGlue.Avalonia;
 using ImageInfrastructure.Abstractions;
 using ImageInfrastructure.Core;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace UI
 {
@@ -28,16 +24,8 @@ namespace UI
             var host = startup.CreateHostBuilder(args).Build();
             ServiceProvider = host.Services;
 
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+            AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().ConfigureCefGlue(args).Start<MainWindow>();
         }
-
-        // Avalonia configuration, don't remove; also used by visual designer.
-        private static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
-                .UsePlatformDetect()
-                .LogToTrace()
-                .UseReactiveUI();
 
         private static bool IsRunningOnLinuxOrMac() => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     }
