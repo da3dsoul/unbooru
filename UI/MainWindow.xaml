@@ -1,9 +1,0 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:webview="clr-namespace:CefGlue.Avalonia;assembly=CefGlue.Avalonia"
-        MinWidth="500" MinHeight="300"
-        Title="UI">
-    <Grid RowDefinitions="Auto,*" >
-        <Button Height="50" Width="100" Name="BtnLogin" />
-        <webview:AvaloniaCefBrowser MinWidth="300" MinHeight="400" Grid.Row="1" Name="WebView" />
-    </Grid>
-</Window>

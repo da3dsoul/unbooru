@@ -9,6 +9,7 @@ using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageInfrastructure.Abstractions.Poco.Ingest;
 using Meowtrix.PixivApi;
+using Meowtrix.PixivApi.Json;
 using Meowtrix.PixivApi.Models;
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +23,7 @@ namespace ImageInfrastructure.Pixiv
 
         public EventHandler<ImageDiscoveredEventArgs> ImageDiscovered { get; set; }
         public EventHandler<ImageProvidedEventArgs> ImageProvided { get; set; }
-        
+
         private ISettingsProvider<PixivSettings> SettingsProvider { get; set; }
 
         public string Source => "Pixiv";
@@ -34,7 +35,7 @@ namespace ImageInfrastructure.Pixiv
             _artistContext = artistContext;
             _imageContext = imageContext;
         }
-        
+
         public async Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
             _logger.LogInformation("Running {ModuleType} module with settings of type {SettingsType}", GetType(),
@@ -48,13 +49,24 @@ namespace ImageInfrastructure.Pixiv
             try
             {
                 using var pixivClient = new PixivClient();
-                await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
-                                             throw new InvalidOperationException("Settings can't be null"));
-                /*var refresh = await pixivClient.LoginAsync(s =>
+                try
                 {
-                    Logger.LogError(s);
-                    return Task.FromResult(new Uri("pixiv://account/login?code=-YitIvIn34acMvakDx0xIVR0HKnpmGZintYzKKyuAcg&via=login"));
-                });*/
+                    await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
+                                                 throw new InvalidOperationException("Settings can't be null"));
+                }
+                catch (Exception e)
+                {
+                    
+                }
+                
+
+                var refreshToken = pixivClient.RefreshToken;
+                var accessToken = pixivClient.AccessToken;
+                SettingsProvider.Update(a =>
+                {
+                    a.Token = refreshToken;
+                    a.AccessToken = accessToken;
+                });
                 await DownloadBookmarks(token, pixivClient);
             }
             catch (TaskCanceledException)
