@@ -303,6 +303,7 @@ namespace Meowtrix.PixivApi
             Visibility restrict = Visibility.Public,
             int? maxBookmarkId = null,
             string? tag = null,
+            Uri? continueFrom = null,
             CancellationToken cancellation = default)
         {
             string url = $"/v1/user/bookmarks/illust?user_id={userId}&restrict={restrict.ToQueryString()}";
@@ -310,6 +311,9 @@ namespace Meowtrix.PixivApi
                 url += $"&max_bookmark_id={maxBookmarkId}";
             if (!string.IsNullOrWhiteSpace(tag))
                 url += $"&tag={HttpUtility.UrlEncode(tag.Trim())}";
+
+            if (continueFrom is not null) url = continueFrom.ToString();
+
             return InvokeApiAsync<UserIllusts>(
                 authToken,
                 url,

@@ -280,12 +280,13 @@ namespace Meowtrix.PixivApi
                 cancellation);
         }
 
-        public IAsyncEnumerable<Illust> GetMyBookmarksAsync(Visibility visibility = Visibility.Public,
+        public IAsyncEnumerable<Illust> GetMyBookmarksAsync(Uri? continueFrom = null, Visibility visibility = Visibility.Public,
             CancellationToken cancellation = default)
         {
             return ToIllustAsyncEnumerable(async (auth, c)
                 => await Api.GetUserBookmarkIllustsAsync(authToken: auth, userId: CurrentUserId,
                 restrict: visibility,
+                continueFrom: continueFrom,
                 cancellation: c).ConfigureAwait(false),
                 cancellation);
         }
