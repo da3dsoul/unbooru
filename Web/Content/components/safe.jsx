@@ -12,10 +12,7 @@ export default function SafeImageList() {
         page: 1,
         pages: 1
     });
-
-    React.useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+    useEffect(() => window.scrollTo(0,0), [state.images]);
 
     useEffect(() => {
         axios.get('/api/Search/Count?' + query).then(res => {
