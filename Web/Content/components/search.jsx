@@ -14,6 +14,8 @@ export default function Search() {
         pages: 1
     });
 
+    useEffect(() => window.scrollTo(0,0), [state.images]);
+
     useEffect(() => {
         axios.get('/api/Search/Count?' + query).then(res => {
             updateState(prevState => ({
