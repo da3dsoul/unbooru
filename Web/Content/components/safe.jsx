@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import ImageBox from "./imagebox.js";
 import axios from "axios";
+import Masonry, {ResponsiveMasonry} from "react-responsive-masonry"
 import ReactPaginate from "react-paginate";
 
 export default function SafeImageList() {
@@ -56,7 +57,11 @@ export default function SafeImageList() {
 
     return (
         <div id="main" className="container-fluid">
-            <ol id="image-list" className="image-list">{imageNodes}</ol>
+            <ResponsiveMasonry id="image-list" columnsCountBreakPoints={{600: 1, 1000: 2, 1400: 3}}>
+                <Masonry>
+                    {imageNodes}
+                </Masonry>
+            </ResponsiveMasonry>
             <ReactPaginate
                 previousLabel={"<"}
                 nextLabel={">"}

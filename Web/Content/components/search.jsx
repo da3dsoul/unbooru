@@ -3,6 +3,7 @@ import ReactPaginate from 'react-paginate';
 import {useLocation} from "react-router-dom";
 import axios from "axios";
 import ImageBox from './imagebox.js'
+import Masonry, {ResponsiveMasonry} from "react-responsive-masonry";
 
 export default function Search() {
     const imagesPerPage = 21;
@@ -52,9 +53,11 @@ export default function Search() {
 
     return (
         <div id="main" className="container-fluid">
-            <ol id="image-list" className="image-list">
-                {imageNodes}
-            </ol>
+            <ResponsiveMasonry id="image-list" columnsCountBreakPoints={{600: 1, 1000: 2, 1400: 3}}>
+                <Masonry>
+                    {imageNodes}
+                </Masonry>
+            </ResponsiveMasonry>
             <ReactPaginate
                 previousLabel={"<"}
                 nextLabel={">"}
