@@ -18,7 +18,7 @@ namespace ImageInfrastructure.Web.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Image>> GetById(int id)
         {
-            var image = await _dbHelper.GetById(id);
+            var image = await _dbHelper.GetImageById(id);
             if (image == null) return new NotFoundResult();
             return image;
         }
@@ -26,9 +26,9 @@ namespace ImageInfrastructure.Web.Controllers
         [HttpGet("{id:int}/{filename}")]
         public async Task<object> GetImageById(int id, string filename)
         {
-            var image = await _dbHelper.GetById(id);
-            if (image == null) return new NotFoundResult();
-            return File(image.Blob, MimeTypes.GetMimeType(filename));
+            var blob = await _dbHelper.GetImageBlobById(id);
+            if (blob == default) return new NotFoundResult();
+            return File(blob, MimeTypes.GetMimeType(filename));
         }
     }
 }
