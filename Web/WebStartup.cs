@@ -24,7 +24,7 @@ namespace ImageInfrastructure.Web
             return hostBuilder.ConfigureWebHostDefaults(options =>
             {
                 //
-                options.UseStartup<AspNetCoreStartup>().UseUrls("http://*:5000", "https://*:5001").ConfigureLogging(a => a.AddNLogWeb());
+                options.UseStartup<AspNetCoreStartup>().UseUrls("http://*:9280", "https://*:9281").ConfigureLogging(a => a.AddNLogWeb());
             });
         }
     }

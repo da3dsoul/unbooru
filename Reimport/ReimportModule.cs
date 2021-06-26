@@ -35,7 +35,8 @@ namespace ImageInfrastructure.Reimport
                 SettingsProvider.GetType().GenericTypeArguments.FirstOrDefault());
             try
             {
-                using var pixivClient = new PixivClient();
+                var factory = provider.GetService<ILoggerFactory>();
+                using var pixivClient = new PixivClient(factory);
                 await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
                                              throw new InvalidOperationException("Settings can't be null"));
 

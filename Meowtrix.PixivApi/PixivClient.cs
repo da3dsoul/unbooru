@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Meowtrix.PixivApi.Json;
 using Meowtrix.PixivApi.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Meowtrix.PixivApi
 {
@@ -24,33 +25,45 @@ namespace Meowtrix.PixivApi
     public sealed class PixivClient : IDisposable
     {
         internal PixivApiClient Api { get; private set; }
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<PixivClient> _logger;
 
         #region Construction and disposal
-        public PixivClient(bool useDefaultProxy = true)
-            => Api = new PixivApiClient(useDefaultProxy);
-
-        public PixivClient(IWebProxy? proxy)
+        public PixivClient(ILoggerFactory loggerFactory, bool useDefaultProxy = true)
         {
-            Api = proxy is null
-                ? new PixivApiClient(false)
-                : new PixivApiClient(proxy);
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<PixivClient>();
+            Api = new PixivApiClient(useDefaultProxy, _loggerFactory.CreateLogger<PixivApiClient>());
         }
 
-        public PixivClient(HttpMessageHandler handler)
-            => Api = new PixivApiClient(handler);
+        public PixivClient(IWebProxy? proxy, ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<PixivClient>();
+            Api = proxy is null
+                ? new PixivApiClient(false, _loggerFactory.CreateLogger<PixivApiClient>())
+                : new PixivApiClient(proxy, _loggerFactory.CreateLogger<PixivApiClient>());
+        }
+
+        public PixivClient(HttpMessageHandler handler, ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<PixivClient>();
+            Api = new PixivApiClient(handler, _loggerFactory.CreateLogger<PixivApiClient>());
+        }
 
         public void SetProxy(IWebProxy? proxy)
         {
             ChangeApiClient(proxy is null
-                ? new PixivApiClient(false)
-                : new PixivApiClient(proxy));
+                ? new PixivApiClient(false, _loggerFactory.CreateLogger<PixivApiClient>())
+                : new PixivApiClient(proxy, _loggerFactory.CreateLogger<PixivApiClient>()));
         }
 
         public void SetDefaultProxy()
-            => ChangeApiClient(new PixivApiClient(true));
+            => ChangeApiClient(new PixivApiClient(true, _loggerFactory.CreateLogger<PixivApiClient>()));
 
         public void SetHandler(HttpMessageHandler handler)
-            => ChangeApiClient(new PixivApiClient(handler));
+            => ChangeApiClient(new PixivApiClient(handler, _loggerFactory.CreateLogger<PixivApiClient>()));
 
         private void ChangeApiClient(PixivApiClient api)
         {

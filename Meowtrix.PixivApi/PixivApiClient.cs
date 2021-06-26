@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Meowtrix.PixivApi.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Meowtrix.PixivApi
 {
@@ -34,35 +35,37 @@ namespace Meowtrix.PixivApi
         };
 
         #region Constructors
-        public PixivApiClient(HttpMessageHandler handler)
+        public PixivApiClient(HttpMessageHandler handler, ILogger<PixivApiClient> logger)
             : base(handler)
         {
+            _logger = logger;
             DefaultRequestHeaders.Add("User-Agent", UserAgent);
             BaseAddress = s_baseUri;
         }
 
-        public PixivApiClient()
-            : this(false, null)
+        public PixivApiClient(ILogger<PixivApiClient> logger)
+            : this(false, null, logger)
         {
         }
 
-        public PixivApiClient(bool useDefaultProxy)
-            : this(useDefaultProxy, null)
+        public PixivApiClient(bool useDefaultProxy, ILogger<PixivApiClient> logger)
+            : this(useDefaultProxy, null, logger)
         {
         }
 
-        public PixivApiClient(IWebProxy proxy)
-            : this(true, proxy)
+        public PixivApiClient(IWebProxy proxy, ILogger<PixivApiClient> logger)
+            : this(true, proxy, logger)
         {
         }
 
-        private PixivApiClient(bool useProxy, IWebProxy? proxy)
+        private PixivApiClient(bool useProxy, IWebProxy? proxy, ILogger<PixivApiClient> logger)
             : base(new HttpClientHandler
             {
                 Proxy = proxy,
                 UseProxy = useProxy
             })
         {
+            _logger = logger;
             BaseAddress = s_baseUri;
             DefaultRequestHeaders.Add("User-Agent", UserAgent);
         }
@@ -75,6 +78,8 @@ namespace Meowtrix.PixivApi
         private const string ClientSecret = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
         private const string UserAgent = "PixivAndroidApp/5.0.212 (Android 6.0; PixivBot)";
         private const string AuthUrl = "https://oauth.secure.pixiv.net/auth/token";
+        private static readonly SimpleRateLimiter _rateLimiter = new();
+        private readonly ILogger<PixivApiClient> _logger;
 
         [Obsolete("Authentication with username and password has been abandoned by Pixiv.")]
         public Task<(DateTimeOffset authTime, AuthResponse authResponse)> AuthAsync(string username, string password,
@@ -247,6 +252,10 @@ namespace Meowtrix.PixivApi
                 string original = await response.Content.ReadAsStringAsync(cancellation).ConfigureAwait(false);
                 var error = JsonSerializer.Deserialize<PixivApiErrorMessage>(original, s_serializerOptions);
                 throw new PixivApiException(original, error, error?.Error?.Message ?? original);
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("URL was: " + url);
             }
 
             response.EnsureSuccessStatusCode();
@@ -665,7 +674,9 @@ namespace Meowtrix.PixivApi
             if (previous.NextUrl is null)
                 return default;
 
+            _logger.LogInformation("Getting Next Page: {Url}", previous.NextUrl);
             // TODO: nullable covariance of task
+            _rateLimiter.EnsureRate();
             return new(InvokeApiAsync<T>(authToken, previous.NextUrl, HttpMethod.Get, cancellation: cancellation)!);
         }
     }

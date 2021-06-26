@@ -9,8 +9,8 @@ using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageInfrastructure.Abstractions.Poco.Ingest;
 using Meowtrix.PixivApi;
-using Meowtrix.PixivApi.Json;
 using Meowtrix.PixivApi.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ImageInfrastructure.Pixiv
@@ -24,7 +24,7 @@ namespace ImageInfrastructure.Pixiv
         public EventHandler<ImageDiscoveredEventArgs> ImageDiscovered { get; set; }
         public EventHandler<ImageProvidedEventArgs> ImageProvided { get; set; }
 
-        private ISettingsProvider<PixivSettings> SettingsProvider { get; set; }
+        private ISettingsProvider<PixivSettings> SettingsProvider { get; }
 
         public string Source => "Pixiv";
 
@@ -48,17 +48,10 @@ namespace ImageInfrastructure.Pixiv
 
             try
             {
-                using var pixivClient = new PixivClient();
-                try
-                {
-                    await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
-                                                 throw new InvalidOperationException("Settings can't be null"));
-                }
-                catch (Exception e)
-                {
-                    
-                }
-                
+                var factory = provider.GetService<ILoggerFactory>();
+                using var pixivClient = new PixivClient(factory);
+                await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
+                                             throw new InvalidOperationException("Settings can't be null"));
 
                 var refreshToken = pixivClient.RefreshToken;
                 var accessToken = pixivClient.AccessToken;
@@ -67,7 +60,10 @@ namespace ImageInfrastructure.Pixiv
                     a.Token = refreshToken;
                     a.AccessToken = accessToken;
                 });
-                await DownloadBookmarks(token, pixivClient);
+                Uri continueFrom = null;
+                if (!string.IsNullOrEmpty(SettingsProvider.Get(a => a.ContinueFrom)))
+                    continueFrom = new Uri(SettingsProvider.Get(a => a.ContinueFrom));
+                await DownloadBookmarks(token, pixivClient, continueFrom);
             }
             catch (TaskCanceledException)
             {
@@ -78,9 +74,9 @@ namespace ImageInfrastructure.Pixiv
             }
         }
 
-        private async Task DownloadBookmarks(CancellationToken token, PixivClient pixivClient)
+        private async Task DownloadBookmarks(CancellationToken token, PixivClient pixivClient, Uri continueFrom = null)
         {
-            var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation: token);
+            var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation: token, continueFrom: continueFrom);
             var iterator = userBookmarks.GetAsyncEnumerator(token);
             var i = 0;
 
