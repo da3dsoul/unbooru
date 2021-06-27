@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
 import ImageBox from "./imagebox.js";
 import axios from "axios";
-import Masonry, {ResponsiveMasonry} from "react-responsive-masonry"
 import ReactPaginate from "react-paginate";
+import Stonemason from "@da3dsoul/react-stonemason";
 
 export default function SafeImageList() {
     const imagesPerPage = 21;
@@ -48,17 +48,15 @@ export default function SafeImageList() {
 
     let imageNodes = state.images.map(image => {
         if (!image.hasOwnProperty("imageId")) return;
-        return (<ImageBox id={image.imageId} key={image.imageId} image={image} />);
+        return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={image.height + 200} />);
     });
 
 
     return (
         <div id="main" className="container-fluid">
-            <ResponsiveMasonry id="image-list" columnsCountBreakPoints={{600: 1, 1000: 2, 1400: 3}}>
-                <Masonry>
-                    {imageNodes}
-                </Masonry>
-            </ResponsiveMasonry>
+            <Stonemason targetRowHeight={1200}>
+                {imageNodes}
+            </Stonemason>
             <ReactPaginate
                 previousLabel={"<"}
                 nextLabel={">"}

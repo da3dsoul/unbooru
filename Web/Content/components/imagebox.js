@@ -8,7 +8,7 @@ export default function ImageBox(props) {
     const artist = image.artistAccounts[0];
 
     return (
-        <div className="image-container-child">
+        <div className="image-container-child" style={props.style}>
             <div className="image">
                 <LazyLoad width="100%">
                     <img src={"/api/Image/"+image.imageId+"/"+source.originalFilename} alt={source.title} />
