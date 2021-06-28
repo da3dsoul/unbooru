@@ -48,13 +48,13 @@ export default function SafeImageList() {
 
     let imageNodes = state.images.map(image => {
         if (!image.hasOwnProperty("imageId")) return;
-        return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={image.height + 200} />);
+        return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={(image.height * 1.1)} />);
     });
 
 
     return (
         <div id="main" className="container-fluid">
-            <Stonemason targetRowHeight={1200}>
+            <Stonemason targetRowHeight={1000}>
                 {imageNodes}
             </Stonemason>
             <ReactPaginate

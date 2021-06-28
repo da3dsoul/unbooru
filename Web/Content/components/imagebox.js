@@ -10,7 +10,7 @@ export default function ImageBox(props) {
     return (
         <div className="image-container-child" style={props.style}>
             <div className="image">
-                <LazyLoad width="100%">
+                <LazyLoad width="100%" height="100%">
                     <img src={"/api/Image/"+image.imageId+"/"+source.originalFilename} alt={source.title} />
                 </LazyLoad>
             </div>
