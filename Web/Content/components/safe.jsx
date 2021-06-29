@@ -51,10 +51,13 @@ export default function SafeImageList() {
         return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={(image.height * 1.1)} />);
     });
 
+    function getHeight(containerWidth) {
+        return Math.floor(window.outerHeight * 0.99);
+    }
 
     return (
         <div id="main" className="container-fluid">
-            <Stonemason targetRowHeight={1000}>
+            <Stonemason targetRowHeight={getHeight}>
                 {imageNodes}
             </Stonemason>
             <ReactPaginate
