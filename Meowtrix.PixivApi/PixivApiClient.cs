@@ -25,7 +25,7 @@ namespace Meowtrix.PixivApi
     /// </remarks>
     public sealed class PixivApiClient : HttpClient
     {
-        private static readonly JsonSerializerOptions s_serializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions SSerializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = new UnderscoreCaseNamingPolicy(),
             Converters =
@@ -40,7 +40,7 @@ namespace Meowtrix.PixivApi
         {
             _logger = logger;
             DefaultRequestHeaders.Add("User-Agent", UserAgent);
-            BaseAddress = s_baseUri;
+            BaseAddress = SBaseUri;
         }
 
         public PixivApiClient(ILogger<PixivApiClient> logger)
@@ -66,19 +66,19 @@ namespace Meowtrix.PixivApi
             })
         {
             _logger = logger;
-            BaseAddress = s_baseUri;
+            BaseAddress = SBaseUri;
             DefaultRequestHeaders.Add("User-Agent", UserAgent);
         }
 
         #endregion
 
         private const string BaseUrl = "https://app-api.pixiv.net/";
-        private static readonly Uri s_baseUri = new Uri(BaseUrl);
+        private static readonly Uri SBaseUri = new Uri(BaseUrl);
         private const string ClientId = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
         private const string ClientSecret = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
         private const string UserAgent = "PixivAndroidApp/5.0.212 (Android 6.0; PixivBot)";
         private const string AuthUrl = "https://oauth.secure.pixiv.net/auth/token";
-        private static readonly SimpleRateLimiter _rateLimiter = new();
+        private static readonly SimpleRateLimiter RateLimiter = new();
         private readonly ILogger<PixivApiClient> _logger;
 
         [Obsolete("Authentication with username and password has been abandoned by Pixiv.")]
@@ -185,13 +185,13 @@ namespace Meowtrix.PixivApi
             if (response.StatusCode == HttpStatusCode.BadRequest)
             {
                 string original = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                var error = JsonSerializer.Deserialize<PixivAuthErrorMessage>(original, s_serializerOptions);
+                var error = JsonSerializer.Deserialize<PixivAuthErrorMessage>(original, SSerializerOptions);
                 throw new PixivAuthException(original, error, error?.Errors?.System?.Message ?? original);
             }
 
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadFromJsonAsync<AuthResponse>(s_serializerOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var json = await response.Content.ReadFromJsonAsync<AuthResponse>(SSerializerOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return json ?? throw new InvalidOperationException("The api responses a null object.");
         }
@@ -250,7 +250,7 @@ namespace Meowtrix.PixivApi
             if (response.StatusCode == HttpStatusCode.BadRequest)
             {
                 string original = await response.Content.ReadAsStringAsync(cancellation).ConfigureAwait(false);
-                var error = JsonSerializer.Deserialize<PixivApiErrorMessage>(original, s_serializerOptions);
+                var error = JsonSerializer.Deserialize<PixivApiErrorMessage>(original, SSerializerOptions);
                 throw new PixivApiException(original, error, error?.Error?.Message ?? original);
             }
             if (!response.IsSuccessStatusCode)
@@ -260,7 +260,7 @@ namespace Meowtrix.PixivApi
 
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadFromJsonAsync<T>(s_serializerOptions, cancellationToken: cancellation).ConfigureAwait(false);
+            var json = await response.Content.ReadFromJsonAsync<T>(SSerializerOptions, cancellationToken: cancellation).ConfigureAwait(false);
 
             return json ?? throw new InvalidOperationException("The api responses a null object.");
         }
@@ -297,8 +297,8 @@ namespace Meowtrix.PixivApi
             CancellationToken cancellation = default)
         {
             string url = $"/v1/user/illusts?user_id={userId}&offset={offset}";
-            if (illustType is UserIllustType type)
-                url += $"&type={type.ToQueryString()}";
+            if (illustType is not null)
+                url += $"&type={illustType.Value.ToQueryString()}";
             return InvokeApiAsync<UserIllusts>(
                 authToken: authToken,
                 url: url,
@@ -370,8 +370,8 @@ namespace Meowtrix.PixivApi
                 ["comment"] = comment
             };
 
-            if (parentCommentId is int p)
-                data.Add("parent_comment_id", p.ToString(NumberFormatInfo.InvariantInfo));
+            if (parentCommentId is not null)
+                data.Add("parent_comment_id", parentCommentId.Value.ToString(NumberFormatInfo.InvariantInfo));
 
             return InvokeApiAsync<PostIllustCommentResult>(
                 authToken,
@@ -419,10 +419,10 @@ namespace Meowtrix.PixivApi
                 + $"&include_ranking_label={(includeRankingLabel ? "true" : "false")}"
                 + $"&include_ranking_illusts={(includeRankingIllusts ? "true" : "false")}"
                 + $"&include_privacy_policy={(includePrivacyPolicy ? "true" : "false")}";
-            if (maxBookmarkIdForRecommended is int rId)
-                url += $"&max_bookmark_id_for_recommend={rId}";
-            if (minBookmarkIdForRecentIllust is int iId)
-                url += $"&min_bookmark_id_for_recent_illust={iId}";
+            if (maxBookmarkIdForRecommended is not null)
+                url += $"&max_bookmark_id_for_recommend={maxBookmarkIdForRecommended.Value}";
+            if (minBookmarkIdForRecentIllust is not null)
+                url += $"&min_bookmark_id_for_recent_illust={minBookmarkIdForRecentIllust.Value}";
             if (bookmarkIllustIds != null)
                 url += $"&bookmark_illust_ids={string.Join(',', bookmarkIllustIds)}";
 
@@ -659,7 +659,7 @@ namespace Meowtrix.PixivApi
             {
                 Headers =
                 {
-                    Referrer = s_baseUri
+                    Referrer = SBaseUri
                 }
             };
 
@@ -676,7 +676,7 @@ namespace Meowtrix.PixivApi
 
             _logger.LogInformation("Getting Next Page: {Url}", previous.NextUrl);
             // TODO: nullable covariance of task
-            _rateLimiter.EnsureRate();
+            RateLimiter.EnsureRate();
             return new(InvokeApiAsync<T>(authToken, previous.NextUrl, HttpMethod.Get, cancellation: cancellation)!);
         }
     }

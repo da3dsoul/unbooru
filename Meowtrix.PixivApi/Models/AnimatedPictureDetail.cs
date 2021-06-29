@@ -35,19 +35,16 @@ namespace Meowtrix.PixivApi.Models
 
         public ImmutableArray<AnimatedPictureMetadata.Frame> Frames { get; }
 
-        public async Task<IEnumerable<(Stream stream, TimeSpan frameTime)>> ExtractFramesAsync(
-            CancellationToken cancellation = default)
+        public async Task<IEnumerable<(Stream stream, TimeSpan frameTime)>> ExtractFramesAsync(CancellationToken cancellation = default)
         {
-            return Extract(await GetZipArchiveAsync(cancellation).ConfigureAwait(false),
-                cancellation);
+            return Extract(await GetZipArchiveAsync(cancellation).ConfigureAwait(false), cancellation);
 
-            IEnumerable<(Stream stream, TimeSpan frameTime)> Extract(ZipArchive archive,
-                CancellationToken cancellation = default)
+            IEnumerable<(Stream stream, TimeSpan frameTime)> Extract(ZipArchive archive, CancellationToken cancellationToken = default)
             {
                 using (archive)
                     foreach (var frame in Frames)
                     {
-                        cancellation.ThrowIfCancellationRequested();
+                        cancellationToken.ThrowIfCancellationRequested();
 
                         var stream = (archive.GetEntry(frame.File)
                             ?? throw new InvalidOperationException("Corrupt metadata."))

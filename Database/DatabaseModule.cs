@@ -17,12 +17,10 @@ namespace ImageInfrastructure.Database
     public class DatabaseModule : IModule
     {
         private readonly ILogger<DatabaseModule> _logger;
-        private readonly CoreContext _context;
-        
-        public DatabaseModule(ILogger<DatabaseModule> logger, CoreContext context)
+
+        public DatabaseModule(ILogger<DatabaseModule> logger)
         {
             _logger = logger;
-            _context = context;
         }
         
         [ModulePostConfiguration(Priority = ModuleInitializationPriority.Database)]
@@ -57,15 +55,16 @@ namespace ImageInfrastructure.Database
 
         private async Task Save(ImageProvidedEventArgs e)
         {
-            await using var trans = await _context.Database.BeginTransactionAsync();
+            var context = e.ServiceProvider.GetRequiredService<CoreContext>();
+            await using var trans = await context.Database.BeginTransactionAsync();
             try
             {
                 _logger.LogInformation("Saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
-                await _context.ArtistAccounts.AddRangeAsync(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct(), e.CancellationToken);
-                await _context.ImageTags.AddRangeAsync(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct(), e.CancellationToken);
-                await _context.RelatedImages.AddRangeAsync(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct(), e.CancellationToken);
-                await _context.Images.AddRangeAsync(e.Images, e.CancellationToken);
-                await _context.SaveChangesAsync(e.CancellationToken);
+                await context.ArtistAccounts.AddRangeAsync(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct(), e.CancellationToken);
+                await context.ImageTags.AddRangeAsync(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct(), e.CancellationToken);
+                await context.RelatedImages.AddRangeAsync(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct(), e.CancellationToken);
+                await context.Images.AddRangeAsync(e.Images, e.CancellationToken);
+                await context.SaveChangesAsync(e.CancellationToken);
                 await trans.CommitAsync(e.CancellationToken);
                 _logger.LogInformation("Finished saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
             }
@@ -78,9 +77,10 @@ namespace ImageInfrastructure.Database
 
         private async void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
+            var context = e.ServiceProvider.GetRequiredService<CoreContext>();
             foreach (var attachment in e.Attachments.ToList())
             {
-                var any = await _context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri, e.CancellationToken) != null;
+                var any = await context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri, e.CancellationToken) != null;
                 if (!any) return;
                 _logger.LogInformation("Image already exists for {Uri}. Skipping!", attachment.Uri);
                 attachment.Download = false;

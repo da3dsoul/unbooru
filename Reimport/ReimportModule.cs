@@ -18,15 +18,11 @@ namespace ImageInfrastructure.Reimport
     {
         private ISettingsProvider<ReimportSettings> SettingsProvider { get; set; }
         private readonly ILogger<ReimportModule> _logger;
-        private readonly IReadWriteContext<ResponseCache> _responseContext;
-        private readonly IContext<Image> _imageContext;
         
-        public ReimportModule(ISettingsProvider<ReimportSettings> settingsProvider, ILogger<ReimportModule> logger, IReadWriteContext<ResponseCache> responseContext, IContext<Image> imageContext)
+        public ReimportModule(ISettingsProvider<ReimportSettings> settingsProvider, ILogger<ReimportModule> logger)
         {
             SettingsProvider = settingsProvider;
             _logger = logger;
-            _responseContext = responseContext;
-            _imageContext = imageContext;
         }
 
         public async Task RunAsync(IServiceProvider provider, CancellationToken token)
@@ -35,7 +31,7 @@ namespace ImageInfrastructure.Reimport
                 SettingsProvider.GetType().GenericTypeArguments.FirstOrDefault());
             try
             {
-                var factory = provider.GetService<ILoggerFactory>();
+                var factory = provider.GetRequiredService<ILoggerFactory>();
                 using var pixivClient = new PixivClient(factory);
                 await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
                                              throw new InvalidOperationException("Settings can't be null"));
@@ -56,7 +52,10 @@ namespace ImageInfrastructure.Reimport
                     {
                         Uri = uri
                     };
-                    var responseCache = await _responseContext.Get(response, token: token);
+                    using var scope = provider.CreateScope();
+                    var responseContext = scope.ServiceProvider.GetRequiredService<IReadWriteContext<ResponseCache>>();
+                    var imageContext = scope.ServiceProvider.GetRequiredService<IContext<Image>>();
+                    var responseCache = await responseContext.Get(response, token: token);
                     if (responseCache != null)
                     {
                         if (responseCache.StatusCode == HttpStatusCode.NotFound || DateTime.Now - responseCache.LastUpdated < TimeSpan.FromDays(30)) continue;
@@ -73,7 +72,7 @@ namespace ImageInfrastructure.Reimport
                             }
                         }
                     };
-                    var existing = _imageContext.FindAll(dummy, token: token);
+                    var existing = imageContext.FindAll(dummy, token: token);
                     if ((await existing).Any())
                     {
                         _logger.LogInformation("Image exists for Pixiv ID: {Id}. Skipping!", id);
@@ -88,7 +87,7 @@ namespace ImageInfrastructure.Reimport
                         var image = await pixivClient.GetIllustDetailAsync(id, token);
 
                         var pages = image.Pages.Where(a => indices.Contains(a.Index)).ToList();
-                        var disc = pixivModule.ImageDiscovery(image, pages);
+                        var disc = pixivModule.ImageDiscovery(scope.ServiceProvider, image, pages, token);
                         if (disc.Cancel || disc.Attachments.All(a => !a.Download))
                         {
                             _logger.LogInformation(
@@ -108,8 +107,8 @@ namespace ImageInfrastructure.Reimport
                         response.Response = e.Message;
                         response.LastUpdated = DateTime.Now;
                         response.StatusCode = e.StatusCode;
-                        if (responseCache == null) await _responseContext.Add(response);
-                        else await _responseContext.SaveChangesAsync(token);
+                        if (responseCache == null) await responseContext.Add(response);
+                        else await responseContext.SaveChangesAsync(token);
                     }
                     catch (Exception e)
                     {

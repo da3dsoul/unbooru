@@ -22,13 +22,11 @@ namespace ImageInfrastructure.Booru
     {
         private ISettingsProvider<BooruSettings> SettingsProvider { get; set; }
         private readonly ILogger<BooruModule> _logger;
-        private readonly IContext<ImageTag> _tagContext;
         
-        public BooruModule(ISettingsProvider<BooruSettings> settingsProvider, ILogger<BooruModule> logger, IContext<ImageTag> tagContext)
+        public BooruModule(ISettingsProvider<BooruSettings> settingsProvider, ILogger<BooruModule> logger)
         {
             SettingsProvider = settingsProvider;
             _logger = logger;
-            _tagContext = tagContext;
         }
         
         [ModulePostConfiguration(Priority = ModuleInitializationPriority.Metadata)]
@@ -127,7 +125,8 @@ namespace ImageInfrastructure.Booru
                             Name = a.Replace("_", " "),
                             Images = new List<Image>()
                         }).ToList();
-                        var outputTags = await _tagContext.Get(postTags, token:e.CancellationToken);
+                        var tagContext = e.ServiceProvider.GetRequiredService<IContext<ImageTag>>();
+                        var outputTags = await tagContext.Get(postTags, token:e.CancellationToken);
 
                         sw.Restart();
                         foreach (var tag in outputTags)

@@ -26,20 +26,17 @@ namespace Meowtrix.PixivApi
     {
         internal PixivApiClient Api { get; private set; }
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<PixivClient> _logger;
 
         #region Construction and disposal
         public PixivClient(ILoggerFactory loggerFactory, bool useDefaultProxy = true)
         {
             _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<PixivClient>();
             Api = new PixivApiClient(useDefaultProxy, _loggerFactory.CreateLogger<PixivApiClient>());
         }
 
         public PixivClient(IWebProxy? proxy, ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<PixivClient>();
             Api = proxy is null
                 ? new PixivApiClient(false, _loggerFactory.CreateLogger<PixivApiClient>())
                 : new PixivApiClient(proxy, _loggerFactory.CreateLogger<PixivApiClient>());
@@ -48,7 +45,6 @@ namespace Meowtrix.PixivApi
         public PixivClient(HttpMessageHandler handler, ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<PixivClient>();
             Api = new PixivApiClient(handler, _loggerFactory.CreateLogger<PixivApiClient>());
         }
 
@@ -230,7 +226,7 @@ namespace Meowtrix.PixivApi
             get => _requestLanguage;
             set
             {
-                if (_requestLanguage != value)
+                if (!Equals(_requestLanguage, value))
                 {
                     _requestLanguage = value;
                     SetRequestHeader(Api, value);
@@ -374,7 +370,7 @@ namespace Meowtrix.PixivApi
                 => await Api.GetIllustRankingAsync(
                     authToken: auth, mode: rankingMode,
                     date: date,
-                    cancellation: cancellation).ConfigureAwait(false), cancellation);
+                    cancellation: c).ConfigureAwait(false), cancellation);
         }
     }
 }

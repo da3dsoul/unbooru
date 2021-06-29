@@ -90,7 +90,7 @@ namespace ImageInfrastructure.ImageSaveHandler
                                               throw new NullReferenceException("Image path cannot be null"));
                     _logger.LogInformation("Saving image to {Path}", path);
                     await using var stream = File.OpenWrite(path);
-                    await stream.WriteAsync(image.Blob, e.CancellationToken);
+                    await stream.WriteAsync(image.Blob.ToArray(), e.CancellationToken);
                 }
                 catch (Exception exception)
                 {

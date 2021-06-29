@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Meowtrix.PixivApi.Json;
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace Meowtrix.PixivApi.Models
 {
@@ -20,7 +21,7 @@ namespace Meowtrix.PixivApi.Models
             ParentCommentId = api.ParentComment.Id switch
             {
                 0 => null,
-                int other => other
+                var other => other
             };
         }
 

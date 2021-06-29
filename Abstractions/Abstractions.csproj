@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="JetBrains.Annotations" Version="2021.2.0-eap2" />
+      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0-preview.5.21301.5" />
       <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-preview.4.21253.7" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0-preview.4.21253.7" />
       <PackageReference Include="System.ComponentModel.Annotations" Version="6.0.0-preview.4.21253.7" />

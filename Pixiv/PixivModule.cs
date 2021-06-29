@@ -18,8 +18,6 @@ namespace ImageInfrastructure.Pixiv
     public class PixivModule : IModule, IServiceModule, IImageProvider
     {
         private readonly ILogger<PixivModule> _logger;
-        private readonly IContext<ArtistAccount> _artistContext;
-        private readonly IContext<Image> _imageContext;
 
         public EventHandler<ImageDiscoveredEventArgs> ImageDiscovered { get; set; }
         public EventHandler<ImageProvidedEventArgs> ImageProvided { get; set; }
@@ -28,12 +26,10 @@ namespace ImageInfrastructure.Pixiv
 
         public string Source => "Pixiv";
 
-        public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider, IContext<ArtistAccount> artistContext, IContext<Image> imageContext)
+        public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider)
         {
             _logger = logger;
             SettingsProvider = settingsProvider;
-            _artistContext = artistContext;
-            _imageContext = imageContext;
         }
 
         public async Task RunAsync(IServiceProvider provider, CancellationToken token)
@@ -48,7 +44,7 @@ namespace ImageInfrastructure.Pixiv
 
             try
             {
-                var factory = provider.GetService<ILoggerFactory>();
+                var factory = provider.GetRequiredService<ILoggerFactory>();
                 using var pixivClient = new PixivClient(factory);
                 await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
                                              throw new InvalidOperationException("Settings can't be null"));
@@ -63,7 +59,7 @@ namespace ImageInfrastructure.Pixiv
                 Uri continueFrom = null;
                 if (!string.IsNullOrEmpty(SettingsProvider.Get(a => a.ContinueFrom)))
                     continueFrom = new Uri(SettingsProvider.Get(a => a.ContinueFrom));
-                await DownloadBookmarks(token, pixivClient, continueFrom);
+                await DownloadBookmarks(provider, pixivClient, continueFrom, token);
             }
             catch (TaskCanceledException)
             {
@@ -74,7 +70,7 @@ namespace ImageInfrastructure.Pixiv
             }
         }
 
-        private async Task DownloadBookmarks(CancellationToken token, PixivClient pixivClient, Uri continueFrom = null)
+        private async Task DownloadBookmarks(IServiceProvider provider, PixivClient pixivClient, Uri continueFrom = null, CancellationToken token = default)
         {
             var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation: token, continueFrom: continueFrom);
             var iterator = userBookmarks.GetAsyncEnumerator(token);
@@ -90,7 +86,8 @@ namespace ImageInfrastructure.Pixiv
                 _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1,
                     SettingsProvider.Get(a => a.MaxImagesToDownload), image.Id, image.Title);
 
-                var disc = ImageDiscovery(image, token:token);
+                using var scope = provider.CreateScope();
+                var disc = ImageDiscovery(scope.ServiceProvider, image, token:token);
                 if (disc.Cancel || disc.Attachments.All(a => !a.Download))
                 {
                     _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
@@ -109,12 +106,12 @@ namespace ImageInfrastructure.Pixiv
             } while (true);
         }
 
-        public ImageDiscoveredEventArgs ImageDiscovery(Illust image, IList<IllustPage> pages = null, CancellationToken token = default)
+        public ImageDiscoveredEventArgs ImageDiscovery(IServiceProvider provider, Illust image, IList<IllustPage> pages = null, CancellationToken token = default)
         {
             pages ??= image.Pages.ToList();
-
             var disc = new ImageDiscoveredEventArgs
             {
+                ServiceProvider = provider,
                 CancellationToken = token,
                 Post = new Post
                 {
@@ -153,10 +150,13 @@ namespace ImageInfrastructure.Pixiv
                 Url = $"https://pixiv.net/users/{image.User.Id}",
                 Images = new List<Image>()
             };
-            var existingArtist = await _artistContext.Get(newArtist, token:token);
+            var imageContext = disc.ServiceProvider.GetRequiredService<IContext<Image>>();
+            var artistContext = disc.ServiceProvider.GetRequiredService<IContext<ArtistAccount>>();
+            var existingArtist = await artistContext.Get(newArtist, token:token);
             if (existingArtist != null) newArtist = existingArtist;
             var prov = new ImageProvidedEventArgs
             {
+                ServiceProvider = disc.ServiceProvider,
                 CancellationToken = token,
                 Post = disc.Post,
                 Attachments = disc.Attachments,
@@ -183,7 +183,7 @@ namespace ImageInfrastructure.Pixiv
 
             for (var i = 0; i < pages.Count; i++)
             {
-                var existingImage = await _imageContext.Get(prov.Images[i], token:token);
+                var existingImage = await imageContext.Get(prov.Images[i], token:token);
                 if (existingImage != null)
                 {
                     prov.Images[i] = existingImage;
