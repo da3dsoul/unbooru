@@ -158,15 +158,7 @@ namespace ImageInfrastructure.Core
             }
             hostBuilder = hostBuilder.ConfigureServices((_, services) =>
             {
-                services.AddDbContext<CoreContext>(options =>
-                {
-                    options.EnableSensitiveDataLogging();
-                    options.UseLazyLoadingProxies();
-                    options.ConfigureWarnings(builder =>
-                    {
-                        builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
-                    });
-                });
+                services.AddDbContext<CoreContext>();
                 services.AddScoped<IContext<ImageTag>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<ArtistAccount>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<Image>>(x => x.GetRequiredService<CoreContext>());
