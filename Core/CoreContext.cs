@@ -10,13 +10,16 @@ using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ImageInfrastructure.Core
 {
     public class CoreContext : DbContext, IContext<ImageTag>, IContext<ArtistAccount>, IReadWriteContext<Image>, IReadWriteContext<ResponseCache>
     {
         private readonly ILogger<CoreContext> _logger;
+        private readonly ISettingsProvider<CoreSettings> _settingsProvider;
         [UsedImplicitly] public DbSet<Image> Images { get; set; }
         [UsedImplicitly] public DbSet<ImageBlob> ImageBlobs { get; set; }
         [UsedImplicitly] public DbSet<ArtistAccount> ArtistAccounts { get; set; }
@@ -30,8 +33,9 @@ namespace ImageInfrastructure.Core
 
         public CoreContext() {}
         
-        public CoreContext(DbContextOptions<CoreContext> options, ILogger<CoreContext> logger) : base(options)
+        public CoreContext(DbContextOptions<CoreContext> options, ISettingsProvider<CoreSettings> settingsProvider, ILogger<CoreContext> logger) : base(options)
         {
+            _settingsProvider = settingsProvider;
             _logger = logger;
             SavedChanges += OnSavedChanges;
         }
@@ -251,17 +255,27 @@ namespace ImageInfrastructure.Core
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string path = string.IsNullOrEmpty(Arguments.DataPath) ? null : Path.Combine(Arguments.DataPath, "Database");
-            if (!string.IsNullOrEmpty(path))
+            var connectionString = _settingsProvider?.Get(a => a.ConnectionString);
+            string path = null;
+            if (string.IsNullOrEmpty(connectionString))
             {
-                Directory.CreateDirectory(path);
-                path = Path.Combine(path, "Core.db3");
+                path = string.IsNullOrEmpty(Arguments.DataPath) ? "Core.db3" : Path.Combine(Arguments.DataPath, "Database", "Core.db3");
+
+                connectionString = $"Data Source={path};";
+                _settingsProvider?.Update(a => a.ConnectionString = connectionString);
             }
-            else
+
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+
+            optionsBuilder.UseSqlite(connectionString);
+            optionsBuilder.EnableSensitiveDataLogging();
+            optionsBuilder.UseLazyLoadingProxies();
+            optionsBuilder.UseMemoryCache(new MemoryCache(new MemoryCacheOptions { SizeLimit = 2 * 1024 ^ 3 }));
+            optionsBuilder.ConfigureWarnings(builder =>
             {
-                path = "Core.db3";
-            }
-            optionsBuilder.UseSqlite($"Data Source={path};");
+                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
+            });
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
