@@ -8,6 +8,7 @@ import {
 import SafeImageList from "./safe.jsx";
 import ImageDetail from "./imagedetail.jsx";
 import Search from "./search.jsx";
+import Missing from "./missing.jsx";
 import NotFound from "./notfound.jsx";
 
 export default class RouterComponent extends Component {
@@ -18,11 +19,14 @@ export default class RouterComponent extends Component {
                     <Route exact path="/" component={() => (
                         <SafeImageList />
                     )} />
-                    <Route path="/Image/:id" component={() => (
-                        <ImageDetail />
+                    <Route path="/Image/Missing" component={() => (
+                        <Missing />
                     )} />
                     <Route path="/Search" component={() => (
                         <Search  />
+                    )} />
+                    <Route path="/Image/:id" component={() => (
+                        <ImageDetail />
                     )} />
                     <Route path="*" component={({staticContext}) => {
                         if (staticContext) staticContext.status = 404;

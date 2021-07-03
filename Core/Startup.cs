@@ -16,7 +16,6 @@ using NLog;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace ImageInfrastructure.Core
 {
@@ -212,14 +211,11 @@ namespace ImageInfrastructure.Core
                 Assembly.LoadFrom(dll.FullName);
             }
 
-            foreach (var module in AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()))
-            {
-                if (!typeof(IInfrastructureStartup).IsAssignableFrom(module)) continue;
-                if (!module.IsClass) continue;
-                if (module.IsAbstract) continue;
-
-                Modules.Add((IInfrastructureStartup) Activator.CreateInstance(module));
-            }
+            var modules = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+                .Where(module => typeof(IInfrastructureStartup).IsAssignableFrom(module) && module.IsClass &&
+                                 !module.IsAbstract).Select(module =>
+                    (IInfrastructureStartup)Activator.CreateInstance(module));
+            Modules.AddRange(modules);
         }
     }
 }

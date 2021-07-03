@@ -1,11 +1,11 @@
 import React, {useEffect} from 'react';
-import ReactPaginate from 'react-paginate';
-import {useLocation} from "react-router-dom";
+import ImageBox from "./imagebox.js";
 import axios from "axios";
-import ImageBox from './imagebox.js'
+import ReactPaginate from "react-paginate";
 import Stonemason from "@da3dsoul/react-stonemason";
+import {useLocation} from "react-router-dom";
 
-export default function Search() {
+export default function Missing() {
     const imagesPerPage = 21;
     let query = useLocation().search.slice(1);
     let [state, updateState] = React.useState({
@@ -13,18 +13,17 @@ export default function Search() {
         page: 1,
         pages: 1
     });
-
     useEffect(() => window.scrollTo(0,0), [state.images]);
 
     useEffect(() => {
-        axios.get('/api/Search/Count' + (query === '' ? '' : '?' + query)).then(res => {
+        axios.get('/api/Image/Missing/Count').then(res => {
             updateState(prevState => ({
                 ...prevState,
                 pages: Math.ceil(res.data / imagesPerPage)
             }));
         });
 
-        axios.get(`/api/Search?limit=${imagesPerPage}&${query}`).then(res => {
+        axios.get(`/api/Image/Missing?limit=${imagesPerPage}`).then(res => {
             updateState(prevState => ({
                 ...prevState,
                 images: res.data
@@ -39,7 +38,7 @@ export default function Search() {
             page: pageNum
         }));
 
-        let url = `/api/Search?limit=${imagesPerPage}&offset=${(pageNum-1)*imagesPerPage}&${query}`;
+        let url = `/api/Image/Missing?limit=${imagesPerPage}&offset=${(pageNum-1)*imagesPerPage}`;
         axios.get(url).then(res => {
             updateState(prevState => ({
                 ...prevState,

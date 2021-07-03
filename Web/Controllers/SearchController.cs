@@ -29,7 +29,7 @@ namespace ImageInfrastructure.Web.Controllers
 
             var tagStrings = query["tag"];
             var includedTags = tagStrings.Where(a => !a.StartsWith("!"));
-            var excludedTags = tagStrings.Where(a => a.StartsWith("!")).Select(a => a.Substring(1));
+            var excludedTags = tagStrings.Where(a => a.StartsWith("!")).Select(a => a[1..]);
 
             var images = await _dbHelper.Search(includedTags, excludedTags, any, limit, offset);
             if (images.Count == 0) return new NotFoundResult();

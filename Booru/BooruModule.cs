@@ -125,8 +125,14 @@ namespace ImageInfrastructure.Booru
                             Name = a.Replace("_", " "),
                             Images = new List<Image>()
                         }).ToList();
+
+                        sw.Restart();
                         var tagContext = e.ServiceProvider.GetRequiredService<IContext<ImageTag>>();
+                        tagContext.DisableLogging = true;
                         var outputTags = await tagContext.Get(postTags, token:e.CancellationToken);
+                        tagContext.DisableLogging = false;
+                        sw.Stop();
+                        _logger.LogInformation("Got tags from database in {Time}", sw.Elapsed.ToString("g"));
 
                         sw.Restart();
                         foreach (var tag in outputTags)

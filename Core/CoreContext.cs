@@ -10,9 +10,7 @@ using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace ImageInfrastructure.Core
 {
@@ -60,9 +58,11 @@ namespace ImageInfrastructure.Core
             cache.Add(key, existingTag ?? item);
 
             sw.Stop();
-            _logger.LogInformation("Getting {Type} took {Time}", typeof(T).Name, sw.Elapsed.ToString("g"));
+            if (!DisableLogging) _logger.LogInformation("Getting {Type} took {Time}", typeof(T).Name, sw.Elapsed.ToString("g"));
             return existingTag;
         }
+
+        public bool DisableLogging { get; set; }
 
         public async Task<ImageTag> Get(ImageTag tag, bool includeDepth = false, CancellationToken token = default)
         {
@@ -107,7 +107,7 @@ namespace ImageInfrastructure.Core
             var results = existingTags.Concat(cachedTags).Concat(nonExistingTags).ToList();
 
             sw.Stop();
-            _logger.LogInformation("Getting tags took {Time}", sw.Elapsed.ToString("g"));
+            if (!DisableLogging) _logger.LogInformation("Getting tags took {Time}", sw.Elapsed.ToString("g"));
             return results;
         }
 
@@ -192,7 +192,7 @@ namespace ImageInfrastructure.Core
             }
 
             sw.Stop();
-            _logger.LogInformation("Getting images took {Time}", sw.Elapsed.ToString("g"));
+            if (!DisableLogging) _logger.LogInformation("Getting images took {Time}", sw.Elapsed.ToString("g"));
             return existingImages.Any() ? existingImages : new List<Image>();
         }
 
@@ -271,7 +271,6 @@ namespace ImageInfrastructure.Core
             optionsBuilder.UseSqlite(connectionString);
             optionsBuilder.EnableSensitiveDataLogging();
             optionsBuilder.UseLazyLoadingProxies();
-            optionsBuilder.UseMemoryCache(new MemoryCache(new MemoryCacheOptions { SizeLimit = 2 * 1024 ^ 3 }));
             optionsBuilder.ConfigureWarnings(builder =>
             {
                 builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));

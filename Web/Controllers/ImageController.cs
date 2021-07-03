@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Poco;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,20 @@ namespace ImageInfrastructure.Web.Controllers
             var blob = await _dbHelper.GetImageBlobById(id);
             if (blob == default) return new NotFoundResult();
             return File(blob, MimeTypes.GetMimeType(filename));
+        }
+
+        [HttpGet("Missing")]
+        public async Task<ActionResult<List<Image>>> Missing(int limit = 0, int offset = 0)
+        {
+            var images = await _dbHelper.GetMissingData(limit, offset);
+            if (images.Count == 0) return new NotFoundResult();
+            return images;
+        }
+
+        [HttpGet("Missing/Count")]
+        public async Task<ActionResult<int>> GetSearchPostCount()
+        {
+            return await _dbHelper.GetMissingDataCount();
         }
     }
 }
