@@ -55,7 +55,7 @@ namespace ImageInfrastructure.Web
             if (any)
                 images = images.Where(a =>
                     a.Tags.Any() && (!includedTags.Any() || a.Tags.Any(b => includedTags.Contains(b.ImageTagId))) &&
-                    !a.Tags.Any(b => excludedTags.Contains(b.ImageTagId))).Skip(offset);
+                    !a.Tags.Any(b => excludedTags.Contains(b.ImageTagId)));
             else
                 images = images.Where(a =>
                     a.Tags.Any() &&
@@ -72,9 +72,9 @@ namespace ImageInfrastructure.Web
         public async Task<int> GetSearchPostCount(IEnumerable<string> included, IEnumerable<string> excluded, bool any = false)
         {
             var includedSet = included.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var includedTags = await _context.ImageTags.Where(a => includedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
+            var includedTags = await _context.ImageTags.AsNoTracking().Where(a => includedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
             var excludedSet = excluded.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var excludedTags = await _context.ImageTags.Where(a => excludedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
+            var excludedTags = await _context.ImageTags.AsNoTracking().Where(a => excludedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
 
             if (any)
                 return await _context.Images.CountAsync(a =>
