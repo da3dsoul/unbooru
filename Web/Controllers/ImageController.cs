@@ -45,5 +45,11 @@ namespace ImageInfrastructure.Web.Controllers
         {
             return await _dbHelper.GetMissingDataCount();
         }
+
+        [HttpGet("Post/Count")]
+        public async Task<ActionResult<int>> GetDownloadedPostCount()
+        {
+            return await _dbHelper.GetDownloadedPostCount();
+        }
     }
 }

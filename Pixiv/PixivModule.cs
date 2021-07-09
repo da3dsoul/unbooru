@@ -25,6 +25,8 @@ namespace ImageInfrastructure.Pixiv
         private ISettingsProvider<PixivSettings> SettingsProvider { get; }
 
         public string Source => "Pixiv";
+        private const int RetryCount = 3;
+        private const int SleepTime = 1500;
 
         public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider)
         {
@@ -196,15 +198,30 @@ namespace ImageInfrastructure.Pixiv
                 var page = pages[i];
                 var content = page.Original;
 
-                _logger.LogInformation("Downloading from {Uri}", content.Uri);
-                await using var stream = await content.RequestStreamAsync(token);
-                await using var memoryStream = new MemoryStream();
-                await stream.CopyToAsync(memoryStream, token);
-                var data = memoryStream.ToArray();
-                _logger.LogInformation("Downloaded {Count} bytes from {Uri}", data.LongLength, content.Uri);
-                prov.Attachments[i].Data = data;
-                prov.Attachments[i].Filesize = data.LongLength;
-                prov.Images[i].Blob = data;
+                var retry = RetryCount;
+                while (retry > 0)
+                {
+                    try
+                    {
+                        _logger.LogInformation("Downloading from {Uri}", content.Uri);
+                        await using var stream = await content.RequestStreamAsync(token);
+                        await using var memoryStream = new MemoryStream();
+                        await stream.CopyToAsync(memoryStream, token);
+                        var data = memoryStream.ToArray();
+                        _logger.LogInformation("Downloaded {Count} bytes from {Uri}", data.LongLength, content.Uri);
+                        prov.Attachments[i].Data = data;
+                        prov.Attachments[i].Filesize = data.LongLength;
+                        prov.Images[i].Blob = data;
+                        retry = 0;
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError("Unable to download {Uri}, retry {Retry}: {E}", content.Uri, RetryCount - retry + 1, e);
+                        retry--;
+                        if (retry == 0) return prov;
+                        Thread.Sleep(SleepTime);
+                    }
+                }
             }
 
             // filter out the ones we won't download and don't exist

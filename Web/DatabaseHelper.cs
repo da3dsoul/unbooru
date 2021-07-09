@@ -102,5 +102,10 @@ namespace ImageInfrastructure.Web
         {
             return await _context.Images.CountAsync(a => !a.Tags.Any());
         }
+
+        public async Task<int> GetDownloadedPostCount()
+        {
+            return await _context.ImageSources.GroupBy(a => a.PostUrl).Select(a => a.Key).CountAsync();
+        }
     }
 }
