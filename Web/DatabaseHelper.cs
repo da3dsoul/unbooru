@@ -45,9 +45,9 @@ namespace ImageInfrastructure.Web
         public async Task<List<Image>> Search(IEnumerable<string> included, IEnumerable<string> excluded, bool any = false, int limit = 0, int offset = 0)
         {
             var includedSet = included.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var includedTags = await _context.ImageTags.AsNoTracking().Where(a => includedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
+            var includedTags = await _context.ImageTags.Where(a => includedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
             var excludedSet = excluded.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var excludedTags = await _context.ImageTags.AsNoTracking().Where(a => excludedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
+            var excludedTags = await _context.ImageTags.Where(a => excludedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
 
             var images = _context.Images.Include(a => a.RelatedImages).Include(a => a.Sources)
                 .ThenInclude(a => a.RelatedImages).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery();
