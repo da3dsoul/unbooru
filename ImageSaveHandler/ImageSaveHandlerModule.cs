@@ -104,7 +104,7 @@ namespace ImageInfrastructure.ImageSaveHandler
             foreach (var attachment in e.Attachments.ToList())
             {
                 var path = GetImagePath(attachment);
-                if (!File.Exists(path)) return;
+                if (!File.Exists(path)) continue;
                 _logger.LogInformation("Image already exists at {Path}. Skipping!", path);
                 attachment.Download = false;
             }

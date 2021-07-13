@@ -1,8 +1,8 @@
 import React from "react";
-import {isPixivSource} from "../modelutils";
+import {imagePropType, isPixivSource} from "../modelutils";
 import LazyLoad from "react-lazy-load";
 
-export default function ImageBox(props) {
+ const ImageBox = function ImageBox(props) {
     const image = props.image;
     const source = image.sources.find(isPixivSource);
     const artist = image.artistAccounts[0];
@@ -20,4 +20,10 @@ export default function ImageBox(props) {
             </div>
         </div>
     );
-}
+};
+
+ImageBox.propTypes = {
+    image: imagePropType
+};
+
+export default ImageBox;

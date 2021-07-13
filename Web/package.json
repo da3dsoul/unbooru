@@ -11,6 +11,7 @@
     "axios": "^0.21.1",
     "emotion": "^9.2.12",
     "emotion-server": "^9.2.12",
+    "query-string": "^7.0.1",
     "react": "^16.8.2",
     "react-aspect-ratio": "^1.0.49",
     "react-dom": "^16.8.2",

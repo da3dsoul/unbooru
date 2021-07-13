@@ -1,16 +1,25 @@
-import React, {useEffect} from 'react';
-import ReactPaginate from 'react-paginate';
+import React, {useEffect} from "react";
+import ReactPaginate from "react-paginate";
 import {useLocation} from "react-router-dom";
 import axios from "axios";
-import ImageBox from './imagebox.js'
+import queryString from "query-string";
+import ImageBox from "./imagebox.js";
 import Stonemason from "@da3dsoul/react-stonemason";
 
 export default function Search() {
     const imagesPerPage = 21;
     let query = useLocation().search.slice(1);
+    const params = queryString.parse(query);
+    let page = params.page;
+    if (typeof page === 'undefined' || page === null) page = 1;
+    else {
+        const pageQuery = 'page=' + page;
+        query = query.replace('&'+pageQuery, '').replace('?'+pageQuery, '');
+    }
+    
     let [state, updateState] = React.useState({
         images: [],
-        page: 1,
+        page: page,
         pages: 1
     });
 
@@ -23,13 +32,6 @@ export default function Search() {
                 pages: Math.ceil(res.data / imagesPerPage)
             }));
         });
-
-        axios.get(`/api/Search?limit=${imagesPerPage}&${query}`).then(res => {
-            updateState(prevState => ({
-                ...prevState,
-                images: res.data
-            }));
-        })
     }, [query])
 
     function goToPage(num) {
@@ -63,6 +65,7 @@ export default function Search() {
                 {imageNodes}
             </Stonemason>
             <ReactPaginate
+                initialPage={page-1}
                 previousLabel={"<"}
                 nextLabel={">"}
                 breakLabel={"•••"}
