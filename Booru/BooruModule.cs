@@ -62,7 +62,7 @@ namespace ImageInfrastructure.Booru
             foreach (var image in e.Images)
             {
                 _logger.LogInformation("Finding tags for {Images}", image.GetPixivFilename());
-                var sources = image.Sources.Where(a => a.Source != "Pixiv").ToList();
+                var sources = image?.Sources?.Where(a => a.Source != "Pixiv").ToList() ?? new List<ImageSource>();
                 foreach (var source in sources)
                 {
                     try
