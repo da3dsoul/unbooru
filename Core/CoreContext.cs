@@ -67,7 +67,8 @@ namespace ImageInfrastructure.Core
         public async Task<ImageTag> Get(ImageTag tag, bool includeDepth = false, CancellationToken token = default)
         {
             var query = new Func<string, Task<ImageTag>>(name =>
-                ImageTags.AsSplitQuery().OrderBy(a => a.ImageTagId).FirstOrDefaultAsync(a => a.Name == name, token));
+                ImageTags.AsSplitQuery().Include(a => a.Images).OrderBy(a => a.ImageTagId)
+                    .FirstOrDefaultAsync(a => a.Name == name, token));
 
             return await Get(_tagCache, tag, a => a.Name, query);
         }
@@ -94,11 +95,10 @@ namespace ImageInfrastructure.Core
             }
 
             var namesToLookup = tagsToLookup.Select(a => a.Name).Distinct().ToList();
-            var existingTags = await ImageTags.AsSingleQuery()
-                .Include(a => a.Images).Where(a => namesToLookup.Contains(a.Name))
-                .ToListAsync(token);
+            var existingTags = await ImageTags.AsSplitQuery().Include(a => a.Images)
+                .Where(a => namesToLookup.Contains(a.Name)).ToListAsync(token);
 
-            foreach (var item in existingTags.Where(item => !_tagCache.ContainsKey(item.Name))) _tagCache.Add(item.Name, item);
+            foreach (var item in existingTags) _tagCache.Add(item.Name, item);
 
             var existingNames = existingTags.Select(a => a.Name).Concat(cachedTags.Select(a => a.Name)).ToHashSet();
             var nonExistingTags = items.Where(a => !existingNames.Contains(a.Name)).ToList();
@@ -119,7 +119,8 @@ namespace ImageInfrastructure.Core
         public async Task<ArtistAccount> Get(ArtistAccount artist, bool includeDepth = false, CancellationToken token = default)
         {
             var query = new Func<string, Task<ArtistAccount>>(url =>
-                ArtistAccounts.OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.Url == url, token));
+                ArtistAccounts.Include(a => a.Images).OrderBy(a => a.ArtistAccountId)
+                    .FirstOrDefaultAsync(a => a.Url == url, token));
 
             return await Get(_artistCache, artist, a => a.Url, query);
         }
@@ -156,39 +157,27 @@ namespace ImageInfrastructure.Core
                 uris = image.Sources.Select(a => a.PostUrl).Distinct().ToList();
                 // to perform merge operations, we need everything...
                 // splitting this up to simplify the queries
-                sourceIds = await ImageSources.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Image)
-                    .Where(a => uris.Any(b => b == a.PostUrl)).Select(a => a.ImageSourceId).ToListAsync(token);
-
-                if (includeDepth)
-                {
-                    existingImages = await Images.AsSplitQuery()
-                        .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
-                }
-                else
-                {
-                    existingImages = await Images.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Sources)
-                        .Include(a => a.ArtistAccounts).Include(a => a.RelatedImages)
-                        .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
-                }
-
-                return existingImages.Any() ? existingImages : new List<Image>();
+                sourceIds = await ImageSources.Where(a => uris.Any(b => b == a.PostUrl)).Select(a => a.ImageSourceId)
+                    .ToListAsync(token);
             }
-
-            // to perform merge operations, we need everything...
-            // splitting this up to simplify the queries
-            sourceIds = await ImageSources.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Image)
-                .Where(a => uris.Any(b => b == a.Uri)).Select(a => a.ImageSourceId).ToListAsync(token);
+            else
+            {
+                // to perform merge operations, we need everything...
+                // splitting this up to simplify the queries
+                sourceIds = await ImageSources.Where(a => uris.Any(b => b == a.Uri)).Select(a => a.ImageSourceId)
+                    .ToListAsync(token);
+            }
 
             if (includeDepth)
             {
-                existingImages = await Images.AsSplitQuery()
+                existingImages = await Images.AsSplitQuery().Include(a => a.Sources).Include(a => a.ArtistAccounts)
+                    .ThenInclude(a => a.Images).Include(a => a.RelatedImages)
                     .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
             }
             else
             {
-                existingImages = await Images.AsSplitQuery().IgnoreAutoIncludes().Include(a => a.Sources)
-                    .Include(a => a.ArtistAccounts).Include(a => a.RelatedImages)
-                    .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
+                existingImages = await Images.Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId)))
+                    .ToListAsync(token);
             }
 
             sw.Stop();
@@ -270,7 +259,6 @@ namespace ImageInfrastructure.Core
 
             optionsBuilder.UseSqlite(connectionString);
             optionsBuilder.EnableSensitiveDataLogging();
-            optionsBuilder.UseLazyLoadingProxies();
             optionsBuilder.ConfigureWarnings(builder =>
             {
                 builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));

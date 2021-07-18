@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Core;
+using ImageInfrastructure.Web.SearchParameters;
 using Microsoft.EntityFrameworkCore;
 
 namespace ImageInfrastructure.Web
@@ -18,8 +20,11 @@ namespace ImageInfrastructure.Web
 
         public async Task<Image> GetImageById(int id)
         {
-            var image = await _context.Images.AsNoTracking().Include(a => a.Sources).ThenInclude(a => a.RelatedImages).Include(a => a.Tags)
-                .Include(a => a.ArtistAccounts).AsSplitQuery().OrderBy(a => a.ImageId)
+            var image = await _context.Images.AsSplitQuery().AsNoTrackingWithIdentityResolution()
+                .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
+                .Include(a => a.Tags)
+                .Include(a => a.ArtistAccounts)
+                .OrderBy(a => a.ImageId)
                 .FirstOrDefaultAsync(a => a.ImageId == id);
             return image;
         }
@@ -37,22 +42,29 @@ namespace ImageInfrastructure.Web
 
         public async Task<List<ImageTag>> GetTags(string query)
         {
-            var tags = _context.ImageTags.Where(a => a.Name.StartsWith(query)).OrderBy(a => a.Name);
+            var tags = _context.ImageTags.AsNoTracking().Where(a => a.Name.StartsWith(query)).OrderBy(a => a.Name);
 
             return await tags.ToListAsync();
         }
 
-        public async Task<List<Image>> Search(IEnumerable<string> included, IEnumerable<string> excluded, bool any = false, int limit = 0, int offset = 0)
+        public async Task<List<int>> GetTagIds(IEnumerable<string> tags)
+        {
+            return await _context.ImageTags.Where(a => tags.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
+        }
+
+        public async Task<List<Image>> Search(IEnumerable<string> included, IEnumerable<string> excluded, bool anyTag = false, int limit = 0, int offset = 0)
         {
             var includedSet = included.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var includedTags = await _context.ImageTags.Where(a => includedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
             var excludedSet = excluded.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var excludedTags = await _context.ImageTags.Where(a => excludedSet.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
 
-            var images = _context.Images.Include(a => a.RelatedImages).Include(a => a.Sources)
-                .ThenInclude(a => a.RelatedImages).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery();
+            var images = _context.Images.AsNoTrackingWithIdentityResolution()
+                .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
+                .Include(a => a.Tags)
+                .Include(a => a.ArtistAccounts).AsSplitQuery();
 
-            if (any)
+            if (anyTag)
                 images = images.Where(a =>
                     a.Tags.Any() && (!includedTags.Any() || a.Tags.Any(b => includedTags.Contains(b.ImageTagId))) &&
                     !a.Tags.Any(b => excludedTags.Contains(b.ImageTagId)));
@@ -69,6 +81,45 @@ namespace ImageInfrastructure.Web
             return await images.ToListAsync();
         }
         
+        public async Task<List<Image>> Search(IEnumerable<SearchParameter> searchParameters, int limit = 0, int offset = 0)
+        {
+            var images = _context.Images.AsNoTrackingWithIdentityResolution()
+                .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
+                .Include(a => a.Tags)
+                .Include(a => a.ArtistAccounts).AsSplitQuery();
+
+            var expr = EvaluateSearchParameters(searchParameters);
+            if (expr != null) images = images.Where(expr);
+
+            images = images.OrderByDescending(a => a.ImageId).Skip(offset);
+            if (limit > 0) images = images.Take(limit);
+
+            return await images.ToListAsync();
+        }
+        
+        public async Task<int> GetSearchPostCount(IEnumerable<SearchParameter> searchParameters)
+        {
+            var expr = EvaluateSearchParameters(searchParameters);
+            if (expr == null) return await _context.Images.CountAsync();
+
+            return await _context.Images.CountAsync(expr);
+        }
+
+        private static Expression<Func<Image, bool>> EvaluateSearchParameters(IEnumerable<SearchParameter> searchParameters)
+        {
+            Expression<Func<Image, bool>> result = null;
+            foreach (var searchParameter in searchParameters)
+            {
+                if (result == null) result = searchParameter.Evaluate();
+                else
+                    result = searchParameter.Or
+                        ? result.OrExpression(searchParameter.Evaluate())
+                        : result.AndExpression(searchParameter.Evaluate());
+            }
+
+            return result;
+        }
+
         public async Task<int> GetSearchPostCount(IEnumerable<string> included, IEnumerable<string> excluded, bool any = false)
         {
             var includedSet = included.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
@@ -89,10 +140,13 @@ namespace ImageInfrastructure.Web
 
         public async Task<List<Image>> GetMissingData(int limit = 0, int offset = 0)
         {
-            var images = _context.Images.Include(a => a.RelatedImages).Include(a => a.Sources)
-                .ThenInclude(a => a.RelatedImages).Include(a => a.Tags).Include(a => a.ArtistAccounts).AsSplitQuery();
-
-            images = images.Where(a => !a.Tags.Any()).OrderByDescending(a => a.ImageId).Skip(offset);
+            var images = _context.Images.AsSplitQuery().AsNoTrackingWithIdentityResolution()
+                .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
+                .Include(a => a.Tags)
+                .Include(a => a.ArtistAccounts)
+                .Where(a => !a.Tags.Any())
+                .OrderByDescending(a => a.ImageId)
+                .Skip(offset);
             if (limit > 0) images = images.Take(limit);
 
             return await images.ToListAsync();
@@ -105,7 +159,7 @@ namespace ImageInfrastructure.Web
 
         public async Task<int> GetDownloadedPostCount()
         {
-            return await _context.ImageSources.GroupBy(a => a.PostUrl).Select(a => a.Key).CountAsync();
+            return await _context.ImageSources.Select(a => a.PostUrl).Distinct().CountAsync();
         }
     }
 }
