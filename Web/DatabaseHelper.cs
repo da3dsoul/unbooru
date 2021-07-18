@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Core;
 using ImageInfrastructure.Web.SearchParameters;
+using ImageMagick;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ImageInfrastructure.Web
 {
@@ -160,6 +163,29 @@ namespace ImageInfrastructure.Web
         public async Task<int> GetDownloadedPostCount()
         {
             return await _context.ImageSources.Select(a => a.PostUrl).Distinct().CountAsync();
+        }
+
+        public async Task FixSizes(IServiceProvider provider)
+        {
+            var total = await _context.Images.CountAsync();
+            var logger = provider.GetRequiredService<ILogger<DatabaseHelper>>();
+            for (var i = 0; i < Math.Ceiling(total / 20D); i++)
+            {
+                using var scope = provider.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<CoreContext>();
+                
+                logger.LogInformation("{Current}/{Total} Pages fixing sizes", i, Math.Ceiling(total / 20D));
+                var images = await context.Images.Include(a => a.Blobs).Skip(i * 20).Take(20).ToArrayAsync();
+                foreach (var image in images)
+                {
+                    var pic = new MagickImage(image.Blob);
+                    image.Width = pic.Width;
+                    image.Height = pic.Height;
+                }
+
+                await context.SaveChangesAsync();
+            }
+            logger.LogInformation("Done fixing sizes!");
         }
     }
 }

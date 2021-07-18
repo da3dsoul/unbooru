@@ -88,6 +88,7 @@ namespace ImageInfrastructure.ImageSaveHandler
                     if (string.IsNullOrEmpty(path)) return;
                     Directory.CreateDirectory(Path.GetDirectoryName(path) ??
                                               throw new NullReferenceException("Image path cannot be null"));
+                    if (File.Exists(path)) return;
                     _logger.LogInformation("Saving image to {Path}", path);
                     await using var stream = File.OpenWrite(path);
                     await stream.WriteAsync(image.Blob.ToArray(), e.CancellationToken);
@@ -101,13 +102,13 @@ namespace ImageInfrastructure.ImageSaveHandler
 
         private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
-            foreach (var attachment in e.Attachments.ToList())
+            /*foreach (var attachment in e.Attachments.ToList())
             {
                 var path = GetImagePath(attachment);
                 if (!File.Exists(path)) continue;
                 _logger.LogInformation("Image already exists at {Path}. Skipping!", path);
                 attachment.Download = false;
-            }
+            }*/
         }
         
         private string GetImagePath(Attachment image)

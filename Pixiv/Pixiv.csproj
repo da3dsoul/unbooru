@@ -12,4 +12,8 @@
       <ProjectReference Include="..\Meowtrix.PixivApi\Meowtrix.PixivApi.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.24.1" />
+    </ItemGroup>
+
 </Project>

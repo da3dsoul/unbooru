@@ -8,6 +8,7 @@ using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageInfrastructure.Abstractions.Poco.Ingest;
+using ImageMagick;
 using Meowtrix.PixivApi;
 using Meowtrix.PixivApi.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -211,6 +212,10 @@ namespace ImageInfrastructure.Pixiv
                         _logger.LogInformation("Downloaded {Count} bytes from {Uri}", data.LongLength, content.Uri);
                         prov.Attachments[i].Data = data;
                         prov.Attachments[i].Filesize = data.LongLength;
+                        var pic = new MagickImage(data);
+                        prov.Images[i].Width = pic.Width;
+                        prov.Images[i].Height = pic.Height;
+                        prov.Attachments[i].Size = (pic.Width, pic.Height);
                         prov.Images[i].Blob = data;
                         retry = 0;
                     }
