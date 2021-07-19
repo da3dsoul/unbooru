@@ -8,10 +8,9 @@ namespace ImageInfrastructure.Web
 {
     public class WebModule : IModule
     {
-        public async Task RunAsync(IServiceProvider provider, CancellationToken token)
+        public Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
-            var db = provider.GetRequiredService<DatabaseHelper>();
-            await db.FixSizes(provider);
+            return Task.CompletedTask;
         }
     }
 }
