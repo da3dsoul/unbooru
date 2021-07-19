@@ -6,6 +6,7 @@ using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Web.SearchParameters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ImageInfrastructure.Web.Controllers
 {
@@ -26,7 +27,7 @@ namespace ImageInfrastructure.Web.Controllers
             var searchParameters = new List<SearchParameter>();
             var query = HttpContext.Request.Query;
 
-            ParseSearchParameters(query, searchParameters, _dbHelper);
+            ParseSearchParameters(query, searchParameters, HttpContext.RequestServices);
 
             var images = await _dbHelper.Search(searchParameters, limit, offset);
             if (images.Count == 0) return new NotFoundResult();
@@ -39,13 +40,14 @@ namespace ImageInfrastructure.Web.Controllers
             var searchParameters = new List<SearchParameter>();
             var query = HttpContext.Request.Query;
 
-            ParseSearchParameters(query, searchParameters, _dbHelper);
+            ParseSearchParameters(query, searchParameters, HttpContext.RequestServices);
 
             return await _dbHelper.GetSearchPostCount(searchParameters);
         }
         
-        private static void ParseSearchParameters(IQueryCollection query, List<SearchParameter> searchParameters, DatabaseHelper dbHelper)
+        private static void ParseSearchParameters(IQueryCollection query, List<SearchParameter> searchParameters, IServiceProvider provider)
         {
+            var dbHelper = provider.GetRequiredService<DatabaseHelper>();
             var tagStrings = query["tag"];
             if (tagStrings.Any())
             {
@@ -88,6 +90,11 @@ namespace ImageInfrastructure.Web.Controllers
                     var aspect = new string(s.SkipWhile(a => !char.IsDigit(a)).ToArray());
                     searchParameters.Add(new AspectRatioSearchParameter(op, decimal.Parse(aspect)));
                 }
+            }
+
+            if (query.ContainsKey("sfw"))
+            {
+                searchParameters.Add(new SfwSearchParameter(provider));
             }
         }
     }

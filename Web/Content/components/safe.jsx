@@ -6,7 +6,7 @@ import Stonemason from "@da3dsoul/react-stonemason";
 
 export default function SafeImageList() {
     const imagesPerPage = 21;
-    let query = 'tag=!pussy&tag=!penis&tag=!vaginal&tag=!sex&tag=!cunnilingus&tag=!paizuri&tag=!fellatio&tag=!nipples'
+    let query = 'sfw'
     let [state, updateState] = React.useState({
         images: [],
         page: 1,
