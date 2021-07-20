@@ -88,7 +88,7 @@ namespace ImageInfrastructure.Web.Controllers
                     else op = NumberComparator.Equal;
 
                     var aspect = new string(s.SkipWhile(a => !char.IsDigit(a)).ToArray());
-                    searchParameters.Add(new AspectRatioSearchParameter(op, decimal.Parse(aspect)));
+                    searchParameters.Add(new AspectRatioSearchParameter(op, double.Parse(aspect)));
                 }
             }
 

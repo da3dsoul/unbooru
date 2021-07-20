@@ -2,10 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Core;
-using Microsoft.EntityFrameworkCore;
 
 namespace ImageInfrastructure.Web.SearchParameters
 {
