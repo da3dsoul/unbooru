@@ -257,13 +257,11 @@ namespace ImageInfrastructure.Core
             var directory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
 
-            optionsBuilder.UseModel(CompiledModels.CoreContextModel.Instance);
             optionsBuilder.UseSqlite(connectionString);
             optionsBuilder.EnableSensitiveDataLogging();
             optionsBuilder.ConfigureWarnings(builder =>
             {
-                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.ContextInitialized, LogLevel.None));
-                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.Warning));
+                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
             });
         }
 
