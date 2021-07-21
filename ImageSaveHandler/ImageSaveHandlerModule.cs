@@ -9,7 +9,6 @@ using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
-using ImageInfrastructure.Abstractions.Poco.Ingest;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -33,7 +32,6 @@ namespace ImageInfrastructure.ImageSaveHandler
             if (imageProviders.Count == 0) return;
             foreach (var imageProvider in imageProviders)
             {
-                imageProvider.ImageDiscovered += ImageDiscovered;
                 imageProvider.ImageProvided += ImageProvided;
             }
         }
@@ -46,7 +44,6 @@ namespace ImageInfrastructure.ImageSaveHandler
             if (imageProviders.Count == 0) return;
             foreach (var imageProvider in imageProviders)
             {
-                imageProvider.ImageDiscovered -= ImageDiscovered;
                 imageProvider.ImageProvided -= ImageProvided;
             }
         }
@@ -98,26 +95,6 @@ namespace ImageInfrastructure.ImageSaveHandler
                     _logger.LogError(exception, "Unable to write {File}", image.GetPixivFilename());
                 }
             }
-        }
-
-        private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
-        {
-            /*foreach (var attachment in e.Attachments.ToList())
-            {
-                var path = GetImagePath(attachment);
-                if (!File.Exists(path)) continue;
-                _logger.LogInformation("Image already exists at {Path}. Skipping!", path);
-                attachment.Download = false;
-            }*/
-        }
-        
-        private string GetImagePath(Attachment image)
-        {
-            var originalName = Path.GetFileName(image.Uri);
-            var title = image.Post.Title;
-            var aspectRatio = (float) image.Size.Width / image.Size.Height;
-            var path = GetImagePath(originalName, title, aspectRatio);
-            return path;
         }
         
         private string GetImagePath(Image image)

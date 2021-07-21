@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ImageInfrastructure.Web
 {
