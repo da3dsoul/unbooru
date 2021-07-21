@@ -157,6 +157,7 @@ namespace ImageInfrastructure.Core
             }
             hostBuilder = hostBuilder.ConfigureServices((_, services) =>
             {
+                services.AddMemoryCache();
                 services.AddDbContext<CoreContext>();
                 services.AddScoped<IContext<ImageTag>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<ArtistAccount>>(x => x.GetRequiredService<CoreContext>());

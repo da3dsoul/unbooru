@@ -13,12 +13,11 @@ namespace ImageInfrastructure.Web.SearchParameters
         {
             if (AnyTag)
                 return a => a.Tags.Any() &&
-                       (!IncludedTagIds.Any() || a.Tags.Any(b => IncludedTagIds.Contains(b.ImageTagId))) &&
-                       !a.Tags.Any(b => ExcludedTagIds.Contains(b.ImageTagId));
+                            (!IncludedTagIds.Any() || a.Tags.Any(b => IncludedTagIds.Contains(b.ImageTagId))) &&
+                            a.Tags.All(b => !ExcludedTagIds.Contains(b.ImageTagId));
             return a => a.Tags.Any() &&
-                   (!IncludedTagIds.Any() ||
-                    a.Tags.Count(b => IncludedTagIds.Contains(b.ImageTagId)) == IncludedTagIds.Count()) &&
-                   !a.Tags.Any(b => ExcludedTagIds.Contains(b.ImageTagId));
+                        (!IncludedTagIds.Any() || a.Tags.Count(b => IncludedTagIds.Contains(b.ImageTagId)) ==
+                            IncludedTagIds.Count()) && a.Tags.All(b => !ExcludedTagIds.Contains(b.ImageTagId));
         }
     }
 }

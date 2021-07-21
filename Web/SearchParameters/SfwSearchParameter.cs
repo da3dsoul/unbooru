@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Core;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,7 +28,7 @@ namespace ImageInfrastructure.Web.SearchParameters
             };
 
             var context = provider.GetRequiredService<CoreContext>();
-            return context.ImageTags.Where(a => nsfw.Contains(a.Name)).Select(a => a.ImageTagId).Distinct();
+            return context.Set<ImageTag>().Where(a => nsfw.Contains(a.Name)).Select(a => a.ImageTagId).ToList();
         }
     }
 }

@@ -23,7 +23,7 @@ namespace ImageInfrastructure.Web
 
         public async Task<Image> GetImageById(int id)
         {
-            var image = await _context.Images.AsSplitQuery().AsNoTrackingWithIdentityResolution()
+            var image = await _context.Set<Image>().AsSplitQuery().AsNoTrackingWithIdentityResolution()
                 .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
                 .Include(a => a.Tags)
                 .Include(a => a.ArtistAccounts)
@@ -38,21 +38,21 @@ namespace ImageInfrastructure.Web
                 .FindEntityType(typeof(ImageBlob))?
                 .FindNavigation(nameof(ImageBlob.Image))?
                 .ForeignKey.Properties[0].Name;
-            var image = await _context.ImageBlobs.AsNoTracking().Where(a => id == EF.Property<int>(a, fkPropertyName))
+            var image = await _context.Set<ImageBlob>().AsNoTracking().Where(a => id == EF.Property<int>(a, fkPropertyName))
                 .Select(a => a.Data).FirstOrDefaultAsync();
             return image;
         }
 
         public async Task<List<ImageTag>> GetTags(string query)
         {
-            var tags = _context.ImageTags.AsNoTracking().Where(a => a.Name.StartsWith(query)).OrderBy(a => a.Name);
+            var tags = _context.Set<ImageTag>().AsNoTracking().Where(a => a.Name.StartsWith(query)).OrderBy(a => a.Name);
 
             return await tags.ToListAsync();
         }
 
         public async Task<List<int>> GetTagIds(IEnumerable<string> tags)
         {
-            return await _context.ImageTags.Where(a => tags.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
+            return await _context.Set<ImageTag>().Where(a => tags.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
         }
 
         public async Task<List<Image>> Search(IEnumerable<string> included, IEnumerable<string> excluded, bool anyTag = false, int limit = 0, int offset = 0)
@@ -86,7 +86,7 @@ namespace ImageInfrastructure.Web
         
         public async Task<List<Image>> Search(IEnumerable<SearchParameter> searchParameters, int limit = 0, int offset = 0)
         {
-            var images = _context.Images.AsNoTrackingWithIdentityResolution()
+            var images = _context.Set<Image>().AsNoTrackingWithIdentityResolution()
                 .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
                 .Include(a => a.Tags)
                 .Include(a => a.ArtistAccounts).AsSplitQuery();
@@ -103,7 +103,7 @@ namespace ImageInfrastructure.Web
         public async Task<int> GetSearchPostCount(IEnumerable<SearchParameter> searchParameters)
         {
             var expr = EvaluateSearchParameters(searchParameters);
-            if (expr == null) return await _context.Images.CountAsync();
+            if (expr == null) return await _context.Set<Image>().CountAsync();
 
             return await _context.Images.CountAsync(expr);
         }

@@ -10,6 +10,7 @@ using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace ImageInfrastructure.Core
@@ -261,6 +262,7 @@ namespace ImageInfrastructure.Core
             optionsBuilder.EnableSensitiveDataLogging();
             optionsBuilder.ConfigureWarnings(builder =>
             {
+                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.ContextInitialized, LogLevel.None));
                 builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
             });
         }
