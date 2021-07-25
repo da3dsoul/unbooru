@@ -204,6 +204,7 @@ namespace ImageInfrastructure.Booru
 
         public async Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
+            return;
             var context = provider.GetRequiredService<CoreContext>();
             var imageIds = context.Set<Image>().OrderByDescending(a => a.ImageId).Select(a => a.ImageId).Skip(1526).Take(6774);
 

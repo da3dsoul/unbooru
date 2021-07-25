@@ -90,6 +90,10 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasKey("ImageId");
 
+                    b.HasIndex("Height");
+
+                    b.HasIndex("Width");
+
                     b.ToTable("Images");
                 });
 
@@ -147,7 +151,11 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.HasIndex("Uri", "PostUrl", "Source");
+                    b.HasIndex("PostUrl");
+
+                    b.HasIndex("Source");
+
+                    b.HasIndex("Uri");
 
                     b.ToTable("ImageSources");
                 });
