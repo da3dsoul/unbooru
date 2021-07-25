@@ -32,8 +32,5 @@ export const tagPropType = PropTypes.shape({
 export const imagePropType = PropTypes.shape({
     imageId: PropTypes.number.isRequired,
     width: PropTypes.number.isRequired,
-    height: PropTypes.number.isRequired,
-    sources: PropTypes.arrayOf(sourcePropType),
-    artistAccounts: PropTypes.arrayOf(artistPropType),
-    tags: PropTypes.arrayOf(tagPropType)
+    height: PropTypes.number.isRequired
 });

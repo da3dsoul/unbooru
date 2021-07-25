@@ -170,7 +170,7 @@ namespace ImageInfrastructure.Core
 
             if (includeDepth)
             {
-                existingImages = await Images.AsSplitQuery().Include(a => a.Sources).Include(a => a.ArtistAccounts)
+                existingImages = await Images.AsSplitQuery().Include(a => a.Tags).Include(a => a.Sources).Include(a => a.ArtistAccounts)
                     .ThenInclude(a => a.Images).Include(a => a.RelatedImages)
                     .Where(a => a.Sources.Any(b => sourceIds.Contains(b.ImageSourceId))).ToListAsync(token);
             }

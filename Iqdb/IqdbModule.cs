@@ -79,7 +79,8 @@ namespace ImageInfrastructure.Iqdb
                         image.Sources.Add(new ImageSource
                         {
                             Source = match.Source.ToString(),
-                            Uri = match.Url,
+                            Uri = match.PreviewUrl,
+                            PostUrl = match.Url,
                             Image = image
                         });
                     }
