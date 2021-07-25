@@ -71,7 +71,7 @@ namespace ImageInfrastructure.Database
             catch (Exception exception)
             {
                 await trans.RollbackAsync(e.CancellationToken);
-                _logger.LogError(exception, "Unable to write {File}", e.Images.FirstOrDefault()?.GetPixivFilename());
+                _logger.LogError(exception, "Unable to write {File}: {Exception}", e.Images?.FirstOrDefault()?.GetPixivFilename(), exception);
             }
         }
 

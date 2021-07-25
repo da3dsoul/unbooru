@@ -102,7 +102,7 @@ namespace ImageInfrastructure.Iqdb
                 {}
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Unable to write {File}", image.GetPixivFilename());
+                    _logger.LogError(exception, "Unable to write {File}: {Exception}", image.GetPixivFilename(), exception);
                 }
             }
         }

@@ -186,7 +186,7 @@ namespace ImageInfrastructure.Pixiv
 
             for (var i = 0; i < pages.Count; i++)
             {
-                var existingImage = await imageContext.Get(prov.Images[i], token:token);
+                var existingImage = await imageContext.Get(prov.Images[i], includeDepth:true, token:token);
                 if (existingImage != null)
                 {
                     prov.Images[i] = existingImage;
