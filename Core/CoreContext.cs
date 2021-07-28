@@ -95,8 +95,24 @@ namespace ImageInfrastructure.Core
             }
 
             var namesToLookup = tagsToLookup.Select(a => a.Name).Distinct().ToList();
-            var existingTags = await ImageTags.AsSplitQuery().Include(a => a.Images)
-                .Where(a => namesToLookup.Contains(a.Name)).ToListAsync(token);
+            var imageImageTags = Set<Dictionary<string, object>>("ImageImageTag");
+            var tempTags = await (from imageTag in Set<ImageTag>()
+                join imageImageTag in imageImageTags
+                    on imageTag.ImageTagId equals EF.Property<int>(imageImageTag, "TagsImageTagId") into grouping
+                from imageImageTag in grouping.DefaultIfEmpty()
+                join image in Set<Image>()
+                    on EF.Property<int>(imageImageTag, "ImagesImageId") equals image.ImageId into grouping2
+                from image in grouping2.DefaultIfEmpty()
+                where namesToLookup.Contains(imageTag.Name)
+                orderby imageTag.ImageTagId
+                select new { imageTag, image }).ToListAsync(token);
+            var existingTags = tempTags.GroupBy(a => a.imageTag, a => a.image).Select(a =>
+            {
+                var tag = a.Key;
+                tag.Images = a.ToList();
+                return tag;
+            }).ToList();
+            AttachRange(existingTags);
 
             foreach (var item in existingTags) _tagCache.Add(item.Name, item);
 
@@ -266,7 +282,7 @@ namespace ImageInfrastructure.Core
             optionsBuilder.ConfigureWarnings(builder =>
             {
                 builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.ContextInitialized, LogLevel.None));
-                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
+                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.Warning));
             });
         }
 
