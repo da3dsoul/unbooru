@@ -60,17 +60,17 @@ namespace ImageInfrastructure.Database
             try
             {
                 _logger.LogInformation("Saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
-                await context.ArtistAccounts.AddRangeAsync(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct(), e.CancellationToken);
-                await context.ImageTags.AddRangeAsync(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct(), e.CancellationToken);
-                await context.RelatedImages.AddRangeAsync(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct(), e.CancellationToken);
-                await context.Images.AddRangeAsync(e.Images, e.CancellationToken);
+                context.ArtistAccounts.AddRange(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct());
+                context.ImageTags.AddRange(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct());
+                context.RelatedImages.AddRange(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct());
+                context.Images.AddRange(e.Images.Where(a => a.ImageId == 0).Distinct());
                 await context.SaveChangesAsync(e.CancellationToken);
                 await trans.CommitAsync(e.CancellationToken);
                 _logger.LogInformation("Finished saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
             }
             catch (Exception exception)
             {
-                await trans.RollbackAsync(e.CancellationToken);
+                await trans.RollbackAsync();
                 _logger.LogError(exception, "Unable to write {File}: {Exception}", e.Images?.FirstOrDefault()?.GetPixivFilename(), exception);
             }
         }

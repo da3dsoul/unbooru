@@ -184,7 +184,6 @@ namespace ImageInfrastructure.Booru
                 var updateTag = string.IsNullOrEmpty(tag.Type);
                 if (!image.Tags.Contains(tag))
                 {
-                    tag.Images.Add(image);
                     image.Tags.Add(tag);
                 }
 

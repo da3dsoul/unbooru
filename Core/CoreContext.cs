@@ -96,7 +96,8 @@ namespace ImageInfrastructure.Core
 
             var namesToLookup = tagsToLookup.Select(a => a.Name).Distinct().ToList();
             var imageImageTags = Set<Dictionary<string, object>>("ImageImageTag");
-            var tempTags = await (from imageTag in Set<ImageTag>()
+            // this mess is 2 left joins. It's necessary
+            /*var tempTags = await (from imageTag in Set<ImageTag>()
                 join imageImageTag in imageImageTags
                     on imageTag.ImageTagId equals EF.Property<int>(imageImageTag, "TagsImageTagId") into grouping
                 from imageImageTag in grouping.DefaultIfEmpty()
@@ -112,7 +113,9 @@ namespace ImageInfrastructure.Core
                 tag.Images = a.ToList();
                 return tag;
             }).ToList();
-            AttachRange(existingTags);
+            AttachRange(existingTags);*/
+
+            var existingTags = await Set<ImageTag>().Where(a => namesToLookup.Contains(a.Name)).ToListAsync(token);
 
             foreach (var item in existingTags) _tagCache.Add(item.Name, item);
 
@@ -171,21 +174,19 @@ namespace ImageInfrastructure.Core
             if (!uris.Any())
             {
                 uris = image.Sources.Select(a => a.PostUrl).Distinct().ToList();
-                // to perform merge operations, we need everything...
-                // splitting this up to simplify the queries
                 sourceIds = await ImageSources.Where(a => uris.Any(b => b == a.PostUrl)).Select(a => a.ImageSourceId)
                     .ToListAsync(token);
             }
             else
             {
-                // to perform merge operations, we need everything...
-                // splitting this up to simplify the queries
                 sourceIds = await ImageSources.Where(a => uris.Any(b => b == a.Uri)).Select(a => a.ImageSourceId)
                     .ToListAsync(token);
             }
 
             if (includeDepth)
             {
+                // to perform merge operations, we need everything...
+                // splitting this up to simplify the queries
                 existingImages = await Images.AsSplitQuery()
                     .Include(a => a.Tags)
                     .Include(a => a.Sources)
@@ -282,7 +283,7 @@ namespace ImageInfrastructure.Core
             optionsBuilder.ConfigureWarnings(builder =>
             {
                 builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.ContextInitialized, LogLevel.None));
-                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.Warning));
+                builder.Log((Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted, LogLevel.None));
             });
         }
 
