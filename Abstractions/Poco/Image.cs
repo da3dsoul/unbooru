@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
-
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ImageInfrastructure.Abstractions.Poco
 {
     public class Image
@@ -9,6 +10,8 @@ namespace ImageInfrastructure.Abstractions.Poco
         public int ImageId { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        
+        public DateTime ImportDate { get; set; }
 
         [IgnoreDataMember]
         [NotMapped]

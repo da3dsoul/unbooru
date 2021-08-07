@@ -1,6 +1,6 @@
 using System;
 using System.Net;
-
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ImageInfrastructure.Abstractions.Poco
 {
     public class ResponseCache

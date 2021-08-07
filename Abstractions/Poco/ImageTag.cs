@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using ImageInfrastructure.Abstractions.Enums;
-
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ImageInfrastructure.Abstractions.Poco
 {
     public class ImageTag

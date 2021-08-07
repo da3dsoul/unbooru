@@ -1,5 +1,5 @@
 using System.Runtime.Serialization;
-
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ImageInfrastructure.Abstractions.Poco
 {
     public class ImageBlob

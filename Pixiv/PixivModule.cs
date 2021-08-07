@@ -158,6 +158,7 @@ namespace ImageInfrastructure.Pixiv
                 {
                     Width = image.SizePixels.Width,
                     Height = image.SizePixels.Height,
+                    ImportDate = DateTime.Now,
                     Sources = new List<ImageSource>
                     {
                         new()
@@ -167,7 +168,8 @@ namespace ImageInfrastructure.Pixiv
                             Description = image.Description,
                             Uri = a.Uri,
                             PostUrl = $"https://pixiv.net/en/artworks/{image.Id}",
-                            OriginalFilename = a.Filename
+                            OriginalFilename = a.Filename,
+                            PostDate = image.Created.DateTime
                         }
                     },
                     ArtistAccounts = new List<ArtistAccount> {newArtist},
