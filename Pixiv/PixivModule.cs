@@ -29,13 +29,15 @@ namespace ImageInfrastructure.Pixiv
         private const int RetryCount = 3;
         private const int SleepTime = 1500;
 
+        public static bool CurrentlyImporting;
+
         public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider)
         {
             _logger = logger;
             SettingsProvider = settingsProvider;
         }
 
-        public async Task RunAsync(IServiceProvider provider, CancellationToken token)
+        public Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
             _logger.LogInformation("Running {ModuleType} module with settings of type {SettingsType}", GetType(),
                 SettingsProvider.GetType().GenericTypeArguments.FirstOrDefault());
@@ -44,69 +46,58 @@ namespace ImageInfrastructure.Pixiv
             var providerInvocationList = ImageProvided?.GetInvocationList();
             discoveryInvocationList?.ToList().ForEach(a => _logger.LogInformation("Pixiv is providing images to {Item} for cancellation", a.Target?.GetType().FullName));
             providerInvocationList?.ToList().ForEach(a => _logger.LogInformation("Pixiv is providing images to {Item} for consuming", a.Target?.GetType().FullName));
-
-            try
-            {
-                var factory = provider.GetRequiredService<ILoggerFactory>();
-                using var pixivClient = new PixivClient(factory);
-                await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
-                                             throw new InvalidOperationException("Settings can't be null"));
-
-                var refreshToken = pixivClient.RefreshToken;
-                var accessToken = pixivClient.AccessToken;
-                SettingsProvider.Update(a =>
-                {
-                    a.Token = refreshToken;
-                    a.AccessToken = accessToken;
-                });
-                Uri continueFrom = null;
-                if (!string.IsNullOrEmpty(SettingsProvider.Get(a => a.ContinueFrom)))
-                    continueFrom = new Uri(SettingsProvider.Get(a => a.ContinueFrom));
-                await DownloadBookmarks(provider, pixivClient, continueFrom, token);
-            }
-            catch (TaskCanceledException)
-            {
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "{Message}", e);
-            }
+            return Task.CompletedTask;
         }
 
-        private async Task DownloadBookmarks(IServiceProvider provider, PixivClient pixivClient, Uri continueFrom = null, CancellationToken token = default)
+        public async Task DownloadBookmarks(IServiceProvider provider, PixivClient pixivClient, int maxPosts, Uri continueFrom = null, bool stopAtFirstCancellation = true, CancellationToken token = default)
         {
-            var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation: token, continueFrom: continueFrom);
-            var iterator = userBookmarks.GetAsyncEnumerator(token);
-            var i = 0;
-
-            do
+            try
             {
-                if (i >= SettingsProvider.Get(a => a.MaxImagesToDownload)) break;
-                if (!await iterator.MoveNextAsync()) break;
-                if (i >= SettingsProvider.Get(a => a.MaxImagesToDownload)) break;
-                var image = iterator.Current;
+                CurrentlyImporting = true;
+                var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation: token, continueFrom: continueFrom);
+                var iterator = userBookmarks.GetAsyncEnumerator(token);
+                var i = 0;
 
-                _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1,
-                    SettingsProvider.Get(a => a.MaxImagesToDownload), image.Id, image.Title);
-
-                using var scope = provider.CreateScope();
-                var disc = ImageDiscovery(scope.ServiceProvider, image, token:token);
-                if (disc.Cancel || disc.Attachments.All(a => !a.Download))
+                do
                 {
-                    _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
+                    if (i >= maxPosts) break;
+                    if (!await iterator.MoveNextAsync()) break;
+                    var image = iterator.Current;
+
+                    _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1, maxPosts,
+                        image.Id, image.Title);
+
+                    using var scope = provider.CreateScope();
+                    var disc = ImageDiscovery(scope.ServiceProvider, image, token: token);
+                    if (disc.Cancel || disc.Attachments.All(a => !a.Download))
+                    {
+                        _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
+                        if (stopAtFirstCancellation)
+                        {
+                            _logger.LogInformation("{PixivModule} set to exit on first cancellation. Exiting!",
+                                nameof(PixivModule));
+                            break;
+                        }
+
+                        i++;
+                        continue;
+                    }
+
+                    var prov = await ImageProviding(disc, image, token: token);
+                    if (prov.Cancel)
+                    {
+                        _logger.LogInformation("Further Pixiv Downloading cancelled by provider subscriber");
+                        break;
+                    }
+
                     i++;
-                    continue;
-                }
+                } while (true);
 
-                var prov = await ImageProviding(disc, image, token:token);
-                if (prov.Cancel)
-                {
-                    _logger.LogInformation("Further Pixiv Downloading cancelled by provider subscriber");
-                    break;
-                }
-
-                i++;
-            } while (true);
+            }
+            finally
+            {
+                CurrentlyImporting = false;
+            }
         }
 
         public ImageDiscoveredEventArgs ImageDiscovery(IServiceProvider provider, Illust image, IList<IllustPage> pages = null, CancellationToken token = default)

@@ -4,7 +4,8 @@ namespace ImageInfrastructure.Pixiv
     {
         public string Token { get; set; }
         public string AccessToken { get; set; }
-        public int MaxImagesToDownload { get; set; } = 10;
+        public int MaxImagesToDownloadImport { get; set; } = 700;
+        public int MaxImagesToDownloadService { get; set; } = 300;
         public string ContinueFrom { get; set; }
     }
 }

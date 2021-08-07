@@ -295,7 +295,7 @@ namespace ImageInfrastructure.Core
             modelBuilder.Entity<ImageSource>().Property(a => a.Source).IsRequired();
             modelBuilder.Entity<ImageSource>().Property(a => a.Uri).IsRequired();
             modelBuilder.Entity<ImageSource>().Property(a => a.Title).IsUnicode();
-            modelBuilder.Entity<ImageTag>().Property(a => a.Name).IsRequired();
+            modelBuilder.Entity<ImageTag>().Property(a => a.Name).IsRequired().UseCollation("NOCASE");
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Id).IsRequired();
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Url).IsRequired();
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Name).IsRequired().IsUnicode();
