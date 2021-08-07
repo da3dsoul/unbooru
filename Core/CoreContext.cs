@@ -302,9 +302,13 @@ namespace ImageInfrastructure.Core
             modelBuilder.Entity<ImageBlob>().Property(a => a.Data).IsRequired();
 
             // indexes
+            modelBuilder.Entity<Image>().HasIndex(a => a.Width);
+            modelBuilder.Entity<Image>().HasIndex(a => a.Height);
             modelBuilder.Entity<ImageTag>().HasIndex(a => a.Name).IsUnique();
             modelBuilder.Entity<ImageTag>().HasIndex(a => new {a.Safety, a.Type});
-            modelBuilder.Entity<ImageSource>().HasIndex(a => new {a.Uri, a.PostUrl, a.Source});
+            modelBuilder.Entity<ImageSource>().HasIndex(a => a.Uri);
+            modelBuilder.Entity<ImageSource>().HasIndex(a => a.PostUrl);
+            modelBuilder.Entity<ImageSource>().HasIndex(a => a.Source);
             modelBuilder.Entity<ArtistAccount>().HasIndex(a => a.Id).IsUnique();
             modelBuilder.Entity<ArtistAccount>().HasIndex(a => a.Url).IsUnique();
             modelBuilder.Entity<ResponseCache>().HasIndex(a => a.Uri).IsUnique();
