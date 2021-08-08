@@ -292,22 +292,26 @@ namespace ImageInfrastructure.Core
             // nullability
             modelBuilder.Entity<Image>().Property(a => a.Width).IsRequired();
             modelBuilder.Entity<Image>().Property(a => a.Height).IsRequired();
-            modelBuilder.Entity<ImageSource>().Property(a => a.Source).IsRequired();
+            modelBuilder.Entity<ImageSource>().Property(a => a.Source).IsRequired().UseCollation("NOCASE");
             modelBuilder.Entity<ImageSource>().Property(a => a.Uri).IsRequired();
             modelBuilder.Entity<ImageSource>().Property(a => a.Title).IsUnicode();
             modelBuilder.Entity<ImageTag>().Property(a => a.Name).IsRequired().UseCollation("NOCASE");
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Id).IsRequired();
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Url).IsRequired();
-            modelBuilder.Entity<ArtistAccount>().Property(a => a.Name).IsRequired().IsUnicode();
+            modelBuilder.Entity<ArtistAccount>().Property(a => a.Name).IsRequired().IsUnicode().UseCollation("NOCASE");
             modelBuilder.Entity<ImageBlob>().Property(a => a.Data).IsRequired();
 
             // indexes
             modelBuilder.Entity<Image>().HasIndex(a => a.Width);
             modelBuilder.Entity<Image>().HasIndex(a => a.Height);
+            modelBuilder.Entity<Image>().HasIndex(a => a.ImportDate);
+            modelBuilder.Entity<ImageBlob>().HasIndex(a => a.Size);
             modelBuilder.Entity<ImageTag>().HasIndex(a => a.Name).IsUnique();
             modelBuilder.Entity<ImageTag>().HasIndex(a => new {a.Safety, a.Type});
             modelBuilder.Entity<ImageSource>().HasIndex(a => a.Uri);
             modelBuilder.Entity<ImageSource>().HasIndex(a => a.PostUrl);
+            modelBuilder.Entity<ImageSource>().HasIndex(a => a.PostId);
+            modelBuilder.Entity<ImageSource>().HasIndex(a => a.PostDate);
             modelBuilder.Entity<ImageSource>().HasIndex(a => a.Source);
             modelBuilder.Entity<ArtistAccount>().HasIndex(a => a.Id).IsUnique();
             modelBuilder.Entity<ArtistAccount>().HasIndex(a => a.Url).IsUnique();
