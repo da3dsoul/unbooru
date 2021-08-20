@@ -1,18 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
 using ImageInfrastructure.Abstractions.Poco.Ingest;
+using ImageInfrastructure.Core;
 using ImageMagick;
 using Meowtrix.PixivApi;
 using Meowtrix.PixivApi.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MoreLinq.Extensions;
 
 namespace ImageInfrastructure.Pixiv
 {
@@ -47,6 +53,101 @@ namespace ImageInfrastructure.Pixiv
             discoveryInvocationList?.ToList().ForEach(a => _logger.LogInformation("Pixiv is providing images to {Item} for cancellation", a.Target?.GetType().FullName));
             providerInvocationList?.ToList().ForEach(a => _logger.LogInformation("Pixiv is providing images to {Item} for consuming", a.Target?.GetType().FullName));
             return Task.CompletedTask;
+        }
+
+        [Obsolete("This is a backup method for if the database existed before post dates were implemented")]
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
+        public async Task DownloadPostDates(IServiceProvider provider, PixivClient pixivClient, CancellationToken token = default)
+        {
+            try
+            {
+                CurrentlyImporting = true;
+                var i = 0;
+
+                var imageContext = provider.GetRequiredService<CoreContext>();
+                var maxPosts = await imageContext.Set<ImageSource>()
+                    .Where(a => a.Source == "Pixiv" && a.PostDate == null).Select(a => a.PostId).Distinct().CountAsync(token) - 550;
+                var images = await imageContext.Set<ImageSource>()
+                    .Where(a => a.Source == "Pixiv" && a.PostDate == null).OrderBy(a => a.Image.ImageId).ThenBy(a => a.ImageSourceId)
+                    .Select(a => a.PostId).Skip(550).ToListAsync(token);
+
+                foreach (var postIds in images.Batch(50))
+                {
+                    using var scope = provider.CreateScope();
+                    var scopeContext = scope.ServiceProvider.GetRequiredService<CoreContext>();
+                    await using var trans = await scopeContext.Database.BeginTransactionAsync(token);
+                    try
+                    {
+                        int lastError;
+                        (i, lastError) = await GetValue(pixivClient, token, postIds, scopeContext, maxPosts, i);
+                        if (lastError > 2) goto exit;
+
+                        await scopeContext.SaveChangesAsync(token);
+                        await trans.CommitAsync(token);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, e.ToString());
+                        await trans.RollbackAsync(token);
+                    }
+                }
+                exit: ;
+            }
+            finally
+            {
+                CurrentlyImporting = false;
+            }
+        }
+
+        private async Task<(int i, int lastError)> GetValue(PixivClient pixivClient, CancellationToken token, IEnumerable<string> postIds,
+            CoreContext scopeContext, int maxPosts, int i)
+        {
+            string lastId = null;
+            int lastError = 0;
+            foreach (var postId in postIds)
+            {
+                try
+                {
+                    if (postId.Equals(lastId)) continue;
+                    var imageSources = await scopeContext.Set<ImageSource>().Include(a => a.Image)
+                        .Where(a => a.PostId == postId).ToListAsync(token);
+
+                    var source = imageSources.FirstOrDefault();
+                    if (source == null) continue;
+                    _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}",
+                        i + 1,
+                        maxPosts,
+                        source.PostId, source.Title);
+                    var image = await pixivClient.GetIllustDetailAsync(int.Parse(source.PostId), token);
+                    imageSources.ForEach(a =>
+                    {
+                        a.PostDate = image.Created.DateTime;
+                        a.Image.ImportDate = DateTime.Now;
+                    });
+                    lastError = 0;
+                }
+                catch (HttpRequestException e)
+                {
+                    _logger.LogError(e, e.ToString());
+                    if (e.StatusCode != HttpStatusCode.NotFound)
+                    {
+                        lastError++;
+                        if (lastError > 2) return (i, lastError);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, e.ToString());
+                    lastError++;
+                    if (lastError > 2) return (i, lastError);
+                }
+
+                Thread.Sleep(2000);
+                lastId = postId;
+                i++;
+            }
+
+            return (i, lastError);
         }
 
         public async Task DownloadBookmarks(IServiceProvider provider, PixivClient pixivClient, int maxPosts, Uri continueFrom = null, bool stopAtFirstCancellation = true, CancellationToken token = default)
@@ -168,6 +269,7 @@ namespace ImageInfrastructure.Pixiv
                             Description = image.Description,
                             Uri = a.Uri,
                             PostUrl = $"https://pixiv.net/en/artworks/{image.Id}",
+                            PostId = image.Id.ToString(),
                             OriginalFilename = a.Filename,
                             PostDate = image.Created.DateTime
                         }

@@ -55,14 +55,14 @@ namespace ImageInfrastructure.Web
             return await _context.Set<ImageTag>().Where(a => tags.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
         }
 
-        public async Task<List<Image>> Search(IEnumerable<SearchParameter> searchParameters, int limit = 0, int offset = 0)
+        public async Task<List<Image>> Search(IEnumerable<SearchParameter> searchParameters, Func<IQueryable<Image>, IQueryable<Image>> sort, int limit = 0, int offset = 0)
         {
             var images = _context.Set<Image>().AsNoTracking();
 
             var expr = EvaluateSearchParameters(searchParameters);
             if (expr != null) images = images.Where(expr);
 
-            images = images.OrderByDescending(a => a.ImageId).Skip(offset);
+            images = sort.Invoke(images).Skip(offset);
             if (limit > 0) images = images.Take(limit);
 
             return await images.ToListAsync();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using ByteSizeLib;
 using ImageInfrastructure.Abstractions.Poco;
@@ -30,7 +31,9 @@ namespace ImageInfrastructure.Web.Controllers
 
             ParseSearchParameters(query, searchParameters, HttpContext.RequestServices);
 
-            var images = await _dbHelper.Search(searchParameters, limit, offset);
+            var sort = ParseSortParameters(query);
+
+            var images = await _dbHelper.Search(searchParameters, sort, limit, offset);
             if (images.Count == 0) return new NotFoundResult();
             return images;
         }
@@ -61,7 +64,78 @@ namespace ImageInfrastructure.Web.Controllers
             AddSfwQuery(query, searchParameters, provider);
         }
 
-#region Query Parsing
+        private static Func<IQueryable<Image>, IQueryable<Image>> ParseSortParameters(IQueryCollection query)
+        {
+            Func<IQueryable<Image>, IQueryable<Image>> function = a => a.OrderByDescending(b => b.ImageId);
+            var queryStrings = query["Sort"];
+            if (!queryStrings.Any()) return function;
+
+            var newFunction = function;
+
+            foreach (var s in queryStrings)
+            {
+                var q = s;
+                var desc = false;
+                if (q.StartsWith("!"))
+                {
+                    q = new string(q.SkipWhile(a => !char.IsLetter(a)).ToArray());
+                    desc = true;
+                }
+
+                q = q.ToLower();
+                var first = newFunction == function;
+                newFunction = GetParsedSortFunction(q, first, desc) ?? function;
+            }
+
+            return newFunction;
+        }
+
+        private static Func<IQueryable<Image>, IQueryable<Image>> GetParsedSortFunction(string q, bool first, bool desc)
+        {
+            Expression<Func<Image, object>> selector;
+            switch (q)
+            {
+                case "imageid":
+                    selector = b => b.ImageId;
+                    break;
+                case "aspect":
+                    selector = b => (double)b.Width / b.Height;
+                    break;
+                case "width":
+                    selector = b => b.Width;
+                    break;
+                case "height":
+                    selector = b => b.Height;
+                    break;
+                case "size":
+                    selector = b => b.Blobs.FirstOrDefault().Size;
+                    break;
+                case "postdate":
+                    selector = b =>
+                        b.Sources.FirstOrDefault(
+                            a => a.PostDate != null && a.PostDate == b.Sources.Min(c => c.PostDate)).PostDate;
+                    break;
+                case "importdate":
+                    selector = b => b.ImportDate;
+                    break;
+                case "pixivid":
+                    selector = b => b.Sources.FirstOrDefault(a => a.Source == "Pixiv").PostId;
+                    break;
+                default:
+                    return null;
+            }
+
+            if (first)
+            {
+                return desc ? a => a.OrderByDescending(selector) : a => a.OrderBy(selector);
+            }
+
+            return desc
+                ? a => ((IOrderedQueryable<Image>)a).ThenByDescending(selector)
+                : a => ((IOrderedQueryable<Image>)a).ThenBy(selector);
+        }
+
+        #region Query Parsing
         private static void AddTagQueries(IQueryCollection query, List<SearchParameter> searchParameters, DatabaseHelper dbHelper)
         {
             var queryStrings = query["Tag"];

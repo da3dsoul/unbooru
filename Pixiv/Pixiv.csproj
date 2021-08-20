@@ -9,11 +9,13 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+      <ProjectReference Include="..\Core\Core.csproj" />
       <ProjectReference Include="..\Meowtrix.PixivApi\Meowtrix.PixivApi.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.24.1" />
+      <PackageReference Include="morelinq" Version="3.3.2" />
     </ItemGroup>
 
 </Project>

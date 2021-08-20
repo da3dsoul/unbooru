@@ -253,10 +253,6 @@ namespace Meowtrix.PixivApi
                 var error = JsonSerializer.Deserialize<PixivApiErrorMessage>(original, SSerializerOptions);
                 throw new PixivApiException(original, error, error?.Error?.Message ?? original);
             }
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception("URL was: " + url);
-            }
 
             response.EnsureSuccessStatusCode();
 
