@@ -56,7 +56,7 @@ namespace ImageInfrastructure.Web
             return await _context.Set<ImageTag>().Where(a => tags.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
         }
 
-        public async Task<List<Image>> Search(IEnumerable<SearchParameter> searchParameters, Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>> sort, int limit = 0, int offset = 0)
+        public async Task<List<Image>> Search(IEnumerable<SearchParameter> searchParameters, IEnumerable<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>> sort, int limit = 0, int offset = 0)
         {
             // this mess is 2 left joins. It's necessary
             //var imageImageTags = _context.Set<Dictionary<string, object>>("ImageImageTag");
@@ -77,7 +77,12 @@ namespace ImageInfrastructure.Web
             var expr = EvaluateSearchParameters(searchParameters);
             if (expr != null) images = images.Where(expr);
 
-            images = sort.Invoke(images).Skip(offset);
+            foreach (var func in sort)
+            {
+                images = func.Invoke(images);
+            }
+
+            images = images.Skip(offset);
             if (limit > 0) images = images.Take(limit);
 
             var result = images.Select(a => a.Image);

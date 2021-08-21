@@ -66,13 +66,14 @@ namespace ImageInfrastructure.Web.Controllers
             AddSfwQuery(query, searchParameters, provider);
         }
 
-        private static Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>> ParseSortParameters(IQueryCollection query)
+        private static IEnumerable<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>> ParseSortParameters(IQueryCollection query)
         {
             IQueryable<SearchViewModel> Function(IQueryable<SearchViewModel> a) => a.OrderByDescending(b => b.Image.ImageId);
             var queryStrings = query["Sort"];
-            if (!queryStrings.Any()) return Function;
+            if (!queryStrings.Any()) return new List<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>> { Function };
 
-            var newFunction = (Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>)Function;
+            Func<IQueryable<SearchViewModel>,IQueryable<SearchViewModel>> newFunction = Function;
+            var functions = new List<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>>();
 
             foreach (var s in queryStrings)
             {
@@ -86,10 +87,11 @@ namespace ImageInfrastructure.Web.Controllers
 
                 q = q.ToLower();
                 var first = newFunction == Function;
-                newFunction = GetParsedSortFunction(q, first, desc) ?? Function;
+                newFunction = GetParsedSortFunction(q, first, desc);
+                if (newFunction != null) functions.Add(newFunction);
             }
 
-            return newFunction;
+            return functions;
         }
 
         private static Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>> GetParsedSortFunction(string q, bool first, bool desc)
