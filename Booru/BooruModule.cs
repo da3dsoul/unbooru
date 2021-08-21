@@ -12,8 +12,6 @@ using ImageInfrastructure.Abstractions.Enums;
 using ImageInfrastructure.Abstractions.Interfaces;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Abstractions.Poco.Events;
-using ImageInfrastructure.Core;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SearchResult = BooruSharp.Search.Post.SearchResult;
@@ -201,10 +199,10 @@ namespace ImageInfrastructure.Booru
             }
         }
 
-        public async Task RunAsync(IServiceProvider provider, CancellationToken token)
+        public Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
-            return;
-            var context = provider.GetRequiredService<CoreContext>();
+            return Task.CompletedTask;
+            /*var context = provider.GetRequiredService<CoreContext>();
             var imageIds = context.Set<Image>().OrderByDescending(a => a.ImageId).Select(a => a.ImageId).Skip(1526).Take(6774);
 
             var i = 1;
@@ -234,7 +232,7 @@ namespace ImageInfrastructure.Booru
                 }
 
                 i++;
-            }
+            }*/
         }
     }
 }

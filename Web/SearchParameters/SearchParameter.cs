@@ -1,12 +1,12 @@
 using System;
 using System.Linq.Expressions;
-using ImageInfrastructure.Abstractions.Poco;
+using ImageInfrastructure.Web.ViewModel;
 
 namespace ImageInfrastructure.Web.SearchParameters
 {
     public abstract record SearchParameter(bool Or)
     {
-        public virtual Expression<Func<Image,bool>> Evaluate()
+        public virtual Expression<Func<SearchViewModel, bool>> Evaluate()
         {
             return b => true;
         }

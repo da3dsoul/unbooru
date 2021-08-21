@@ -1,29 +1,28 @@
 using System;
-using System.Linq;
 using System.Linq.Expressions;
-using ImageInfrastructure.Abstractions.Poco;
+using ImageInfrastructure.Web.ViewModel;
 
 namespace ImageInfrastructure.Web.SearchParameters
 {
     public record FileSizeSearchParameter
         (NumberComparator Operator, long Size, bool Or = false) : SearchParameter(Or)
     {
-        public override Expression<Func<Image, bool>> Evaluate()
+        public override Expression<Func<SearchViewModel, bool>> Evaluate()
         {
             switch (Operator)
             {
                 case NumberComparator.NotEqual:
-                    return a => !a.Blobs.Any(b => b.Size == Size);
+                    return a => a.Blob.Size != Size;
                 case NumberComparator.Equal:
-                    return a => a.Blobs.Any(b => b.Size == Size);
+                    return a => a.Blob.Size == Size;
                 case NumberComparator.GreaterThan:
-                    return a => a.Blobs.Any(b => b.Size > Size);
+                    return a => a.Blob.Size > Size;
                 case NumberComparator.LessThan:
-                    return a => a.Blobs.Any(b => b.Size < Size);
+                    return a => a.Blob.Size < Size;
                 case NumberComparator.GreaterThan | NumberComparator.Equal:
-                    return a => a.Blobs.Any(b => b.Size >= Size);
+                    return a => a.Blob.Size >= Size;
                 case NumberComparator.LessThan | NumberComparator.Equal:
-                    return a => a.Blobs.Any(b => b.Size <= Size);
+                    return a => a.Blob.Size <= Size;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

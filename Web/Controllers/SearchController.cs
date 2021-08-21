@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using ByteSizeLib;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Web.SearchParameters;
+using ImageInfrastructure.Web.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+// ReSharper disable StringLiteralTypo
 
 namespace ImageInfrastructure.Web.Controllers
 {
@@ -64,13 +66,13 @@ namespace ImageInfrastructure.Web.Controllers
             AddSfwQuery(query, searchParameters, provider);
         }
 
-        private static Func<IQueryable<Image>, IQueryable<Image>> ParseSortParameters(IQueryCollection query)
+        private static Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>> ParseSortParameters(IQueryCollection query)
         {
-            Func<IQueryable<Image>, IQueryable<Image>> function = a => a.OrderByDescending(b => b.ImageId);
+            IQueryable<SearchViewModel> Function(IQueryable<SearchViewModel> a) => a.OrderByDescending(b => b.Image.ImageId);
             var queryStrings = query["Sort"];
-            if (!queryStrings.Any()) return function;
+            if (!queryStrings.Any()) return Function;
 
-            var newFunction = function;
+            var newFunction = (Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>)Function;
 
             foreach (var s in queryStrings)
             {
@@ -83,40 +85,38 @@ namespace ImageInfrastructure.Web.Controllers
                 }
 
                 q = q.ToLower();
-                var first = newFunction == function;
-                newFunction = GetParsedSortFunction(q, first, desc) ?? function;
+                var first = newFunction == Function;
+                newFunction = GetParsedSortFunction(q, first, desc) ?? Function;
             }
 
             return newFunction;
         }
 
-        private static Func<IQueryable<Image>, IQueryable<Image>> GetParsedSortFunction(string q, bool first, bool desc)
+        private static Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>> GetParsedSortFunction(string q, bool first, bool desc)
         {
-            Expression<Func<Image, object>> selector;
+            Expression<Func<SearchViewModel, object>> selector;
             switch (q)
             {
                 case "imageid":
-                    selector = b => b.ImageId;
+                    selector = b => b.Image.ImageId;
                     break;
                 case "aspect":
-                    selector = b => (double)b.Width / b.Height;
+                    selector = b => (double)b.Image.Width / b.Image.Height;
                     break;
                 case "width":
-                    selector = b => b.Width;
+                    selector = b => b.Image.Width;
                     break;
                 case "height":
-                    selector = b => b.Height;
+                    selector = b => b.Image.Height;
                     break;
                 case "size":
-                    selector = b => b.Blobs.FirstOrDefault().Size;
+                    selector = b => b.Blob.Size;
                     break;
                 case "postdate":
-                    selector = b =>
-                        b.Sources.FirstOrDefault(
-                            a => a.PostDate != null && a.PostDate == b.Sources.Min(c => c.PostDate)).PostDate;
+                    selector = b => b.Sources.FirstOrDefault(a => a.Source == "Pixiv").PostDate;
                     break;
                 case "importdate":
-                    selector = b => b.ImportDate;
+                    selector = b => b.Image.ImportDate;
                     break;
                 case "pixivid":
                     selector = b => b.Sources.FirstOrDefault(a => a.Source == "Pixiv").PostId;
@@ -131,8 +131,8 @@ namespace ImageInfrastructure.Web.Controllers
             }
 
             return desc
-                ? a => ((IOrderedQueryable<Image>)a).ThenByDescending(selector)
-                : a => ((IOrderedQueryable<Image>)a).ThenBy(selector);
+                ? a => ((IOrderedQueryable<SearchViewModel>)a).ThenByDescending(selector)
+                : a => ((IOrderedQueryable<SearchViewModel>)a).ThenBy(selector);
         }
 
         #region Query Parsing

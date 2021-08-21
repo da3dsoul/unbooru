@@ -95,8 +95,8 @@ namespace ImageInfrastructure.Core
             }
 
             var namesToLookup = tagsToLookup.Select(a => a.Name).Distinct().ToList();
-            var imageImageTags = Set<Dictionary<string, object>>("ImageImageTag");
             // this mess is 2 left joins. It's necessary
+            //var imageImageTags = Set<Dictionary<string, object>>("ImageImageTag");
             /*var tempTags = await (from imageTag in Set<ImageTag>()
                 join imageImageTag in imageImageTags
                     on imageTag.ImageTagId equals EF.Property<int>(imageImageTag, "TagsImageTagId") into grouping

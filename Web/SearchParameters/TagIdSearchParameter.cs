@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using ImageInfrastructure.Abstractions.Poco;
+using ImageInfrastructure.Web.ViewModel;
 
 namespace ImageInfrastructure.Web.SearchParameters
 {
     public record TagIdSearchParameter(IEnumerable<int> IncludedTagIds, IEnumerable<int> ExcludedTagIds,
         bool AnyTag = false, bool Or = false) : SearchParameter(Or)
     {
-        public override Expression<Func<Image, bool>> Evaluate()
+        public override Expression<Func<SearchViewModel, bool>> Evaluate()
         {
             if (AnyTag)
                 return a => a.Tags.Any() &&
