@@ -22,13 +22,12 @@ namespace ImageInfrastructure.Abstractions.Poco
             set
             {
                 if (Blobs == null)
-                    Blobs = new List<ImageBlob> {new() { Image = this, Data = value, Size = value.LongLength}};
+                    Blobs = new List<ImageBlob> {new() { Image = this, Data = value}};
                 else if(Blobs.Count == 0)
-                    Blobs.Add(new ImageBlob { Image = this, Data = value, Size = value.LongLength});
+                    Blobs.Add(new ImageBlob { Image = this, Data = value});
                 else
                 {
                     Blobs[0].Data = value;
-                    Blobs[0].Size = value.LongLength;
                 }
             }
         }

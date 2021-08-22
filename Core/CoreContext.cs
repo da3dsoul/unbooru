@@ -305,7 +305,7 @@ namespace ImageInfrastructure.Core
             modelBuilder.Entity<Image>().HasIndex(a => a.Width);
             modelBuilder.Entity<Image>().HasIndex(a => a.Height);
             modelBuilder.Entity<Image>().HasIndex(a => a.ImportDate);
-            modelBuilder.Entity<ImageBlob>().HasIndex(a => a.Size);
+            modelBuilder.Entity<Image>().HasIndex(a => a.Size);
             modelBuilder.Entity<ImageTag>().HasIndex(a => a.Name).IsUnique();
             modelBuilder.Entity<ImageTag>().HasIndex(a => new {a.Safety, a.Type});
             modelBuilder.Entity<ImageSource>().HasIndex(a => a.Uri);

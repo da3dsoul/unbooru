@@ -173,11 +173,9 @@ namespace ImageInfrastructure.Core.Migrations
 
                     b.HasIndex("PostDate");
 
-                    b.HasIndex("PostId")
-                        .IsUnique();
+                    b.HasIndex("PostId");
 
-                    b.HasIndex("PostUrl")
-                        .IsUnique();
+                    b.HasIndex("PostUrl");
 
                     b.HasIndex("Source");
 

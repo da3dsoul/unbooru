@@ -7,7 +7,7 @@ namespace ImageInfrastructure.Web.SortParameters
 {
     public class SizeSortParameter : SortParameter
     {
-        public override Type[] Types { get; } = { typeof(ImageBlob) };
-        public override Expression<Func<SearchViewModel, object>> Selector { get; } = a => a.Blob.Size;
+        public override Type[] Types { get; } = { typeof(Image) };
+        public override Expression<Func<SearchViewModel, object>> Selector { get; } = a => a.Image.Size;
     }
 }

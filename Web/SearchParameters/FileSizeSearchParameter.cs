@@ -13,22 +13,22 @@ namespace ImageInfrastructure.Web.SearchParameters
             switch (Operator)
             {
                 case NumberComparator.NotEqual:
-                    return a => a.Blob.Size != Size;
+                    return a => a.Image.Size != Size;
                 case NumberComparator.Equal:
-                    return a => a.Blob.Size == Size;
+                    return a => a.Image.Size == Size;
                 case NumberComparator.GreaterThan:
-                    return a => a.Blob.Size > Size;
+                    return a => a.Image.Size > Size;
                 case NumberComparator.LessThan:
-                    return a => a.Blob.Size < Size;
+                    return a => a.Image.Size < Size;
                 case NumberComparator.GreaterThan | NumberComparator.Equal:
-                    return a => a.Blob.Size >= Size;
+                    return a => a.Image.Size >= Size;
                 case NumberComparator.LessThan | NumberComparator.Equal:
-                    return a => a.Blob.Size <= Size;
+                    return a => a.Image.Size <= Size;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        public override Type[] Types { get; } = { typeof(ImageBlob) };
+        public override Type[] Types { get; } = { typeof(Image) };
     }
 }
