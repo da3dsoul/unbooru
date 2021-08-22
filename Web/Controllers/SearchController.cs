@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using ByteSizeLib;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Web.SearchParameters;
-using ImageInfrastructure.Web.ViewModel;
+using ImageInfrastructure.Web.SortParameters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,9 +32,9 @@ namespace ImageInfrastructure.Web.Controllers
 
             ParseSearchParameters(query, searchParameters, HttpContext.RequestServices);
 
-            var sort = ParseSortParameters(query);
+            var sortParameters = ParseSortParameters(query);
 
-            var images = await _dbHelper.Search(searchParameters, sort, limit, offset);
+            var images = await _dbHelper.Search(searchParameters, sortParameters, limit, offset);
             if (images.Count == 0) return new NotFoundResult();
             return images;
         }
@@ -66,14 +65,11 @@ namespace ImageInfrastructure.Web.Controllers
             AddSfwQuery(query, searchParameters, provider);
         }
 
-        private static IEnumerable<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>> ParseSortParameters(IQueryCollection query)
+        private static List<SortParameter> ParseSortParameters(IQueryCollection query)
         {
-            IQueryable<SearchViewModel> Function(IQueryable<SearchViewModel> a) => a.OrderByDescending(b => b.Image.ImageId);
             var queryStrings = query["Sort"];
-            if (!queryStrings.Any()) return new List<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>> { Function };
-
-            Func<IQueryable<SearchViewModel>,IQueryable<SearchViewModel>> newFunction = Function;
-            var functions = new List<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>>();
+            if (!queryStrings.Any()) return new List<SortParameter>();
+            var parameters = new List<SortParameter>();
 
             foreach (var s in queryStrings)
             {
@@ -86,55 +82,38 @@ namespace ImageInfrastructure.Web.Controllers
                 }
 
                 q = q.ToLower();
-                var first = newFunction == Function;
-                newFunction = GetParsedSortFunction(q, first, desc);
-                if (newFunction != null) functions.Add(newFunction);
+                var parameter = GetParsedSortFunction(q);
+                if (parameter == null) continue;
+                parameter.Descending = desc;
+                parameters.Add(parameter);
             }
 
-            return functions;
+            return parameters;
         }
 
-        private static Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>> GetParsedSortFunction(string q, bool first, bool desc)
+        private static SortParameter GetParsedSortFunction(string q)
         {
-            Expression<Func<SearchViewModel, object>> selector;
             switch (q)
             {
                 case "imageid":
-                    selector = b => b.Image.ImageId;
-                    break;
+                    return new ImageIdSortParameter();
                 case "aspect":
-                    selector = b => (double)b.Image.Width / b.Image.Height;
-                    break;
+                    return new AspectRatioSortParameter();
                 case "width":
-                    selector = b => b.Image.Width;
-                    break;
+                    return new WidthSortParameter();
                 case "height":
-                    selector = b => b.Image.Height;
-                    break;
-                case "size":
-                    selector = b => b.Blob.Size;
-                    break;
-                case "postdate":
-                    selector = b => b.Sources.FirstOrDefault(a => a.Source == "Pixiv").PostDate;
-                    break;
+                    return new HeightSortParameter();
                 case "importdate":
-                    selector = b => b.Image.ImportDate;
-                    break;
+                    return new ImportDateSortParameter();
+                case "size":
+                    return new SizeSortParameter();
+                case "postdate":
+                    return new PostDateSortParameter();
                 case "pixivid":
-                    selector = b => b.Sources.FirstOrDefault(a => a.Source == "Pixiv").PostId;
-                    break;
+                    return new PixivIdSortParameter();
                 default:
                     return null;
             }
-
-            if (first)
-            {
-                return desc ? a => a.OrderByDescending(selector) : a => a.OrderBy(selector);
-            }
-
-            return desc
-                ? a => ((IOrderedQueryable<SearchViewModel>)a).ThenByDescending(selector)
-                : a => ((IOrderedQueryable<SearchViewModel>)a).ThenBy(selector);
         }
 
         #region Query Parsing
@@ -222,8 +201,9 @@ namespace ImageInfrastructure.Web.Controllers
             foreach (var s in queryStrings)
             {
                 var op = NumberComparatorEnum.Parse(s);
+                bool isNull = s.Contains("null", StringComparison.InvariantCultureIgnoreCase);
                 var time = new string(s.SkipWhile(a => !char.IsDigit(a)).ToArray());
-                searchParameters.Add(new PostDateSearchParameter(op, DateTime.Parse(time)));
+                searchParameters.Add(new PostDateSearchParameter(op, isNull ? null : DateTime.Parse(time)));
             }
         }
 

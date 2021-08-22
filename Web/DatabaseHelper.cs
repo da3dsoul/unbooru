@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Core;
 using ImageInfrastructure.Web.SearchParameters;
+using ImageInfrastructure.Web.SortParameters;
 using ImageInfrastructure.Web.ViewModel;
 using ImageMagick;
 using Microsoft.EntityFrameworkCore;
@@ -56,50 +57,83 @@ namespace ImageInfrastructure.Web
             return await _context.Set<ImageTag>().Where(a => tags.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
         }
 
-        public async Task<List<Image>> Search(IEnumerable<SearchParameter> searchParameters, IEnumerable<Func<IQueryable<SearchViewModel>, IQueryable<SearchViewModel>>> sort, int limit = 0, int offset = 0)
+        public async Task<List<Image>> Search(List<SearchParameter> searchParameters, List<SortParameter> sortParameters, int limit = 0, int offset = 0)
         {
             // this mess is 2 left joins. It's necessary
-            //var imageImageTags = _context.Set<Dictionary<string, object>>("ImageImageTag");
-            var images = _context.Set<Image>().AsNoTracking()
-                /*.GroupJoin(imageImageTags, image => image.ImageId,
-                    imageTag => EF.Property<int>(imageTag, "ImagesImageId"),
-                    (image, imageTag) => new { image, imageTag = imageTag.DefaultIfEmpty() })
-                .SelectMany(a => a.imageTag.Select(b => new { a.image, imageTag = b }))
-                .GroupJoin(_context.ImageTags,
-                    inter => EF.Property<int>(inter.imageTag, "TagsImageTagId"), tag => tag.ImageTagId,
-                    (inter, tag) => new { inter.image, tag = tag.DefaultIfEmpty() })*/
-                .Select(a => new SearchViewModel
-                {
-                    Image = a, Tags = a.Tags, ArtistAccounts = a.ArtistAccounts, Sources = a.Sources,
-                    Blob = a.Blobs.FirstOrDefault()
-                });
+            var input = _context.Set<Image>().AsNoTracking();
+
+            var images = IncludeModels(input, searchParameters, sortParameters);
 
             var expr = EvaluateSearchParameters(searchParameters);
             if (expr != null) images = images.Where(expr);
 
-            foreach (var func in sort)
+            var first = sortParameters.FirstOrDefault();
+            if (first != null)
             {
-                images = func.Invoke(images);
+                images =  first.Descending ? images.OrderByDescending(first.Selector) : images.OrderBy(first.Selector);
+                foreach (var para in sortParameters.Skip(1))
+                {
+                    images = para.Descending
+                        ? ((IOrderedQueryable<SearchViewModel>)images).ThenByDescending(para.Selector)
+                        : ((IOrderedQueryable<SearchViewModel>)images).ThenBy(para.Selector);
+                }
+            }
+            else
+            {
+                images = images.OrderByDescending(a => a.Image.ImageId);
             }
 
             images = images.Skip(offset);
             if (limit > 0) images = images.Take(limit);
 
             var result = images.Select(a => a.Image);
+            var query = result.ToQueryString();
 
             return await result.ToListAsync();
         }
-        
-        public async Task<int> GetSearchPostCount(IEnumerable<SearchParameter> searchParameters)
+
+        public async Task<int> GetSearchPostCount(List<SearchParameter> searchParameters)
         {
             var expr = EvaluateSearchParameters(searchParameters);
             if (expr == null) return await _context.Set<Image>().CountAsync();
+            var input = _context.Set<Image>().AsNoTracking();
+            var images = IncludeModels(input, searchParameters, new List<SortParameter>());
 
-            return await _context.Images.Select(a => new SearchViewModel
+            return await images.CountAsync(expr);
+        }
+
+        private IQueryable<SearchViewModel> IncludeModels(IQueryable<Image> input, List<SearchParameter> searchParameters, List<SortParameter> sortParameters)
+        {
+            var images = input.Select(a => new SearchViewModel { Image = a });
+            if (searchParameters.Any(a => a.Types.Contains(typeof(ImageTag))) ||
+                sortParameters.Any(a => a.Types.Contains(typeof(ImageTag))))
             {
-                Image = a, Tags = a.Tags, ArtistAccounts = a.ArtistAccounts, Sources = a.Sources,
-                Blob = a.Blobs.FirstOrDefault()
-            }).CountAsync(expr);
+                images = images.Select(a => new SearchViewModel { Image = a.Image, Tags = a.Image.Tags });
+            }
+
+            if (searchParameters.Any(a => a.Types.Contains(typeof(ImageBlob))) ||
+                sortParameters.Any(a => a.Types.Contains(typeof(ImageBlob))))
+            {
+                images = images
+                    .GroupJoin(_context.Set<ImageBlob>(), model => model.Image.ImageId,
+                        blob => EF.Property<int>(blob, "ImageBlobId"), (model, blobs) => new { model, blob = blobs })
+                    .SelectMany(a => a.blob.DefaultIfEmpty(),
+                        (a, b) => new SearchViewModel { Image = a.model.Image, Blob = b, Tags = a.model.Tags });
+            }
+
+            if (searchParameters.Any(a => a.Types.Contains(typeof(ImageSource))) ||
+                sortParameters.Any(a => a.Types.Contains(typeof(ImageSource))))
+            {
+                images = images
+                    .GroupJoin(_context.Set<ImageSource>(), model => model.Image.ImageId,
+                        source => EF.Property<int>(source, "ImageSourceId"), (model, source) => new { model, source })
+                    .SelectMany(a => a.source.DefaultIfEmpty(),
+                        (a, b) => new SearchViewModel
+                            { Image = a.model.Image, Blob = a.model.Blob, PixivSource = b, Tags = a.model.Tags })
+                    .Where(a => a.PixivSource.Source == "Pixiv");
+            }
+
+            return images;
         }
 
         private static Expression<Func<SearchViewModel, bool>> EvaluateSearchParameters(IEnumerable<SearchParameter> searchParameters)

@@ -19,7 +19,7 @@ namespace ImageInfrastructure.Web.SearchParameters
             if (s.StartsWith("<")) return NumberComparator.LessThan;
             if (s.StartsWith(">=")) return NumberComparator.GreaterThan | NumberComparator.Equal;
             if (s.StartsWith(">")) return NumberComparator.GreaterThan;
-            if (s.StartsWith("!=")) return NumberComparator.NotEqual;
+            if (s.StartsWith("!")) return NumberComparator.NotEqual;
             return NumberComparator.Equal;
         }
     }

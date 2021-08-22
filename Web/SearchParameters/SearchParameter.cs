@@ -6,9 +6,8 @@ namespace ImageInfrastructure.Web.SearchParameters
 {
     public abstract record SearchParameter(bool Or)
     {
-        public virtual Expression<Func<SearchViewModel, bool>> Evaluate()
-        {
-            return b => true;
-        }
+        public abstract Expression<Func<SearchViewModel, bool>> Evaluate();
+
+        public abstract Type[] Types { get; }
     }
 }

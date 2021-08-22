@@ -8,7 +8,7 @@ namespace ImageInfrastructure.Web.ViewModel
         public Image Image { get; set; }
         public IEnumerable<ImageTag> Tags { get; set; }
         public IEnumerable<ArtistAccount> ArtistAccounts { get; set; }
-        public IEnumerable<ImageSource> Sources { get; set; }
+        public ImageSource PixivSource { get; set; }
         public ImageBlob Blob { get; set; }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Web.ViewModel;
 
 namespace ImageInfrastructure.Web.SearchParameters
@@ -19,5 +20,7 @@ namespace ImageInfrastructure.Web.SearchParameters
                         (!IncludedTagIds.Any() || a.Tags.Count(b => IncludedTagIds.Contains(b.ImageTagId)) ==
                             IncludedTagIds.Count()) && a.Tags.All(b => !ExcludedTagIds.Contains(b.ImageTagId));
         }
+
+        public override Type[] Types { get; } = { typeof(ImageTag) };
     }
 }

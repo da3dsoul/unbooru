@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using ImageInfrastructure.Abstractions.Poco;
 using ImageInfrastructure.Web.ViewModel;
 
 namespace ImageInfrastructure.Web.SearchParameters
@@ -27,5 +28,7 @@ namespace ImageInfrastructure.Web.SearchParameters
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        public override Type[] Types { get; } = { typeof(Image) };
     }
 }
