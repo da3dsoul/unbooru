@@ -12,6 +12,7 @@ namespace ImageInfrastructure.Abstractions.Poco
         public int Height { get; set; }
         
         public DateTime ImportDate { get; set; }
+        public long Size { get; set; }
 
         [IgnoreDataMember]
         [NotMapped]

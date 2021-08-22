@@ -116,7 +116,7 @@ namespace ImageInfrastructure.Web
             {
                 images = images
                     .GroupJoin(_context.Set<ImageBlob>(), model => model.Image.ImageId,
-                        blob => EF.Property<int>(blob, "ImageBlobId"), (model, blobs) => new { model, blob = blobs })
+                        blob => EF.Property<int>(blob, "ImageId"), (model, blobs) => new { model, blob = blobs })
                     .SelectMany(a => a.blob.DefaultIfEmpty(),
                         (a, b) => new SearchViewModel { Image = a.model.Image, Blob = b, Tags = a.model.Tags });
             }
