@@ -3,28 +3,31 @@ using System;
 using ImageInfrastructure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageInfrastructure.Core.Migrations
 {
     [DbContext(typeof(CoreContext))]
-    [Migration("20210612232557_AddImageBlob")]
-    partial class AddImageBlob
+    [Migration("20210825150241_CreateDB")]
+    partial class CreateDB
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.0-preview.4.21253.1");
+                .HasAnnotation("Relational:MaxIdentifierLength", 128)
+                .HasAnnotation("ProductVersion", "6.0.0-preview.5.21301.9")
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("ArtistAccountImage", b =>
                 {
                     b.Property<int>("ArtistAccountsArtistAccountId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("ImagesImageId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("ArtistAccountsArtistAccountId", "ImagesImageId");
 
@@ -36,10 +39,10 @@ namespace ImageInfrastructure.Core.Migrations
             modelBuilder.Entity("ImageImageTag", b =>
                 {
                     b.Property<int>("ImagesImageId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("TagsImageTagId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("ImagesImageId", "TagsImageTagId");
 
@@ -52,20 +55,21 @@ namespace ImageInfrastructure.Core.Migrations
                 {
                     b.Property<int>("ArtistAccountId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Id")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .IsUnicode(true)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ArtistAccountId");
 
@@ -82,19 +86,30 @@ namespace ImageInfrastructure.Core.Migrations
                 {
                     b.Property<int>("ImageId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<byte[]>("Blob")
-                        .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int>("Height")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ImportDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Width")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("ImageId");
+
+                    b.HasIndex("Height");
+
+                    b.HasIndex("ImportDate");
+
+                    b.HasIndex("Size");
+
+                    b.HasIndex("Width");
 
                     b.ToTable("Images");
                 });
@@ -103,20 +118,19 @@ namespace ImageInfrastructure.Core.Migrations
                 {
                     b.Property<int>("ImageBlobId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<byte[]>("Data")
                         .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<int>("ImageId")
-                        .IsRequired()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("ImageBlobId");
 
-                    b.HasIndex("ImageId")
-                        .IsUnique();
+                    b.HasIndex("ImageId");
 
                     b.ToTable("ImageBlobs");
                 });
@@ -125,37 +139,52 @@ namespace ImageInfrastructure.Core.Migrations
                 {
                     b.Property<int>("ImageSourceId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ImageId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("OriginalFilename")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PostDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PostId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PostUrl")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Source")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Title")
                         .IsUnicode(true)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Uri")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ImageSourceId");
 
                     b.HasIndex("ImageId");
 
-                    b.HasIndex("Uri", "PostUrl", "Source");
+                    b.HasIndex("PostDate");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("PostUrl");
+
+                    b.HasIndex("Source");
+
+                    b.HasIndex("Uri");
 
                     b.ToTable("ImageSources");
                 });
@@ -164,20 +193,21 @@ namespace ImageInfrastructure.Core.Migrations
                 {
                     b.Property<int>("ImageTagId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Safety")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Type")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ImageTagId");
 
@@ -193,13 +223,14 @@ namespace ImageInfrastructure.Core.Migrations
                 {
                     b.Property<int>("RelatedImageId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int?>("ImageId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("ImageSourceId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("RelatedImageId");
 
@@ -214,24 +245,26 @@ namespace ImageInfrastructure.Core.Migrations
                 {
                     b.Property<int>("ResponseCacheId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Response")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("StatusCode")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Uri")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ResponseCacheId");
 
                     b.HasIndex("Uri")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Uri] IS NOT NULL");
 
                     b.HasIndex("LastUpdated", "StatusCode");
 

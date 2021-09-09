@@ -266,19 +266,17 @@ namespace ImageInfrastructure.Core
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             var connectionString = _settingsProvider?.Get(a => a.ConnectionString);
-            string path = null;
-            if (string.IsNullOrEmpty(connectionString))
+            if (_settingsProvider != null && string.IsNullOrEmpty(connectionString))
             {
-                path = string.IsNullOrEmpty(Arguments.DataPath) ? "Core.db3" : Path.Combine(Arguments.DataPath, "Database", "Core.db3");
-
-                connectionString = $"Data Source={path};";
-                _settingsProvider?.Update(a => a.ConnectionString = connectionString);
+                throw new ArgumentException("Need Connection String");
             }
 
-            var directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                connectionString = "Server=localhost;Database=unbooru;";
+            }
 
-            optionsBuilder.UseSqlite(connectionString);
+            optionsBuilder.UseSqlServer(connectionString);
             optionsBuilder.EnableSensitiveDataLogging();
             optionsBuilder.ConfigureWarnings(builder =>
             {
@@ -292,13 +290,13 @@ namespace ImageInfrastructure.Core
             // nullability
             modelBuilder.Entity<Image>().Property(a => a.Width).IsRequired();
             modelBuilder.Entity<Image>().Property(a => a.Height).IsRequired();
-            modelBuilder.Entity<ImageSource>().Property(a => a.Source).IsRequired().UseCollation("NOCASE");
+            modelBuilder.Entity<ImageSource>().Property(a => a.Source).IsRequired();//.UseCollation("NOCASE");
             modelBuilder.Entity<ImageSource>().Property(a => a.Uri).IsRequired();
             modelBuilder.Entity<ImageSource>().Property(a => a.Title).IsUnicode();
-            modelBuilder.Entity<ImageTag>().Property(a => a.Name).IsRequired().UseCollation("NOCASE");
+            modelBuilder.Entity<ImageTag>().Property(a => a.Name).IsRequired();//.UseCollation("NOCASE");
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Id).IsRequired();
             modelBuilder.Entity<ArtistAccount>().Property(a => a.Url).IsRequired();
-            modelBuilder.Entity<ArtistAccount>().Property(a => a.Name).IsRequired().IsUnicode().UseCollation("NOCASE");
+            modelBuilder.Entity<ArtistAccount>().Property(a => a.Name).IsRequired().IsUnicode();//.UseCollation("NOCASE");
             modelBuilder.Entity<ImageBlob>().Property(a => a.Data).IsRequired();
 
             // indexes

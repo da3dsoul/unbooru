@@ -59,9 +59,7 @@ namespace ImageInfrastructure.Web
 
         public async Task<List<Image>> Search(List<SearchParameter> searchParameters, List<SortParameter> sortParameters, int limit = 0, int offset = 0)
         {
-            // this mess is 2 left joins. It's necessary
             var input = _context.Set<Image>().AsNoTracking();
-
             var images = IncludeModels(input, searchParameters, sortParameters);
 
             var expr = EvaluateSearchParameters(searchParameters);
@@ -86,10 +84,9 @@ namespace ImageInfrastructure.Web
             images = images.Skip(offset);
             if (limit > 0) images = images.Take(limit);
 
-            var result = images.Select(a => a.Image);
-            var query = result.ToQueryString();
+            var result = await images.Select(a => a.Image).ToListAsync();
 
-            return await result.ToListAsync();
+            return result;
         }
 
         public async Task<int> GetSearchPostCount(List<SearchParameter> searchParameters)
@@ -104,6 +101,7 @@ namespace ImageInfrastructure.Web
 
         private IQueryable<SearchViewModel> IncludeModels(IQueryable<Image> input, List<SearchParameter> searchParameters, List<SortParameter> sortParameters)
         {
+            // this mess is a bunch of left joins. It's necessary
             var images = input.Select(a => new SearchViewModel { Image = a });
             if (searchParameters.Any(a => a.Types.Contains(typeof(ImageTag))) ||
                 sortParameters.Any(a => a.Types.Contains(typeof(ImageTag))))
@@ -126,7 +124,7 @@ namespace ImageInfrastructure.Web
             {
                 images = images
                     .GroupJoin(_context.Set<ImageSource>(), model => model.Image.ImageId,
-                        source => EF.Property<int>(source, "ImageSourceId"), (model, source) => new { model, source })
+                        source => EF.Property<int>(source, "ImageId"), (model, source) => new { model, source })
                     .SelectMany(a => a.source.DefaultIfEmpty(),
                         (a, b) => new SearchViewModel
                             { Image = a.model.Image, Blob = a.model.Blob, PixivSource = b, Tags = a.model.Tags })

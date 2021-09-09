@@ -75,12 +75,18 @@ namespace ImageInfrastructure.Database
             }
         }
 
-        private async void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
+        private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
+        {
+            DiscoverAsync(e).Wait(e.CancellationToken);
+        }
+
+        private async Task DiscoverAsync(ImageDiscoveredEventArgs e)
         {
             var context = e.ServiceProvider.GetRequiredService<CoreContext>();
             foreach (var attachment in e.Attachments.ToList())
             {
-                var any = await context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri, e.CancellationToken) != null;
+                var any = await context.ImageSources.OrderBy(a => a.ImageSourceId)
+                    .FirstOrDefaultAsync(a => a.Uri == attachment.Uri, e.CancellationToken) != null;
                 if (!any) return;
                 _logger.LogInformation("Image already exists for {Uri}. Skipping!", attachment.Uri);
                 attachment.Download = false;
