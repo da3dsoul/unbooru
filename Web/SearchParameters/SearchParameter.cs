@@ -1,8 +1,8 @@
 using System;
 using System.Linq.Expressions;
-using ImageInfrastructure.Web.ViewModel;
+using unbooru.Web.ViewModel;
 
-namespace ImageInfrastructure.Web.SearchParameters
+namespace unbooru.Web.SearchParameters
 {
     public abstract record SearchParameter(bool Or)
     {

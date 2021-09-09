@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Iqdb
+namespace unbooru.Iqdb
 {
     public class IqdbSettings
     {

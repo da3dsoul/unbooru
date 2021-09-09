@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Core
+namespace unbooru.Core
 {
     public class CoreSettings
     {

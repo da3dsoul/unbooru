@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ImageInfrastructure.Abstractions.Interfaces
+namespace unbooru.Abstractions.Interfaces
 {
     /**
      * All modules that want to be loaded must have this on its main class

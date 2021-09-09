@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Hosting;
 
-namespace ImageInfrastructure.Abstractions.Interfaces
+namespace unbooru.Abstractions.Interfaces
 {
     public interface IHostProvider
     {

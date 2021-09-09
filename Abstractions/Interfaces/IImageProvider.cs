@@ -1,7 +1,7 @@
 using System;
-using ImageInfrastructure.Abstractions.Poco.Events;
+using unbooru.Abstractions.Poco.Events;
 
-namespace ImageInfrastructure.Abstractions.Interfaces
+namespace unbooru.Abstractions.Interfaces
 {
     public interface IImageProvider
     {

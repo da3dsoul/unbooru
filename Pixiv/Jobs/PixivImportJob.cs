@@ -1,13 +1,13 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Interfaces;
+using unbooru.Abstractions.Interfaces;
 using Meowtrix.PixivApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
 
-namespace ImageInfrastructure.Pixiv.Jobs
+namespace unbooru.Pixiv.Jobs
 {
     public class PixivImportJob : IJob
     {

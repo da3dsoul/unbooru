@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ImageInfrastructure.Abstractions.Interfaces
+namespace unbooru.Abstractions.Interfaces
 {
     public interface IModule
     {

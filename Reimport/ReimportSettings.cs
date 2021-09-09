@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ImageInfrastructure.Reimport
+namespace unbooru.Reimport
 {
     public class ReimportSettings
     {

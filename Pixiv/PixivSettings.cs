@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Pixiv
+namespace unbooru.Pixiv
 {
     public class PixivSettings
     {

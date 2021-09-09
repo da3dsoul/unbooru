@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <RootNamespace>ImageInfrastructure.ImageSaveHandler</RootNamespace>
-        <AssemblyName>ImageInfrastructure.ImageSaveHandler</AssemblyName>
+        <RootNamespace>unbooru.ImageSaveHandler</RootNamespace>
+        <AssemblyName>unbooru.ImageSaveHandler</AssemblyName>
         <LangVersion>Latest</LangVersion>
     </PropertyGroup>
 

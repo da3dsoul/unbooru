@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <RootNamespace>ImageInfrastructure.Core</RootNamespace>
-        <AssemblyName>ImageInfrastructure.Core</AssemblyName>
+        <RootNamespace>unbooru.Core</RootNamespace>
+        <AssemblyName>unbooru.Core</AssemblyName>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 

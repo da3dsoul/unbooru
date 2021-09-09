@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ByteSizeLib;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Web.SearchParameters;
-using ImageInfrastructure.Web.SortParameters;
+using unbooru.Abstractions.Poco;
+using unbooru.Web.SearchParameters;
+using unbooru.Web.SortParameters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 // ReSharper disable StringLiteralTypo
 
-namespace ImageInfrastructure.Web.Controllers
+namespace unbooru.Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -27,9 +27,11 @@ namespace ImageInfrastructure.Web.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Image>>> Search(int limit = 0, int offset = 0)
         {
+            var searchParameters = new List<SearchParameter>();
             var query = HttpContext.Request.Query;
 
-            var searchParameters = ParseSearchParameters(query, HttpContext.RequestServices);
+            ParseSearchParameters(query, searchParameters, HttpContext.RequestServices);
+
             var sortParameters = ParseSortParameters(query);
 
             var images = await _dbHelper.Search(searchParameters, sortParameters, limit, offset);
@@ -40,15 +42,16 @@ namespace ImageInfrastructure.Web.Controllers
         [HttpGet("Count")]
         public async Task<ActionResult<int>> GetSearchPostCount()
         {
+            var searchParameters = new List<SearchParameter>();
             var query = HttpContext.Request.Query;
-            var searchParameters = ParseSearchParameters(query, HttpContext.RequestServices);
+
+            ParseSearchParameters(query, searchParameters, HttpContext.RequestServices);
 
             return await _dbHelper.GetSearchPostCount(searchParameters);
         }
         
-        private static List<SearchParameter> ParseSearchParameters(IQueryCollection query, IServiceProvider provider)
+        private static void ParseSearchParameters(IQueryCollection query, List<SearchParameter> searchParameters, IServiceProvider provider)
         {
-            List<SearchParameter> searchParameters = new();
             var dbHelper = provider.GetRequiredService<DatabaseHelper>();
             AddTagQueries(query, searchParameters, dbHelper);
             AddTagIdQueries(query, searchParameters);
@@ -60,7 +63,6 @@ namespace ImageInfrastructure.Web.Controllers
             AddImportDateQueries(query, searchParameters);
             AddPixivIdQueries(query, searchParameters);
             AddSfwQuery(query, searchParameters, provider);
-            return searchParameters;
         }
 
         private static List<SortParameter> ParseSortParameters(IQueryCollection query)

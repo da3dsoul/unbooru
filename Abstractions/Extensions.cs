@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ImageInfrastructure.Abstractions.Poco;
+using unbooru.Abstractions.Poco;
 using JetBrains.Annotations;
 
-namespace ImageInfrastructure.Abstractions
+namespace unbooru.Abstractions
 {
     public static class Extensions
     {

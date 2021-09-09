@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <RootNamespace>ImageInfrastructure.Pixiv</RootNamespace>
-        <AssemblyName>ImageInfrastructure.Pixiv</AssemblyName>
+        <RootNamespace>unbooru.Pixiv</RootNamespace>
+        <AssemblyName>unbooru.Pixiv</AssemblyName>
         <LangVersion>Latest</LangVersion>
     </PropertyGroup>
 

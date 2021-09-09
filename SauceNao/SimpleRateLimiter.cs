@@ -2,7 +2,7 @@
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
-namespace ImageInfrastructure.SauceNao
+namespace unbooru.SauceNao
 {
     public class SimpleRateLimiter
     {

@@ -2,17 +2,17 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Abstractions.Attributes;
-using ImageInfrastructure.Abstractions.Enums;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco.Events;
-using ImageInfrastructure.Core;
+using unbooru.Abstractions;
+using unbooru.Abstractions.Attributes;
+using unbooru.Abstractions.Enums;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco.Events;
+using unbooru.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ImageInfrastructure.Database
+namespace unbooru.Database
 {
     public class DatabaseModule : IModule
     {
@@ -75,18 +75,12 @@ namespace ImageInfrastructure.Database
             }
         }
 
-        private void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
-        {
-            DiscoverAsync(e).Wait(e.CancellationToken);
-        }
-
-        private async Task DiscoverAsync(ImageDiscoveredEventArgs e)
+        private async void ImageDiscovered(object sender, ImageDiscoveredEventArgs e)
         {
             var context = e.ServiceProvider.GetRequiredService<CoreContext>();
             foreach (var attachment in e.Attachments.ToList())
             {
-                var any = await context.ImageSources.OrderBy(a => a.ImageSourceId)
-                    .FirstOrDefaultAsync(a => a.Uri == attachment.Uri, e.CancellationToken) != null;
+                var any = await context.ImageSources.OrderBy(a => a.ImageSourceId).FirstOrDefaultAsync(a => a.Uri == attachment.Uri, e.CancellationToken) != null;
                 if (!any) return;
                 _logger.LogInformation("Image already exists for {Uri}. Skipping!", attachment.Uri);
                 attachment.Download = false;

@@ -1,10 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Interfaces;
+using unbooru.Abstractions.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace ImageInfrastructure.JsonSettingsProvider
+namespace unbooru.JsonSettingsProvider
 {
     public class JsonSettingsProviderModule : IModule
     {

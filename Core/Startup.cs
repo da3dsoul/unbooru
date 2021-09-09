@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Abstractions.Attributes;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
+using unbooru.Abstractions;
+using unbooru.Abstractions.Attributes;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,7 +18,7 @@ using NLog.Targets;
 using Quartz;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace ImageInfrastructure.Core
+namespace unbooru.Core
 {
     public class Startup
     {
@@ -211,7 +211,7 @@ namespace ImageInfrastructure.Core
             var assemblies = new HashSet<string>(AppDomain.CurrentDomain.GetAssemblies().Select(a => a.Location));
             var dir = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? throw new InvalidOperationException("Executing Assembly is null..."));
             var dlls = dir.GetFiles().Where(a =>
-                a.Name.StartsWith("ImageInfrastructure.") && a.Name.EndsWith(".dll") &&
+                a.Name.StartsWith("unbooru.") && a.Name.EndsWith(".dll") &&
                 !assemblies.Contains(a.FullName)).ToList();
             foreach (var dll in dlls)
             {

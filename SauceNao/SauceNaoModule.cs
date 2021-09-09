@@ -6,17 +6,17 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Abstractions.Attributes;
-using ImageInfrastructure.Abstractions.Enums;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Abstractions.Poco.Events;
+using unbooru.Abstractions;
+using unbooru.Abstractions.Attributes;
+using unbooru.Abstractions.Enums;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
+using unbooru.Abstractions.Poco.Events;
 using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ImageInfrastructure.SauceNao
+namespace unbooru.SauceNao
 {
     public class SauceNaoModule : IModule
     {

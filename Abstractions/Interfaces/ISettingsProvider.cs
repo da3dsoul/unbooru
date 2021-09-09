@@ -1,6 +1,6 @@
 using System;
 
-namespace ImageInfrastructure.Abstractions.Interfaces
+namespace unbooru.Abstractions.Interfaces
 {
     public interface ISettingsProvider<T> where T : new()
     {

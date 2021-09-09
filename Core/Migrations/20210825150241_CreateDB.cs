@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace ImageInfrastructure.Core.Migrations
+namespace unbooru.Core.Migrations
 {
     public partial class CreateDB : Migration
     {

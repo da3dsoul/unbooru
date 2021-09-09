@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace ImageInfrastructure.Abstractions.Attributes
+namespace unbooru.Abstractions.Attributes
 {
     [MeansImplicitUse]
     [System.AttributeUsage(System.AttributeTargets.Method)]

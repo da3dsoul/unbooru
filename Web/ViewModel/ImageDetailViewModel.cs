@@ -1,6 +1,6 @@
-using ImageInfrastructure.Abstractions.Poco;
+using unbooru.Abstractions.Poco;
 
-namespace ImageInfrastructure.Web.ViewModel
+namespace unbooru.Web.ViewModel
 {
     public class ImageDetailViewModel
     {

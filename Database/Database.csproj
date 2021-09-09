@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <RootNamespace>ImageInfrastructure.Database</RootNamespace>
-        <AssemblyName>ImageInfrastructure.Database</AssemblyName>
+        <RootNamespace>unbooru.Database</RootNamespace>
+        <AssemblyName>unbooru.Database</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>

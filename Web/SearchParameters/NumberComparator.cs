@@ -1,6 +1,6 @@
 using System;
 
-namespace ImageInfrastructure.Web.SearchParameters
+namespace unbooru.Web.SearchParameters
 {
     [Flags]
     public enum NumberComparator

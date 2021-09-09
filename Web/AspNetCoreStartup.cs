@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using React.AspNet;
 
-namespace ImageInfrastructure.Web
+namespace unbooru.Web
 {
     public class AspNetCoreStartup
     {

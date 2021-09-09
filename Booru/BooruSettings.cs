@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Booru
+namespace unbooru.Booru
 {
     public class BooruSettings
     {

@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Interfaces;
+using unbooru.Abstractions.Interfaces;
 
-namespace ImageInfrastructure.Web
+namespace unbooru.Web
 {
     public class WebModule : IModule
     {

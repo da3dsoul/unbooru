@@ -1,11 +1,11 @@
 using System;
 using System.IO;
-using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Abstractions.Interfaces;
+using unbooru.Abstractions;
+using unbooru.Abstractions.Interfaces;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace ImageInfrastructure.JsonSettingsProvider
+namespace unbooru.JsonSettingsProvider
 {
     public class JsonSettingsProvider<T> : ISettingsProvider<T> where T : new()
     {

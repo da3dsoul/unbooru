@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Abstractions.Interfaces
+namespace unbooru.Abstractions.Interfaces
 {
     public interface IModuleDatabaseHandler
     {

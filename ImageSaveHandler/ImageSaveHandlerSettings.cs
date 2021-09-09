@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ImageInfrastructure.ImageSaveHandler
+namespace unbooru.ImageSaveHandler
 {
     public class ImageSaveHandlerSettings
     {

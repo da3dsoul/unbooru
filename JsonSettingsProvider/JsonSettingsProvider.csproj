@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <RootNamespace>ImageInfrastructure.JsonSettingsProvider</RootNamespace>
-        <AssemblyName>ImageInfrastructure.JsonSettingsProvider</AssemblyName>
+        <RootNamespace>unbooru.JsonSettingsProvider</RootNamespace>
+        <AssemblyName>unbooru.JsonSettingsProvider</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>

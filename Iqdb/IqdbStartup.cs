@@ -1,8 +1,8 @@
 using System;
-using ImageInfrastructure.Abstractions.Interfaces;
+using unbooru.Abstractions.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ImageInfrastructure.Iqdb
+namespace unbooru.Iqdb
 {
     public class IqdbStartup : IInfrastructureStartup
     {

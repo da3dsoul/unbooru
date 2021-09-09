@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.Serialization;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
-namespace ImageInfrastructure.Abstractions.Poco
+namespace unbooru.Abstractions.Poco
 {
     public class ImageSource
     {

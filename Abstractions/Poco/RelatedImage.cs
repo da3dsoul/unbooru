@@ -1,5 +1,5 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
-namespace ImageInfrastructure.Abstractions.Poco
+namespace unbooru.Abstractions.Poco
 {
     public class RelatedImage
     {

@@ -1,7 +1,7 @@
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
-namespace ImageInfrastructure.Abstractions.Poco.Ingest
+namespace unbooru.Abstractions.Poco.Ingest
 {
     public class Attachment
     {

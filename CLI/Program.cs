@@ -2,10 +2,10 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Core;
+using unbooru.Abstractions;
+using unbooru.Core;
 
-namespace ImageInfrastructure.CLI
+namespace unbooru.CLI
 {
     public static class CliProcess
     {

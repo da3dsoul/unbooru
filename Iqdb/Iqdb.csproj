@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <RootNamespace>ImageInfrastructure.Iqdb</RootNamespace>
-        <AssemblyName>ImageInfrastructure.Iqdb</AssemblyName>
+        <RootNamespace>unbooru.Iqdb</RootNamespace>
+        <AssemblyName>unbooru.Iqdb</AssemblyName>
         <LangVersion>Latest</LangVersion>
     </PropertyGroup>
 

@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <RootNamespace>ImageInfrastructure.Abstractions</RootNamespace>
-        <AssemblyName>ImageInfrastructure.Abstractions</AssemblyName>
+        <RootNamespace>unbooru.Abstractions</RootNamespace>
+        <AssemblyName>unbooru.Abstractions</AssemblyName>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 

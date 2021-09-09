@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Abstractions.Enums
+namespace unbooru.Abstractions.Enums
 {
     public enum ModuleInitializationPriority
     {

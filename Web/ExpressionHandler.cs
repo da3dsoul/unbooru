@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace ImageInfrastructure.Web
+namespace unbooru.Web
 {
     public static class ExpressionHandler
     {

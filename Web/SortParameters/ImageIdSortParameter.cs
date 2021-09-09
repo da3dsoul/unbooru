@@ -1,9 +1,9 @@
 using System;
 using System.Linq.Expressions;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Web.ViewModel;
+using unbooru.Abstractions.Poco;
+using unbooru.Web.ViewModel;
 
-namespace ImageInfrastructure.Web.SortParameters
+namespace unbooru.Web.SortParameters
 {
     public class ImageIdSortParameter : SortParameter
     {

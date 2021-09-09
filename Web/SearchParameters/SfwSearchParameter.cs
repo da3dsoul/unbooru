@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Core;
+using unbooru.Abstractions.Poco;
+using unbooru.Core;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ImageInfrastructure.Web.SearchParameters
+namespace unbooru.Web.SearchParameters
 {
     public record SfwSearchParameter : TagIdSearchParameter
     {

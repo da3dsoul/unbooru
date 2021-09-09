@@ -1,10 +1,10 @@
 using System;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Pixiv.Jobs;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Pixiv.Jobs;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 
-namespace ImageInfrastructure.Pixiv
+namespace unbooru.Pixiv
 {
     public class PixivStartup : IInfrastructureStartup
     {

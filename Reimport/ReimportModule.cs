@@ -5,14 +5,14 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Pixiv;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
+using unbooru.Pixiv;
 using Meowtrix.PixivApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ImageInfrastructure.Reimport
+namespace unbooru.Reimport
 {
     public class ReimportModule : IModule
     {

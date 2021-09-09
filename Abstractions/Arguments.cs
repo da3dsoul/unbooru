@@ -1,4 +1,4 @@
-namespace ImageInfrastructure.Abstractions
+namespace unbooru.Abstractions
 {
     public static class Arguments
     {

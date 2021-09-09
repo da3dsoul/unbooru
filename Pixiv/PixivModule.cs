@@ -7,12 +7,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Attributes;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Abstractions.Poco.Events;
-using ImageInfrastructure.Abstractions.Poco.Ingest;
-using ImageInfrastructure.Core;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
+using unbooru.Abstractions.Poco.Events;
+using unbooru.Abstractions.Poco.Ingest;
+using unbooru.Core;
 using ImageMagick;
 using Meowtrix.PixivApi;
 using Meowtrix.PixivApi.Models;
@@ -21,7 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MoreLinq.Extensions;
 
-namespace ImageInfrastructure.Pixiv
+namespace unbooru.Pixiv
 {
     public class PixivModule : IModule, IServiceModule, IImageProvider
     {
@@ -37,18 +36,11 @@ namespace ImageInfrastructure.Pixiv
         private const int SleepTime = 1500;
 
         public static bool CurrentlyImporting;
-        public static bool ShuttingDown;
 
         public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider)
         {
             _logger = logger;
             SettingsProvider = settingsProvider;
-        }
-
-        [ModuleShutdown]
-        public void Shutdown(IServiceProvider provider)
-        {
-            ShuttingDown = true;
         }
 
         public Task RunAsync(IServiceProvider provider, CancellationToken token)
@@ -171,7 +163,6 @@ namespace ImageInfrastructure.Pixiv
                 {
                     if (i >= maxPosts) break;
                     if (!await iterator.MoveNextAsync()) break;
-                    if (ShuttingDown || token.IsCancellationRequested) break;
                     var image = iterator.Current;
 
                     _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1, maxPosts,
@@ -179,7 +170,6 @@ namespace ImageInfrastructure.Pixiv
 
                     using var scope = provider.CreateScope();
                     var disc = ImageDiscovery(scope.ServiceProvider, image, token: token);
-                    if (ShuttingDown || token.IsCancellationRequested) break;
                     if (disc.Cancel || disc.Attachments.All(a => !a.Download))
                     {
                         _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
@@ -195,7 +185,6 @@ namespace ImageInfrastructure.Pixiv
                     }
 
                     var prov = await ImageProviding(disc, image, token: token);
-                    if (ShuttingDown || token.IsCancellationRequested) break;
                     if (prov.Cancel)
                     {
                         _logger.LogInformation("Further Pixiv Downloading cancelled by provider subscriber");

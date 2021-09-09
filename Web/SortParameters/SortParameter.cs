@@ -1,8 +1,8 @@
 using System;
 using System.Linq.Expressions;
-using ImageInfrastructure.Web.ViewModel;
+using unbooru.Web.ViewModel;
 
-namespace ImageInfrastructure.Web.SortParameters
+namespace unbooru.Web.SortParameters
 {
     public abstract class SortParameter
     {

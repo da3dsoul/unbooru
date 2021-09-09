@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Core;
-using ImageInfrastructure.Web.SearchParameters;
-using ImageInfrastructure.Web.SortParameters;
-using ImageInfrastructure.Web.ViewModel;
+using unbooru.Abstractions.Poco;
+using unbooru.Core;
+using unbooru.Web.SearchParameters;
+using unbooru.Web.SortParameters;
+using unbooru.Web.ViewModel;
 using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ImageInfrastructure.Web
+namespace unbooru.Web
 {
     public class DatabaseHelper
     {
@@ -59,7 +59,9 @@ namespace ImageInfrastructure.Web
 
         public async Task<List<Image>> Search(List<SearchParameter> searchParameters, List<SortParameter> sortParameters, int limit = 0, int offset = 0)
         {
+            // this mess is 2 left joins. It's necessary
             var input = _context.Set<Image>().AsNoTracking();
+
             var images = IncludeModels(input, searchParameters, sortParameters);
 
             var expr = EvaluateSearchParameters(searchParameters);
@@ -84,9 +86,9 @@ namespace ImageInfrastructure.Web
             images = images.Skip(offset);
             if (limit > 0) images = images.Take(limit);
 
-            var result = await images.Select(a => a.Image).ToListAsync();
+            var result = images.Select(a => a.Image);
 
-            return result;
+            return await result.ToListAsync();
         }
 
         public async Task<int> GetSearchPostCount(List<SearchParameter> searchParameters)
@@ -101,7 +103,6 @@ namespace ImageInfrastructure.Web
 
         private IQueryable<SearchViewModel> IncludeModels(IQueryable<Image> input, List<SearchParameter> searchParameters, List<SortParameter> sortParameters)
         {
-            // this mess is a bunch of left joins. It's necessary
             var images = input.Select(a => new SearchViewModel { Image = a });
             if (searchParameters.Any(a => a.Types.Contains(typeof(ImageTag))) ||
                 sortParameters.Any(a => a.Types.Contains(typeof(ImageTag))))
@@ -124,7 +125,7 @@ namespace ImageInfrastructure.Web
             {
                 images = images
                     .GroupJoin(_context.Set<ImageSource>(), model => model.Image.ImageId,
-                        source => EF.Property<int>(source, "ImageId"), (model, source) => new { model, source })
+                        source => EF.Property<int>(source, "ImageSourceId"), (model, source) => new { model, source })
                     .SelectMany(a => a.source.DefaultIfEmpty(),
                         (a, b) => new SearchViewModel
                             { Image = a.model.Image, Blob = a.model.Blob, PixivSource = b, Tags = a.model.Tags })

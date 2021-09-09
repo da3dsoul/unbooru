@@ -1,6 +1,6 @@
 using System;
 
-namespace ImageInfrastructure.SauceNao
+namespace unbooru.SauceNao
 {
     public class SauceNaoSettings
     {

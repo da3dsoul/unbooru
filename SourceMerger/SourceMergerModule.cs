@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Abstractions.Poco.Events;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
+using unbooru.Abstractions.Poco.Events;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using MoreLinq;
 
-namespace ImageInfrastructure.SourceMerger
+namespace unbooru.SourceMerger
 {
     public class SourceMergerModule : IModule
     {

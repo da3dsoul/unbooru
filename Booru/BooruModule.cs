@@ -6,17 +6,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using BooruSharp.Booru;
 using BooruSharp.Search.Tag;
-using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Abstractions.Attributes;
-using ImageInfrastructure.Abstractions.Enums;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Abstractions.Poco.Events;
+using unbooru.Abstractions;
+using unbooru.Abstractions.Attributes;
+using unbooru.Abstractions.Enums;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
+using unbooru.Abstractions.Poco.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SearchResult = BooruSharp.Search.Post.SearchResult;
 
-namespace ImageInfrastructure.Booru
+namespace unbooru.Booru
 {
     public class BooruModule : IModule
     {

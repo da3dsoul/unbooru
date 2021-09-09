@@ -3,16 +3,16 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions;
-using ImageInfrastructure.Abstractions.Attributes;
-using ImageInfrastructure.Abstractions.Enums;
-using ImageInfrastructure.Abstractions.Interfaces;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Abstractions.Poco.Events;
+using unbooru.Abstractions;
+using unbooru.Abstractions.Attributes;
+using unbooru.Abstractions.Enums;
+using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
+using unbooru.Abstractions.Poco.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ImageInfrastructure.ImageSaveHandler
+namespace unbooru.ImageSaveHandler
 {
     public class ImageSaveHandlerModule : IModule
     {

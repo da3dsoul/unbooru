@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <RootNamespace>ImageInfrastructure.SauceNao</RootNamespace>
-        <AssemblyName>ImageInfrastructure.SauceNao</AssemblyName>
+        <RootNamespace>unbooru.SauceNao</RootNamespace>
+        <AssemblyName>unbooru.SauceNao</AssemblyName>
         <LangVersion>Latest</LangVersion>
     </PropertyGroup>
     <ItemGroup>

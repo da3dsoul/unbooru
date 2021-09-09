@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImageInfrastructure.Web.Controllers
+namespace unbooru.Web.Controllers
 {
     [Route("/")]
     public class ReactController : Controller

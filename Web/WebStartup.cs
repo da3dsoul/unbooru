@@ -1,11 +1,11 @@
 using System;
-using ImageInfrastructure.Abstractions.Interfaces;
+using unbooru.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog.Web;
 
-namespace ImageInfrastructure.Web
+namespace unbooru.Web
 {
     public class WebStartup : IInfrastructureStartup, IHostProvider
     {

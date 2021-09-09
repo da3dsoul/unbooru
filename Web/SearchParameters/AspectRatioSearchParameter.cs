@@ -1,9 +1,9 @@
 using System;
 using System.Linq.Expressions;
-using ImageInfrastructure.Abstractions.Poco;
-using ImageInfrastructure.Web.ViewModel;
+using unbooru.Abstractions.Poco;
+using unbooru.Web.ViewModel;
 
-namespace ImageInfrastructure.Web.SearchParameters
+namespace unbooru.Web.SearchParameters
 {
     public record AspectRatioSearchParameter
         (NumberComparator Operator, double AspectRatio, bool Or = false) : SearchParameter(Or)

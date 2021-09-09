@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Poco;
+using unbooru.Abstractions.Poco;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImageInfrastructure.Web.Controllers
+namespace unbooru.Web.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

@@ -1,6 +1,6 @@
 using System;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
-namespace ImageInfrastructure.Abstractions.Poco.Ingest
+namespace unbooru.Abstractions.Poco.Ingest
 {
     public record Post
     {
