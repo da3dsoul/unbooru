@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
 import {useLocation} from "react-router-dom";
 import axios from "axios";
@@ -17,7 +17,7 @@ export default function Search() {
         query = query.replace('&'+pageQuery, '').replace('?'+pageQuery, '');
     }
     
-    let [state, updateState] = React.useState({
+    let [state, updateState] = useState({
         images: [],
         page: page,
         pages: 1
