@@ -25,7 +25,7 @@ export default function ImageDetail() {
         image: null,
         id: id
     });
-    
+
     useEffect(() => {
         axios.get('/api/Image/' + id).then(res => {
             updateState(prevState => ({
@@ -34,7 +34,7 @@ export default function ImageDetail() {
             }));
         });
     }, [id])
-    
+
     if (state.image?.sources === null || "undefined" ===  typeof state.image?.sources) {
         return <div id="main" className="container-fluid" style={{width: "100%", height: "100%"}}></div>
     }
@@ -44,7 +44,7 @@ export default function ImageDetail() {
     const tags = state.image.tags.map(tag => (<a key={tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" href={"/Search?tagid=" + tag.imageTagId}>{tag.name}</a> ));
 
     return (
-        <div id="main" className="container-fluid" style={{width:"100%", height:"100%"}}>
+        <div id="main" className="container-fluid" style={{width:"auto", height:"auto"}}>
             <div className="image-detail">
                 <div className="info-container">
                     <div className="artist-container">

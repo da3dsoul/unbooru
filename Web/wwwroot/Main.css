@@ -14,7 +14,8 @@ body {
 
 .container-fluid {
 	/*background-color: #404558;*/
-	padding-bottom: 20pt;
+	width: auto;
+	height: auto;
 }
 
 .image-container-child {
@@ -85,7 +86,6 @@ body {
 
 .info-container {
 	margin: 5pt;
-	padding: 10pt;
 	display: flex;
 	flex-direction: column;
 	border: solid white;
@@ -97,7 +97,7 @@ body {
 }
 
 .pagination {
-	margin: 15pt auto;
+	margin: 15pt auto 20pt auto;
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
