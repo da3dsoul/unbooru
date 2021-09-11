@@ -139,6 +139,23 @@ body {
 }
 
 @media (orientation: portrait) {
+	.image-detail {
+		display: flex;
+		flex-direction: column-reverse;
+	}
+
+	.artist-item-container {
+		justify-content: center;
+	}
+
+	.tag-container a, .tag-container a:visited {
+		font-size: 1.5rem;
+		margin: 0.25rem;
+		padding: 0.25rem;
+		border: solid gray;
+		text-align: center;
+	}
+	
 	.pagination > .active > a, .pagination > li > a, .pagination > li > span, .pagination > .active > span {
 		font-size: 30px;
 		padding: 20px;
