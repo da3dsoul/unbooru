@@ -21,23 +21,16 @@ import axios from "axios";
      )
 
     return (
-        <div className="image-container-child" style={props.style}>
-            <div className="image">
-                {(state.source !== null) ?
-                    <LazyLoad width="100%" height="100%">
-                        <img src={"/api/Image/"+image.imageId+"/"+state.source.originalFilename} alt={state.source.title} />
-                    </LazyLoad>
-                    :
-                    <div style={{width: '100%', height: '100%'}}/>}
-            </div>
-            {(state.source !== null && state.artist !== null) ?
-                <div className="info-container">
-                    <a target="_blank" rel="noopener noreferrer" className="title-text" href={state.source.postUrl}>{state.source.title}</a>
-                    <a target="_blank" rel="noopener noreferrer" className="artist-text" href={state.artist.url}>{state.artist.name}</a>
-                </div>
-                :
-                <div className="info-container"/>}
-        </div>
+    <div className="image" style={props.style}>
+        {state.source !== null ?
+            <a href={"/Image/" + image.imageId} target="_blank" rel="noopener noreferrer" style={{width:'100%', height:'100%'}}>
+                <LazyLoad width="100%" height="100%">
+                    <img src={"/api/Image/"+image.imageId+"/"+state.source.originalFilename} alt={state.source.title} />
+                </LazyLoad>
+            </a>
+            :
+            <div style={{width: '100%', height: '100%'}}/>}
+    </div>
     );
 };
 
