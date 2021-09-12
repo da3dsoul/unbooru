@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
+import Helmet from 'react-helmet'
 import { useParams } from 'react-router-dom';
 import axios from "axios";
 import {isPixivSource} from "../modelutils";
@@ -50,20 +51,28 @@ export default function ImageDetail() {
     });
 
     return (
-        <div id="main" className="container-fluid" style={{width:"auto", height:"auto"}}>
-            <div className="image-detail">
-                <div className="info-container">
-                    <div className="artist-container">
-                        {artistInfo}
+        <Fragment>
+            <Helmet>
+                <meta property="og:title" content={state.image.artistAccounts[0].name + ' - ' + pixiv.title} />
+                <meta property="og:image" content={"https://da3dsoul.dev/api/Image/"+state.image.imageId+"/"+pixiv.originalFilename} />
+                <meta property="og:description" content={state.image.tags.map(tag => tag.name).join(' ')} />
+                <meta property="og:url" content={"https://da3dsoul.dev/Image/" + state.image.imageId} />
+            </Helmet>
+            <div id="main" className="container-fluid" style={{width:"auto", height:"auto"}}>
+                <div className="image-detail">
+                    <div className="info-container">
+                        <div className="artist-container">
+                            {artistInfo}
+                        </div>
+                        <div className="tag-container">
+                            {tags}
+                        </div>
                     </div>
-                    <div className="tag-container">
-                        {tags}
+                    <div className="image-detail-image">
+                        <img src={"/api/Image/"+state.image.imageId+"/"+pixiv.originalFilename} alt={pixiv.title} />
                     </div>
-                </div>
-                <div className="image-detail-image">
-                    <img src={"/api/Image/"+state.image.imageId+"/"+pixiv.originalFilename} alt={pixiv.title} />
                 </div>
             </div>
-        </div>
+        </Fragment>
     );
 }
