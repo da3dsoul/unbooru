@@ -54,7 +54,9 @@ export default function ImageDetail() {
                         {tags}
                     </div>
                 </div>
-                <img className="image-detail-image" src={"/api/Image/"+state.image.imageId+"/"+pixiv.originalFilename} alt={pixiv.title} />
+                <div className="image-detail-image">
+                    <img src={"/api/Image/"+state.image.imageId+"/"+pixiv.originalFilename} alt={pixiv.title} />
+                </div>
             </div>
         </div>
     );
