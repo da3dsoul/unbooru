@@ -41,7 +41,13 @@ export default function ImageDetail() {
 
     const pixiv = state.image.sources.find(isPixivSource);
     const artistInfo = state.image.artistAccounts.map(aa => <ArtistLink key={aa.artistAccountId} artist={aa} />);
-    const tags = state.image.tags.map(tag => (<a key={tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" href={"/Search?tagid=" + tag.imageTagId}>{tag.name}</a> ));
+    const tags = state.image.tags.map(tag => {
+        let color = "white";
+        if (tag.type === 'Character') color = "cyan";
+        else if (tag.type === 'Copyright') color = "pink"
+        return (<a key={tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" style={{color: color}}
+                   href={"/Search?tagid=" + tag.imageTagId}>{tag.name}</a>)
+    });
 
     return (
         <div id="main" className="container-fluid" style={{width:"auto", height:"auto"}}>
