@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageMagick;
 using unbooru.Abstractions.Poco;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,10 +43,18 @@ namespace unbooru.Web.Controllers
         }
 
         [HttpGet("{id:int}/{filename}")]
-        public async Task<object> GetImageById(int id, string filename)
+        public async Task<object> GetImageById(int id, string filename, [FromQuery]string size)
         {
             var blob = await _dbHelper.GetImageBlobById(id);
             if (blob == default) return new NotFoundResult();
+            if ("small".Equals(size, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var image = new MagickImage(blob);
+                image.Format = MagickFormat.Pjpeg;
+                image.Resize(new MagickGeometry("500x500>"));
+                image.Quality = 60;
+                blob = image.ToByteArray();
+            }
             return File(blob, MimeTypes.GetMimeType(filename));
         }
 

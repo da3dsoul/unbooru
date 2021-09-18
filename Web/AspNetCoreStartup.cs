@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using React.AspNet;
+using unbooru.Web.OpenGraph;
 
 namespace unbooru.Web
 {
@@ -42,6 +43,7 @@ namespace unbooru.Web
         public void Configure(IApplicationBuilder app, IHostEnvironment env)
         {
             app.UseMiddleware<ErrorHandlingMiddleware>();
+            app.UseMiddleware<OpenGraphMiddleware>();
             // Initialise ReactJS.NET. Must be before static files.
             app.UseReact(config =>
             {
