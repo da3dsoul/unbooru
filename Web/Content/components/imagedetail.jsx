@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { useParams } from 'react-router-dom';
 import axios from "axios";
+import ReactHtmlParser from 'react-html-parser'
 import {isPixivSource} from "../modelutils";
 
 function ArtistLink(props) {
@@ -45,7 +46,7 @@ export default function ImageDetail() {
         if (tag.type === 'Character') color = "cyan";
         else if (tag.type === 'Copyright') color = "pink"
         return (<a key={tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" style={{color: color}}
-                   href={"/Search?tagid=" + tag.imageTagId}>{tag.name}</a>)
+                   href={`/Search?tagid=${tag.imageTagId}`}>{tag.name}</a>)
     });
 
     return (
@@ -57,18 +58,23 @@ export default function ImageDetail() {
                             <a className="title-text" href={pixiv.postUrl} target="_blank" rel="noopener noreferrer">{pixiv.title}</a>
                             <span className="post-date">{pixiv.postDate}</span>
                         </div>
-                        <span className="post-description">{pixiv.description}</span>
+                        <div className="post-description">{ReactHtmlParser(pixiv.description)}</div>
                     </div>
                     <div className="artist-container">
-                        <span className="artist-text">{state.image.artistAccounts[0].name}</span>
-                        {artistInfo}
+                        <div className="artist-info">
+                            <img src={`/api/Artist/${state.image.artistAccounts[0].artistAccountId}/Avatar`} alt={state.image.artistAccounts[0].name} className="artist-avatar" />
+                            <span className="artist-text">{state.image.artistAccounts[0].name}</span>
+                        </div>
+                        <div className="artist-links">
+                            {artistInfo}
+                        </div>
                     </div>
                     <div className="tag-container">
                         {tags}
                     </div>
                 </div>
                 <div className="image-detail-image">
-                    <img src={"/api/Image/"+state.image.imageId+"/"+pixiv.originalFilename} alt={pixiv.title} />
+                    <img src={`/api/Image/${state.image.imageId}/${pixiv.originalFilename}`} alt={pixiv.title} />
                 </div>
             </div>
         </div>

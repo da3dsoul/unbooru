@@ -66,8 +66,12 @@ body {
 	font-size: 0.75rem;
 }
 
-.post-description {
+.post-description, .post-description a, .post-description a:visited {
+	background-color: #505060;
+	color: white;
 	font-size: 0.9rem;
+	padding: 0.25rem;
+	overflow-wrap: break-word;
 }
 
 .artist-container {
@@ -76,19 +80,35 @@ body {
 	border: solid 1px;
 }
 
-.artist-item-container {
+.artist-info {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+
+.artist-avatar {
+	width: 2rem;
+	height: 2rem;
+	object-fit: contain;
+	clip-path: circle(50% at center);
+}
+
+.artist-text {
+	font-size: 2rem;
+	margin-right: 5pt;
+	margin-left: 5px;
+}
+
+.artist-links {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-evenly;
 }
 
-.artist-text, .artist-text:visited {
-	color: white;
-	white-space: nowrap;
-	text-align: center;
-	margin-right: 5pt;
-	margin-left: 5px;
+.artist-item-container {
+
 }
 
 .artist-icon {

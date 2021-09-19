@@ -48,6 +48,12 @@ namespace unbooru.Web
             return account;
         }
 
+        public async Task<ArtistAccount> GetArtistAccountByExternalId(string id)
+        {
+            var account = await _context.Set<ArtistAccount>().OrderBy(a => a.Id).FirstOrDefaultAsync(a => a.Id == id);
+            return account;
+        }
+
         public async Task<byte[]> GetArtistAvatarById(int id)
         {
             var account = await _context.Set<ArtistAccount>().OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.ArtistAccountId == id);

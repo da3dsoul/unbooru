@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using unbooru.Abstractions.Interfaces;
@@ -50,26 +52,36 @@ namespace unbooru.Pixiv.Jobs
                     a.AccessToken = accessToken;
                 });
 
-                foreach (var artistIds in artists.Batch(50))
+                logger.LogInformation("Downloading {Count} User Avatars", artists.Count);
+                int i = 0;
+                foreach (var artistIds in artists.Batch(10))
                 {
                     using var scope = ServiceProvider.CreateScope();
                     await using var scopeContext = scope.ServiceProvider.GetRequiredService<CoreContext>();
                     await using var trans = await scopeContext.Database.BeginTransactionAsync(context.CancellationToken);
                     try
                     {
+                        var success = true;
                         foreach (var artistId in artistIds)
                         {
+                            if (artistId == 0) continue;
                             var artistAccount = await scopeContext.Set<ArtistAccount>().FirstOrDefaultAsync(a => a.ArtistAccountId == artistId);
-                            await DownloadArtistAvatar(logger, pixivClient, artistAccount, context.CancellationToken);
+                            success = await DownloadArtistAvatar(logger, pixivClient, artistAccount, context.CancellationToken);
+                            if (!success) break;
                         }
 
                         await scopeContext.SaveChangesAsync(context.CancellationToken);
                         await trans.CommitAsync(context.CancellationToken);
+                        if (!success) break;
+                        Thread.Sleep(10000);
                     }
                     catch (Exception e)
                     {
                         await trans.RollbackAsync(context.CancellationToken);
                     }
+
+                    i++;
+                    logger.LogInformation("Finished {Count}/{Total}", i*50, artists.Count);
                 }
             }
             catch (TaskCanceledException)
@@ -81,7 +93,7 @@ namespace unbooru.Pixiv.Jobs
             }
         }
         
-        private static async Task DownloadArtistAvatar(ILogger logger, PixivClient client, ArtistAccount newArtist, CancellationToken token)
+        private static async Task<bool> DownloadArtistAvatar(ILogger logger, PixivClient client, ArtistAccount newArtist, CancellationToken token)
         {
             var retry = 3;
             while (retry > 0)
@@ -89,6 +101,7 @@ namespace unbooru.Pixiv.Jobs
                 try
                 {
                     logger.LogInformation("Getting User info for {id}", newArtist.Id);
+                    if (string.IsNullOrEmpty(newArtist.Id) || newArtist.Id.Equals("0")) return true;
                     var user = await client.GetUserDetailAsync(int.Parse(newArtist.Id), token);
                     var avatar = user.Avatar;
                     logger.LogInformation("Downloading from {Uri}", avatar.Uri);
@@ -100,15 +113,28 @@ namespace unbooru.Pixiv.Jobs
                     newArtist.Avatar = data;
                     retry = 0;
                 }
+                catch (HttpRequestException ex)
+                {
+                    if (ex.StatusCode == HttpStatusCode.NotFound) return true;
+                    if (ex.StatusCode == HttpStatusCode.Forbidden) return true;
+                    if (ex.StatusCode == HttpStatusCode.Unauthorized) return false;
+                    logger.LogError(ex, "Unable to download {Uri}, retry {Retry}: {E}", newArtist.Id,
+                        4 - retry, ex);
+                    retry--;
+                    if (retry == 0) return false;
+                    Thread.Sleep(2000);
+                }
                 catch (Exception e)
                 {
-                    logger.LogError("Unable to download {Uri}, retry {Retry}: {E}", newArtist.Id,
+                    logger.LogError(e, "Unable to download {Uri}, retry {Retry}: {E}", newArtist.Id,
                         4 - retry, e);
                     retry--;
-                    if (retry == 0) return;
+                    if (retry == 0) return false;
                     Thread.Sleep(2000);
                 }
             }
+
+            return true;
         }
     }
 }

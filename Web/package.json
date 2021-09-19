@@ -17,6 +17,7 @@
     "react-dom": "^16.8.2",
     "react-emotion": "^9.2.12",
     "react-helmet": "^6.0.0",
+    "react-html-parser": "^2.0.2",
     "react-jss": "^8.6.1",
     "react-lazy-load": "^3.1.13",
     "react-paginate": "^7.1.3",

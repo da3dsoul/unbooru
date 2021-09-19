@@ -25,12 +25,20 @@ namespace unbooru.Web.Controllers
         }
 
         [HttpGet("{id:int}/Avatar")]
-        public async Task<ActionResult<byte[]>> GetImageById(int id)
+        public async Task<ActionResult<byte[]>> GetAvatarById(int id)
         {
             var blob = await _dbHelper.GetArtistAvatarById(id);
             if (blob == default) return new NotFoundResult();
             var image = new MagickImage(blob);
             return File(blob, image.FormatInfo?.MimeType);
+        }
+
+        [HttpGet("ExternalId/{id}")]
+        public async Task<ActionResult<ArtistAccount>> GetArtistByExternalId(string id)
+        {
+            var account = await _dbHelper.GetArtistAccountByExternalId(id);
+            if (account == null) return new NotFoundResult();
+            return account;
         }
     }
 }
