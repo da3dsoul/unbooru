@@ -260,6 +260,10 @@ namespace unbooru.Pixiv
             var artistContext = disc.ServiceProvider.GetRequiredService<IContext<ArtistAccount>>();
             var existingArtist = await artistContext.Get(newArtist, token:token);
             if (existingArtist != null) newArtist = existingArtist;
+            else
+            {
+                await DownloadArtistAvatar(image, newArtist, token);
+            }
             var prov = new ImageProvidedEventArgs
             {
                 ServiceProvider = disc.ServiceProvider,
@@ -370,6 +374,34 @@ namespace unbooru.Pixiv
 
             ImageProvided?.Invoke(this, prov);
             return prov;
+        }
+
+        private async Task DownloadArtistAvatar(Illust image, ArtistAccount newArtist, CancellationToken token)
+        {
+            var retry = RetryCount;
+            var avatar = image.User.Avatar;
+            while (retry > 0)
+            {
+                try
+                {
+                    _logger.LogInformation("Downloading from {Uri}", avatar.Uri);
+                    await using var stream = await avatar.RequestStreamAsync(token);
+                    await using var memoryStream = new MemoryStream();
+                    await stream.CopyToAsync(memoryStream, token);
+                    var data = memoryStream.ToArray();
+                    _logger.LogInformation("Downloaded {Count} bytes from {Uri}", data.LongLength, avatar.Uri);
+                    newArtist.Avatar = data;
+                    retry = 0;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("Unable to download {Uri}, retry {Retry}: {E}", avatar.Uri,
+                        RetryCount - retry + 1, e);
+                    retry--;
+                    if (retry == 0) return;
+                    Thread.Sleep(SleepTime);
+                }
+            }
         }
     }
 }

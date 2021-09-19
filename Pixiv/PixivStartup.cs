@@ -10,7 +10,7 @@ namespace unbooru.Pixiv
     {
         public string Id => "Pixiv";
         public string Description => "Downloads images from Pixiv";
-        public Version Version => new Version("0.0.0.1");
+        public Version Version => new("0.0.0.1");
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -32,6 +32,12 @@ namespace unbooru.Pixiv
                     builder.WithIdentity("PixivServiceTrigger", "Pixiv").ForJob(serviceKey)
                         .WithSchedule(SimpleScheduleBuilder.RepeatHourlyForever())
                         .StartAt(DateTimeOffset.Now + TimeSpan.FromHours(1)));
+                
+                var avatarKey = new JobKey("PixivAvatar", "Pixiv");
+                options.AddJob<PixivDownloadMissingAvatarsJob>(builder => builder.WithIdentity(avatarKey));
+                options.AddTrigger(builder =>
+                    builder.WithIdentity("PixivAvatarTrigger", "Pixiv").ForJob(avatarKey)
+                        .StartAt(DateTimeOffset.Now + TimeSpan.FromSeconds(5)));
             });
         }
     }

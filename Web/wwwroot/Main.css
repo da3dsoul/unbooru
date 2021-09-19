@@ -44,48 +44,56 @@ body {
 }
 
 .image-info {
-
+	display: flex;
+	flex-direction: column;
+	padding: 0.25rem;
+	border: solid 1px;
 }
 
-.title-text {
-	color: black;
+.title-text, .title-text:visited {
+	color: white;
 	font-weight: bold;
-	font-size: 28px;
+	font-size: 1.5rem;
 }
 
 .post-title {
-
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .post-date {
-
+	font-size: 0.75rem;
 }
 
 .post-description {
-
+	font-size: 0.9rem;
 }
 
 .artist-container {
 	display: flex;
 	flex-direction: column;
+	border: solid 1px;
 }
 
 .artist-item-container {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	justify-content: space-evenly;
 }
 
 .artist-text, .artist-text:visited {
 	color: white;
-	font-size: 2rem;
 	white-space: nowrap;
+	text-align: center;
 	margin-right: 5pt;
+	margin-left: 5px;
 }
 
 .artist-icon {
-	width: 2.25rem;
-	height: 2.25rem;
+	width: 1.5rem;
+	height: 1.5rem;
 	margin: 5pt;
 }
 

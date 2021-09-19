@@ -42,6 +42,18 @@ namespace unbooru.Web
             return image;
         }
 
+        public async Task<ArtistAccount> GetArtistAccountById(int id)
+        {
+            var account = await _context.Set<ArtistAccount>().OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.ArtistAccountId == id);
+            return account;
+        }
+
+        public async Task<byte[]> GetArtistAvatarById(int id)
+        {
+            var account = await _context.Set<ArtistAccount>().OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.ArtistAccountId == id);
+            return account?.Avatar;
+        }
+
         public async Task<List<ImageTag>> GetTags(string query)
         {
             var tags = _context.Set<ImageTag>().AsNoTracking().Where(a => a.Name.StartsWith(query)).OrderBy(a => a.Name);

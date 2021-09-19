@@ -1,0 +1,36 @@
+using System.Threading.Tasks;
+using ImageMagick;
+using Microsoft.AspNetCore.Mvc;
+using unbooru.Abstractions.Poco;
+
+namespace unbooru.Web.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ArtistController : Controller
+    {
+        private readonly DatabaseHelper _dbHelper;
+
+        public ArtistController(DatabaseHelper helper)
+        {
+            _dbHelper = helper;
+        }
+        
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<ArtistAccount>> GetById(int id)
+        {
+            var account = await _dbHelper.GetArtistAccountById(id);
+            if (account == null) return new NotFoundResult();
+            return account;
+        }
+
+        [HttpGet("{id:int}/Avatar")]
+        public async Task<ActionResult<byte[]>> GetImageById(int id)
+        {
+            var blob = await _dbHelper.GetArtistAvatarById(id);
+            if (blob == default) return new NotFoundResult();
+            var image = new MagickImage(blob);
+            return File(blob, image.FormatInfo?.MimeType);
+        }
+    }
+}

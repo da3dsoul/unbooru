@@ -12,6 +12,9 @@ namespace unbooru.Abstractions.Poco
         public string Url { get; set; }
         
         [IgnoreDataMember]
+        public byte[] Avatar { get; set; }
+        
+        [IgnoreDataMember]
         public virtual List<Image> Images { get; set; }
 
         protected bool Equals(ArtistAccount other)
