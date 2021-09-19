@@ -13,8 +13,7 @@ function ArtistLink(props) {
 
     return (
 <div key={artist.artistAccountId} className="artist-item-container">
-    <img className="artist-icon" alt="icon" src={icon} />
-    <a className="artist-text" target="_blank" rel="noopener noreferrer" href={artist.url}>{artist.name}</a>
+    <a target="_blank" rel="noopener noreferrer" href={artist.url}><img className="artist-icon" alt="icon" src={icon} /></a>
 </div>
     )
 }
@@ -36,7 +35,7 @@ export default function ImageDetail() {
     }, [id])
 
     if (state.image?.sources === null || "undefined" ===  typeof state.image?.sources) {
-        return <div id="main" className="container-fluid" style={{width: "100%", height: "100%"}}></div>
+        return <div id="main" className="container-fluid" style={{width: "100%", height: "100%"}} />
     }
 
     const pixiv = state.image.sources.find(isPixivSource);
@@ -53,7 +52,15 @@ export default function ImageDetail() {
         <div id="main" className="container-fluid" style={{width:"auto", height:"auto"}}>
             <div className="image-detail">
                 <div className="info-container">
+                    <div className="image-info">
+                        <div className="post-title">
+                            <a className="title-text" href={pixiv.postUrl} target="_blank" rel="noopener noreferrer">{pixiv.title}</a>
+                            <span className="post-date">{pixiv.postDate}</span>
+                        </div>
+                        <span className="post-description">{pixiv.description}</span>
+                    </div>
                     <div className="artist-container">
+                        <span className="artist-text">{state.image.artistAccounts[0].name}</span>
                         {artistInfo}
                     </div>
                     <div className="tag-container">

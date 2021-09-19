@@ -43,10 +43,26 @@ body {
 	object-fit: contain;
 }
 
+.image-info {
+
+}
+
 .title-text {
 	color: black;
 	font-weight: bold;
 	font-size: 28px;
+}
+
+.post-title {
+
+}
+
+.post-date {
+
+}
+
+.post-description {
+
 }
 
 .artist-container {
