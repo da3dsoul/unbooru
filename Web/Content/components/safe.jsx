@@ -48,7 +48,7 @@ export default function SafeImageList() {
 
     let imageNodes = state.images.map(image => {
         if (!image.hasOwnProperty("imageId")) return;
-        return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={(image.height + 120)} />);
+        return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={image.height} />);
     });
 
     function getHeight(containerWidth) {

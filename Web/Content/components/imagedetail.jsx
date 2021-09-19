@@ -49,6 +49,9 @@ export default function ImageDetail() {
                    href={`/Search?tagid=${tag.imageTagId}`}>{tag.name}</a>)
     });
 
+    const description = pixiv.description !== null && pixiv.description.length > 0 ?
+        <div className="post-description">{ReactHtmlParser(pixiv.description)}</div> : <br/>;
+
     return (
         <div id="main" className="container-fluid" style={{width:"auto", height:"auto"}}>
             <div className="image-detail">
@@ -58,7 +61,7 @@ export default function ImageDetail() {
                             <a className="title-text" href={pixiv.postUrl} target="_blank" rel="noopener noreferrer">{pixiv.title}</a>
                             <span className="post-date">{pixiv.postDate}</span>
                         </div>
-                        <div className="post-description">{ReactHtmlParser(pixiv.description)}</div>
+                        {description}
                     </div>
                     <div className="artist-container">
                         <div className="artist-info">
