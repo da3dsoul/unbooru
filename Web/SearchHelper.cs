@@ -24,6 +24,8 @@ namespace unbooru.Web
             AddPostDateQueries(query, searchParameters);
             AddImportDateQueries(query, searchParameters);
             AddPixivIdQueries(query, searchParameters);
+            AddArtistAccountIdQueries(query, searchParameters);
+            AddArtistUserIdQueries(query, searchParameters);
             AddSfwQuery(query, searchParameters, provider);
             return searchParameters;
         }
@@ -74,6 +76,10 @@ namespace unbooru.Web
                     return new PostDateSortParameter();
                 case "pixivid":
                     return new PixivIdSortParameter();
+                case "artistaccountid":
+                    return new ArtistAccountIdSortParameter();
+                case "artistuserid":
+                    return new ArtistUserIdSortParameter();
                 default:
                     return null;
             }
@@ -189,6 +195,28 @@ namespace unbooru.Web
             foreach (var s in queryStrings)
             {
                 searchParameters.Add(new PixivIDSearchParameter(s));
+            }
+        }
+
+        private static void AddArtistAccountIdQueries(IQueryCollection query, List<SearchParameter> searchParameters)
+        {
+            var queryStrings = query["ArtistAccountID"];
+            if (!queryStrings.Any()) return;
+            foreach (var s in queryStrings)
+            {
+                var op = NumberComparatorEnum.Parse(s);
+                var id = int.Parse(new string(s.SkipWhile(a => !char.IsDigit(a)).ToArray()));
+                searchParameters.Add(new ArtistAccountIDSearchParameter(op, id));
+            }
+        }
+
+        private static void AddArtistUserIdQueries(IQueryCollection query, List<SearchParameter> searchParameters)
+        {
+            var queryStrings = query["ArtistUserID"];
+            if (!queryStrings.Any()) return;
+            foreach (var s in queryStrings)
+            {
+                searchParameters.Add(new ArtistUserIDSearchParameter(s));
             }
         }
 

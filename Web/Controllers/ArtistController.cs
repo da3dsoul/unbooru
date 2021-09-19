@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ImageMagick;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,12 @@ namespace unbooru.Web.Controllers
             var account = await _dbHelper.GetArtistAccountByExternalId(id);
             if (account == null) return new NotFoundResult();
             return account;
+        }
+
+        [HttpGet("ByName/{name}")]
+        public async Task<ActionResult<List<ArtistAccount>>> FindArtists(string name)
+        {
+            return await _dbHelper.GetArtistAccounts(name);
         }
     }
 }

@@ -54,15 +54,36 @@ namespace unbooru.Web
             return account;
         }
 
+        public async Task<List<ArtistAccount>> GetArtistAccounts(string name)
+        {
+            IOrderedQueryable<ArtistAccount> account;
+            if (name.Length > 3)
+                account = _context.Set<ArtistAccount>().Where(a => a.Name.Contains(name)).OrderBy(a => a.Name);
+            else
+                account = _context.Set<ArtistAccount>().Where(a => a.Name.StartsWith(name)).OrderBy(a => a.Name);
+            return await account.ToListAsync();
+        }
+
         public async Task<byte[]> GetArtistAvatarById(int id)
         {
             var account = await _context.Set<ArtistAccount>().OrderBy(a => a.ArtistAccountId).FirstOrDefaultAsync(a => a.ArtistAccountId == id);
             return account?.Avatar;
         }
 
+        public async Task<ImageTag> GetTag(int id)
+        {
+            var tags = await _context.Set<ImageTag>().AsNoTracking().OrderBy(a => a.ImageTagId).FirstOrDefaultAsync(a => a.ImageTagId == id);
+
+            return tags;
+        }
+
         public async Task<List<ImageTag>> GetTags(string query)
         {
-            var tags = _context.Set<ImageTag>().AsNoTracking().Where(a => a.Name.StartsWith(query)).OrderBy(a => a.Name);
+            IOrderedQueryable<ImageTag> tags;
+            if (query.Length > 3)
+                tags = _context.Set<ImageTag>().AsNoTracking().Where(a => a.Name.Contains(query)).OrderBy(a => a.Name);
+            else
+                tags = _context.Set<ImageTag>().AsNoTracking().Where(a => a.Name.StartsWith(query)).OrderBy(a => a.Name);
 
             return await tags.ToListAsync();
         }

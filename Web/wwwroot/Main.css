@@ -67,6 +67,7 @@ body {
 }
 
 .post-description, .post-description a, .post-description a:visited {
+	width: min-content;
 	background-color: #505060;
 	color: white;
 	font-size: 0.9rem;
