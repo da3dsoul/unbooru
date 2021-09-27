@@ -145,6 +145,12 @@ namespace unbooru.Web
                 images = images.Select(a => new SearchViewModel { Image = a.Image, Tags = a.Image.Tags });
             }
 
+            if (searchParameters.Any(a => a.Types.Contains(typeof(ArtistAccount))) ||
+                sortParameters.Any(a => a.Types.Contains(typeof(ArtistAccount))))
+            {
+                images = images.Select(a => new SearchViewModel { Image = a.Image, Tags = a.Tags, ArtistAccounts = a.Image.ArtistAccounts});
+            }
+
             if (searchParameters.Any(a => a.Types.Contains(typeof(ImageBlob))) ||
                 sortParameters.Any(a => a.Types.Contains(typeof(ImageBlob))))
             {

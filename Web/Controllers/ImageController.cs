@@ -43,19 +43,40 @@ namespace unbooru.Web.Controllers
         }
 
         [HttpGet("{id:int}/{filename}")]
-        public async Task<object> GetImageById(int id, string filename, [FromQuery]string size)
+        public async Task<object> GetImageById(int id, string filename, [FromQuery]string size, [FromQuery]bool upscale = false)
         {
             var blob = await _dbHelper.GetImageBlobById(id);
             if (blob == default) return new NotFoundResult();
+            blob = ResizeImage(size, blob, upscale);
+            return File(blob, MimeTypes.GetMimeType(filename));
+        }
+
+        private static byte[] ResizeImage(string size, byte[] blob, bool upscale)
+        {
             if ("small".Equals(size, StringComparison.InvariantCultureIgnoreCase))
             {
                 var image = new MagickImage(blob);
                 image.Format = MagickFormat.Pjpeg;
                 image.Resize(new MagickGeometry("500x500>"));
-                image.Quality = 60;
+                image.Quality = 100;
+                blob = image.ToByteArray();
+            } else if ("medium".Equals(size, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var image = new MagickImage(blob);
+                image.Format = MagickFormat.Pjpeg;
+                image.Resize(new MagickGeometry("800x800>"));
+                image.Quality = 100;
+                blob = image.ToByteArray();
+            } else if ("large".Equals(size, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var image = new MagickImage(blob);
+                image.Format = MagickFormat.Pjpeg;
+                image.Resize(new MagickGeometry("1200x1200>"));
+                image.Quality = 100;
                 blob = image.ToByteArray();
             }
-            return File(blob, MimeTypes.GetMimeType(filename));
+
+            return blob;
         }
 
         [HttpGet("Missing")]
