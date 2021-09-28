@@ -94,7 +94,8 @@ body {
 	background-color: white;
 }
 
-.artist-text {
+.artist-text, .artist-text:visited, .artist-text:hover {
+	color: white;
 	font-size: 2rem;
 	margin-right: 5pt;
 	margin-left: 5px;

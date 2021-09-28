@@ -46,7 +46,7 @@ export default function ImageDetail() {
         if (tag.type === 'Character') color = "cyan";
         else if (tag.type === 'Copyright') color = "pink"
         return (<a key={tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" style={{color: color}}
-                   href={`/Search?tagid=${tag.imageTagId}`}>{tag.name}</a>)
+                   href={`/Search?TagID=${tag.imageTagId}`}>{tag.name}</a>)
     });
 
     const description = pixiv.description !== null && pixiv.description.length > 0 ?
@@ -64,10 +64,10 @@ export default function ImageDetail() {
                         {description}
                     </div>
                     <div className="artist-container">
-                        <div className="artist-info">
+                        <a className="artist-info" href={`/Search?ArtistAccountID=${state.image.artistAccounts[0].artistAccountId}`} target="_blank" rel="noopener noreferrer">
                             <img src={`/api/Artist/${state.image.artistAccounts[0].artistAccountId}/Avatar`} alt={state.image.artistAccounts[0].name} className="artist-avatar" />
                             <span className="artist-text">{state.image.artistAccounts[0].name}</span>
-                        </div>
+                        </a>
                         <div className="artist-links">
                             {artistInfo}
                         </div>
