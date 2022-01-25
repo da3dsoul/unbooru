@@ -33,7 +33,7 @@ namespace unbooru.Web.OpenGraph
                 return;
             }
 
-            var template = @"<meta property=""og:type"" content=""website"">
+            const string template = @"<meta property=""og:type"" content=""website"">
 <title>{0}</title>
 <meta name=""twitter:card"" content=""summary_large_image"" />
 <meta property=""og:title"" content=""{0}"" />
@@ -42,7 +42,7 @@ namespace unbooru.Web.OpenGraph
 <meta property=""og:image"" content=""{2}"" />
 <meta property=""og:url"" content=""{3}"" />";
 
-            if (context.Request.Path.HasValue && context.Request.Path.Value.StartsWith("/Image"))
+            if (context.Request.Path.HasValue && context.Request.Path.Value.StartsWith("/Image", StringComparison.InvariantCultureIgnoreCase))
             {
                 var (title, desc, url) = await GetDataForRequest(context, dbHelper);
                 if (title != null)
@@ -57,7 +57,7 @@ namespace unbooru.Web.OpenGraph
                     return;
                 }
             }
-            if (context.Request.Path.HasValue && context.Request.Path.Value.StartsWith("/Search"))
+            if (context.Request.Path.HasValue && context.Request.Path.Value.StartsWith("/Search", StringComparison.InvariantCultureIgnoreCase))
             {
                 var query = context.Request.Query;
                 var searchParams = SearchHelper.ParseSearchParameters(query, serviceProvider);

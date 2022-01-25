@@ -36,6 +36,10 @@ namespace unbooru.Web
             services.AddJsEngineSwitcher(options => options.DefaultEngineName = ChakraCoreJsEngine.EngineName)
                 .AddChakraCore();
             services.AddReact();
+            services.AddResponseCaching(options =>
+            {
+                options.SizeLimit = 1024L * 1024L * 1024L * 10L;
+            });
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
  
@@ -44,6 +48,7 @@ namespace unbooru.Web
         {
             app.UseMiddleware<ErrorHandlingMiddleware>();
             app.UseMiddleware<OpenGraphMiddleware>();
+            app.UseResponseCaching();
             // Initialise ReactJS.NET. Must be before static files.
             app.UseReact(config =>
             {
