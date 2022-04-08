@@ -43,7 +43,7 @@ namespace unbooru.Web.Controllers
         }
 
         [HttpGet("{id:int}/{filename}")]
-        public async Task<object> GetImageById(int id, string filename, [FromQuery]string size, [FromQuery]bool upscale = false)
+        public async Task<ActionResult> GetImageById(int id, string filename, [FromQuery]string size, [FromQuery]bool upscale = false)
         {
             var blob = await _dbHelper.GetImageBlobById(id);
             if (blob == default) return new NotFoundResult();
