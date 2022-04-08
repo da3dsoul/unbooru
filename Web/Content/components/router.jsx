@@ -10,6 +10,7 @@ import ImageDetail from "./imagedetail.jsx";
 import Search from "./search.jsx";
 import Missing from "./missing.jsx";
 import NotFound from "./notfound.jsx";
+import Random from "./random";
 
 export default class RouterComponent extends Component {
     render() {
@@ -23,7 +24,10 @@ export default class RouterComponent extends Component {
                         <Missing />
                     )} />
                     <Route path="/Search" component={() => (
-                        <Search  />
+                        <Search />
+                    )} />
+                    <Route path="/Random" component={() => (
+                        <Random />
                     )} />
                     <Route path="/Image/:id" component={() => (
                         <ImageDetail />
