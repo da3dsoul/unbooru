@@ -93,7 +93,7 @@ namespace unbooru.Web
             return await _context.Set<ImageTag>().Where(a => tags.Contains(a.Name)).Select(a => a.ImageTagId).ToListAsync();
         }
 
-        public async Task<List<Image>> Search(List<SearchParameter> searchParameters, List<SortParameter> sortParameters, int limit = 0, int offset = 0)
+        public IQueryable<Image> Search(List<SearchParameter> searchParameters, List<SortParameter> sortParameters)
         {
             var input = _context.Set<Image>().AsNoTracking();
             var images = IncludeModels(input, searchParameters, sortParameters);
@@ -117,12 +117,7 @@ namespace unbooru.Web
                 images = images.OrderByDescending(a => a.Image.ImageId);
             }
 
-            images = images.Skip(offset);
-            if (limit > 0) images = images.Take(limit);
-
-            var result = await images.Select(a => a.Image).ToListAsync();
-
-            return result;
+            return images.Select(a => a.Image);
         }
 
         public async Task<int> GetSearchPostCount(List<SearchParameter> searchParameters)
