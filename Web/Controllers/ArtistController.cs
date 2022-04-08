@@ -16,7 +16,12 @@ namespace unbooru.Web.Controllers
         {
             _dbHelper = helper;
         }
-        
+
+        public async Task<ActionResult<IEnumerable<ArtistAccount>>> Index(int limit = 0, int offset = 0)
+        {
+            return await _dbHelper.GetAllArtistAccounts(limit, offset);
+        }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ArtistAccount>> GetById(int id)
         {

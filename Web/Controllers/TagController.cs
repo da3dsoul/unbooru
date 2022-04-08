@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using unbooru.Abstractions.Poco;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +15,12 @@ namespace unbooru.Web.Controllers
         public TagController(DatabaseHelper helper)
         {
             _dbHelper = helper;
+        }
+
+        [ItemCanBeNull]
+        public async Task<ActionResult<IEnumerable<ImageTag>>> Index(int limit = 0, int offset = 0)
+        {
+            return await _dbHelper.GetAllTags(limit, offset);
         }
 
         [HttpGet("ByName/{id:int}")]

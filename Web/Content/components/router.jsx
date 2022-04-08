@@ -10,7 +10,7 @@ import ImageDetail from "./imagedetail.jsx";
 import Search from "./search.jsx";
 import Missing from "./missing.jsx";
 import NotFound from "./notfound.jsx";
-import Random from "./random";
+import Random from "./random.jsx";
 
 export default class RouterComponent extends Component {
     render() {

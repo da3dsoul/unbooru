@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using unbooru.Abstractions.Poco;
 using unbooru.Core;
 using unbooru.Web.SearchParameters;
@@ -87,6 +88,13 @@ namespace unbooru.Web
 
             return await tags.ToListAsync();
         }
+
+        /*public async Task<List<ImageTag>> GetTagsWeighted(string query)
+        {
+            List<(int id, string name)> tags = await _context.Set<ImageTag>().Select(a => ValueTuple.Create(a.ImageTagId, a.Name)).ToListAsync();
+
+            return tags;
+        }*/
 
         public async Task<List<int>> GetTagIds(IEnumerable<string> tags)
         {
@@ -205,6 +213,16 @@ namespace unbooru.Web
         public async Task<int> GetDownloadedPostCount()
         {
             return await _context.Set<ImageSource>().Where(a => a.Source == "Pixiv").Select(a => a.PostUrl).Distinct().CountAsync();
+        }
+
+        public async Task<ActionResult<IEnumerable<ArtistAccount>>> GetAllArtistAccounts(int limit, int offset)
+        {
+            return await _context.Set<ArtistAccount>().OrderBy(a => a.Name).Skip(offset).Take(limit).ToListAsync();
+        }
+
+        public async Task<ActionResult<IEnumerable<ImageTag>>> GetAllTags(int limit, int offset)
+        {
+            return await _context.Set<ImageTag>().OrderBy(a => a.Name).Skip(offset).Take(limit).ToListAsync();
         }
     }
 }
