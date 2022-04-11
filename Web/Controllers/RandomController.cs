@@ -40,7 +40,7 @@ namespace unbooru.Web.Controllers
         }
         
         [HttpGet("Image")]
-        public async Task<ActionResult> RandomImage(int? seed = null)
+        public async Task<ActionResult> RandomImage([FromQuery]int? seed = null)
         {
             var query = HttpContext.Request.Query;
 
