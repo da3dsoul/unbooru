@@ -40,7 +40,7 @@ namespace unbooru.Web.Controllers
         }
         
         [HttpGet("Image")]
-        public async Task<ActionResult> RandomImage([FromQuery]int? seed = null)
+        public async Task<ActionResult> RandomImage()
         {
             var query = HttpContext.Request.Query;
 
@@ -48,12 +48,18 @@ namespace unbooru.Web.Controllers
             var sortParameters = SearchHelper.ParseSortParameters(query);
 
             IEnumerable<Image> images = await _dbHelper.Search(searchParameters, sortParameters).ToListAsync();
+            var seedQuery = query["seed"].FirstOrDefault();
+            int? seed = null;
+            if (int.TryParse(seedQuery, out var temp)) seed = temp;
             var random = seed == null ? new Random() : new Random(seed.Value);
             var result = images.Shuffle(random).FirstOrDefault();
             if (result == null) return new NotFoundResult();
             var blob = await _dbHelper.GetImageBlobById(result.ImageId);
             if (blob == default) return new NotFoundResult();
-            return File(blob, MimeTypes.GetMimeType(result.Sources.FirstOrDefault()?.OriginalFilename ?? "file.jpg"));
+            var source = await _dbHelper.ExecuteExpression(c =>
+                c.Set<ImageSource>().FirstOrDefaultAsync(a => a.Image.ImageId == result.ImageId));
+            var name = source?.OriginalFilename ?? "file.jpg";
+            return File(blob, MimeTypes.GetMimeType(name), name);
         }
     }
 }

@@ -21,6 +21,11 @@ namespace unbooru.Web
             _context = context;
         }
 
+        public async Task<T> ExecuteExpression<T>(Func<CoreContext, Task<T>> func) where T : class
+        {
+            return await func.Invoke(_context);
+        }
+
         public async Task<Image> GetImageById(int id)
         {
             var image = await _context.Set<Image>().AsSplitQuery().AsNoTrackingWithIdentityResolution()
