@@ -16,6 +16,7 @@ using NLog;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Quartz;
+using unbooru.Abstractions.Poco.Events;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace unbooru.Core
@@ -77,6 +78,31 @@ namespace unbooru.Core
                         return typeof(IServiceProvider).IsAssignableFrom(parameter.ParameterType);
                     }).Select(a => (a.Type, a.Method)).ToList();
                 cancellationToken.Register(Shutdown);
+
+                // run CLI handlers
+                foreach (var module in Modules)
+                {
+                    var logger = host.Services.GetService<ILogger>();
+                    try
+                    {
+                        // make a copy to prevent modules from interfering with each other
+                        var evt = new StartupEventArgs { Args = args.ToArray(), Services = host.Services };
+                        module.Main(evt);
+                        if (evt.Cancel)
+                        {
+                            logger?.LogWarning("{module} returned a cancellation request from startup. Closing", module);
+                        }
+                    }
+                    catch (NotImplementedException)
+                    {
+                        // swallow NotImplemented. This is optional
+                    }
+                    catch (Exception e)
+                    {
+                        
+                        logger?.LogError(e, "{module} errored on startup: {ex}", module, e);
+                    }
+                }
 
                 await host.StartAsync(cancellationToken);
 

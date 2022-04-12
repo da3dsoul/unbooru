@@ -1,6 +1,7 @@
 using System;
 using unbooru.Abstractions.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using unbooru.Abstractions.Poco.Events;
 
 namespace unbooru.SauceNao
 {
@@ -14,6 +15,11 @@ namespace unbooru.SauceNao
         {
             services.AddSingleton<IModule, SauceNaoModule>();
             services.AddSingleton<SimpleRateLimiter>();
+        }
+
+        public void Main(StartupEventArgs args)
+        {
+            
         }
     }
 }

@@ -3,6 +3,7 @@ using unbooru.Abstractions.Interfaces;
 using unbooru.Pixiv.Jobs;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
+using unbooru.Abstractions.Poco.Events;
 
 namespace unbooru.Pixiv
 {
@@ -39,6 +40,11 @@ namespace unbooru.Pixiv
                     builder.WithIdentity("PixivAvatarTrigger", "Pixiv").ForJob(avatarKey)
                         .StartAt(DateTimeOffset.Now + TimeSpan.FromSeconds(5)));
             });
+        }
+
+        public void Main(StartupEventArgs args)
+        {
+            
         }
     }
 }

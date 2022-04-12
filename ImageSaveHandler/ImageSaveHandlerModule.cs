@@ -48,12 +48,12 @@ namespace unbooru.ImageSaveHandler
             }
         }
 
-        private void ImageProvided(object sender, ImageProvidedEventArgs e)
+        public void ImageProvided(object sender, ImageProvidedEventArgs e)
         {
             SaveImage(e).Wait(e.CancellationToken);
         }
 
-        private async Task SaveImage(ImageProvidedEventArgs e)
+        public async Task SaveImage(ImageProvidedEventArgs e)
         {
             foreach (var image in e.Images)
             {
@@ -121,7 +121,9 @@ namespace unbooru.ImageSaveHandler
 
             if (SettingsProvider.Get(a => a.EnableAspectRatioSplitting))
             {
-                path = Path.Combine(path, aspectRatio < 1 ? "Mobile" : "Desktop");
+                var subpath = aspectRatio < 0.8 ? "Mobile" : aspectRatio > 1.25 ? "Desktop" : null;
+                if (string.IsNullOrEmpty(subpath)) return null;
+                path = Path.Combine(path, subpath);
             }
 
             if (SettingsProvider.Get(a => a.UseFilesystemFriendlyTree))

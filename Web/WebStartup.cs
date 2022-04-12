@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog.Web;
+using unbooru.Abstractions.Poco.Events;
 
 namespace unbooru.Web
 {
@@ -17,6 +18,11 @@ namespace unbooru.Web
         {
             services.AddSingleton<IModule, WebModule>();
             services.AddScoped<DatabaseHelper>();
+        }
+
+        public void Main(StartupEventArgs args)
+        {
+            
         }
 
         public IHostBuilder Build(IHostBuilder hostBuilder)

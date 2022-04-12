@@ -1,6 +1,7 @@
 using System;
 using unbooru.Abstractions.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using unbooru.Abstractions.Poco.Events;
 
 namespace unbooru.JsonSettingsProvider
 {
@@ -14,6 +15,11 @@ namespace unbooru.JsonSettingsProvider
         {
             services.AddSingleton<IModule, JsonSettingsProviderModule>();
             services.AddScoped(typeof(ISettingsProvider<>), typeof(JsonSettingsProvider<>));
+        }
+
+        public void Main(StartupEventArgs args)
+        {
+            
         }
     }
 }

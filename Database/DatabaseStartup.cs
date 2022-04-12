@@ -1,6 +1,7 @@
 using System;
 using unbooru.Abstractions.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using unbooru.Abstractions.Poco.Events;
 
 namespace unbooru.Database
 {
@@ -13,6 +14,11 @@ namespace unbooru.Database
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IModule, DatabaseModule>();
+        }
+
+        public void Main(StartupEventArgs args)
+        {
+            
         }
     }
 }

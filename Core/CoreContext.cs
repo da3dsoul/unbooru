@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace unbooru.Core
 {
-    public class CoreContext : DbContext, IContext<ImageTag>, IContext<ArtistAccount>, IReadWriteContext<Image>, IReadWriteContext<ResponseCache>
+    public class CoreContext : DbContext, IContext<ImageTag>, IContext<ArtistAccount>, IReadWriteContext<Image>, IReadWriteContext<ResponseCache>, IDatabaseContext
     {
         private readonly ILogger<CoreContext> _logger;
         private readonly ISettingsProvider<CoreSettings> _settingsProvider;
@@ -131,6 +131,11 @@ namespace unbooru.Core
         public Task<List<ImageTag>> FindAll(ImageTag item, bool includeDepth = false, CancellationToken token = default)
         {
             throw new InvalidOperationException("ImageTags are unique per name");
+        }
+
+        public T1 Execute<T1>(Func<IDatabaseContext, T1> func)
+        {
+            return func.Invoke(this);
         }
 
         public async Task<ArtistAccount> Get(ArtistAccount artist, bool includeDepth = false, CancellationToken token = default)
@@ -320,6 +325,11 @@ namespace unbooru.Core
             // mappings
             modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);
             modelBuilder.Entity<ImageBlob>().HasOne(a => a.Image).WithMany(a => a.Blobs).IsRequired();
+        }
+
+        IQueryable<T> IDatabaseContext.Set<T>()
+        {
+            return base.Set<T>();
         }
     }
 }

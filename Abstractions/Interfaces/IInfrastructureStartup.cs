@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using unbooru.Abstractions.Poco.Events;
 
 namespace unbooru.Abstractions.Interfaces
 {
@@ -13,5 +14,7 @@ namespace unbooru.Abstractions.Interfaces
         Version Version { get; }
         
         void ConfigureServices(IServiceCollection services);
+
+        void Main(StartupEventArgs args);
     }
 }
