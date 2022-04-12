@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using unbooru.Abstractions;
 using unbooru.Abstractions.Attributes;
@@ -17,7 +18,6 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Quartz;
 using unbooru.Abstractions.Poco.Events;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace unbooru.Core
 {
@@ -38,7 +38,7 @@ namespace unbooru.Core
                 if (lifetime == null)
                 {
                     Action<string> log;
-                    var logger = host.Services.GetService<ILogger>();
+                    var logger = host.Services.GetService<ILogger<Startup>>();
                     if (logger == null) log = Console.WriteLine;
                     else log = s => logger.LogError("{Message}", s);
 
@@ -48,103 +48,17 @@ namespace unbooru.Core
 
                 var cancellationToken = lifetime.ApplicationStopping;
 
-                var coreContext = _serviceProvider.GetService<CoreContext>();
-                if (coreContext == null)
-                {
-                    var logger = host.Services.GetService<ILogger>();
-                    logger?.LogError("Unable to get Database Context");
-                    return;
-                }
+                if (await MigrateDatabase(host, cancellationToken)) return;
 
-                await coreContext.Database.MigrateAsync(cancellationToken);
+                var processes = RegisterShutdownCallbacks(host, cancellationToken);
 
-                var processes = host.Services.GetServices<IModule>().ToList();
-                _shutdownCallbacks = processes
-                    .SelectMany(type => type.GetType().GetMethods(),
-                        (type, method) => new
-                        {
-                            Type = type,
-                            Method = method,
-                            Attribute = method.GetCustomAttribute<ModuleShutdownAttribute>()
-                        })
-                    .Where(a =>
-                    {
-                        if (a.Attribute == null) return false;
-                        var parameters = a.Method.GetParameters();
-                        if (parameters.Length != 1) return false;
-                        var parameter = parameters.FirstOrDefault();
-                        if (parameter == null) return false;
-                        if (parameter.IsIn || parameter.IsLcid || parameter.IsOut || parameter.IsRetval) return false;
-                        return typeof(IServiceProvider).IsAssignableFrom(parameter.ParameterType);
-                    }).Select(a => (a.Type, a.Method)).ToList();
-                cancellationToken.Register(Shutdown);
-
-                // run CLI handlers
-                foreach (var module in Modules)
-                {
-                    var logger = host.Services.GetService<ILogger>();
-                    try
-                    {
-                        // make a copy to prevent modules from interfering with each other
-                        var evt = new StartupEventArgs { Args = args.ToArray(), Services = host.Services };
-                        module.Main(evt);
-                        if (evt.Cancel)
-                        {
-                            logger?.LogWarning("{module} returned a cancellation request from startup. Closing", module);
-                        }
-                    }
-                    catch (NotImplementedException)
-                    {
-                        // swallow NotImplemented. This is optional
-                    }
-                    catch (Exception e)
-                    {
-                        
-                        logger?.LogError(e, "{module} errored on startup: {ex}", module, e);
-                    }
-                }
+                if (HandleCLI(args, host)) return;
 
                 await host.StartAsync(cancellationToken);
 
                 // get ready for post init. find the modules that define a post init method and sort by priority
                 // group by priority, and run each priority stage concurrently to speed things up
-                List<Task> tasks = new();
-                var postMethods = processes
-                    .SelectMany(type => type.GetType().GetMethods(),
-                        (type, method) => new
-                        {
-                            Type = type,
-                            Method = method,
-                            Attribute = method.GetCustomAttribute<ModulePostConfigurationAttribute>()
-                        })
-                    .Where(a =>
-                    {
-                        if (a.Attribute == null) return false;
-                        var parameters = a.Method.GetParameters();
-                        if (parameters.Length != 1) return false;
-                        var parameter = parameters.FirstOrDefault();
-                        if (parameter == null) return false;
-                        if (parameter.IsIn || parameter.IsLcid || parameter.IsOut || parameter.IsRetval) return false;
-                        return typeof(IServiceProvider).IsAssignableFrom(parameter.ParameterType);
-                    })
-                    .GroupBy(a => a.Attribute.Priority)
-                    .OrderBy(a => a.Key).ToList();
-
-                foreach (var grouping in postMethods)
-                {
-                    foreach (var postInit in grouping)
-                    {
-                        if (postInit.Method.ReturnType.IsAssignableFrom(typeof(Task)) ||
-                            postInit.Method.ReturnType.IsAssignableFrom(typeof(Task<>)))
-                            tasks.Add((Task) postInit.Method.Invoke(postInit.Type, new object[] {_serviceProvider}));
-                        else
-                            tasks.Add(Task.Run(
-                                () => postInit.Method.Invoke(postInit.Type, new object[] {_serviceProvider}),
-                                cancellationToken));
-                    }
-
-                    await Task.WhenAll(tasks);
-                }
+                await HandlePostInit(processes, cancellationToken);
 
                 foreach (var task in processes.Select(process => process.RunAsync(host.Services, cancellationToken)))
                 {
@@ -157,6 +71,114 @@ namespace unbooru.Core
             {
                 // ignore
             }
+        }
+
+        private bool HandleCLI(string[] args, IHost host)
+        {
+            // run CLI handlers
+            foreach (var module in Modules)
+            {
+                var logger = host.Services.GetService<ILogger<Startup>>();
+                try
+                {
+                    // make a copy to prevent modules from interfering with each other
+                    var evt = new StartupEventArgs { Args = args.ToArray(), Services = host.Services };
+                    module.Main(evt);
+                    if (!evt.Cancel) continue;
+                    logger?.LogWarning("{module} returned a cancellation request from startup. Closing", module);
+                    return true;
+                }
+                catch (NotImplementedException)
+                {
+                    // swallow NotImplemented. This is optional
+                }
+                catch (Exception e)
+                {
+                    logger?.LogError(e, "{module} errored on startup: {ex}", module, e);
+                }
+            }
+
+            return false;
+        }
+
+        private async Task HandlePostInit(List<IModule> processes, CancellationToken cancellationToken)
+        {
+            List<Task> tasks = new();
+            var postMethods = processes
+                .SelectMany(type => type.GetType().GetMethods(),
+                    (type, method) => new
+                    {
+                        Type = type,
+                        Method = method,
+                        Attribute = method.GetCustomAttribute<ModulePostConfigurationAttribute>()
+                    })
+                .Where(a =>
+                {
+                    if (a.Attribute == null) return false;
+                    var parameters = a.Method.GetParameters();
+                    if (parameters.Length != 1) return false;
+                    var parameter = parameters.FirstOrDefault();
+                    if (parameter == null) return false;
+                    if (parameter.IsIn || parameter.IsLcid || parameter.IsOut || parameter.IsRetval) return false;
+                    return typeof(IServiceProvider).IsAssignableFrom(parameter.ParameterType);
+                })
+                .GroupBy(a => a.Attribute.Priority)
+                .OrderBy(a => a.Key).ToList();
+
+            foreach (var grouping in postMethods)
+            {
+                foreach (var postInit in grouping)
+                {
+                    if (postInit.Method.ReturnType.IsAssignableFrom(typeof(Task)) ||
+                        postInit.Method.ReturnType.IsAssignableFrom(typeof(Task<>)))
+                        tasks.Add((Task)postInit.Method.Invoke(postInit.Type, new object[] { _serviceProvider }));
+                    else
+                        tasks.Add(Task.Run(
+                            () => postInit.Method.Invoke(postInit.Type, new object[] { _serviceProvider }),
+                            cancellationToken));
+                }
+
+                await Task.WhenAll(tasks);
+            }
+        }
+
+        private async Task<bool> MigrateDatabase(IHost host, CancellationToken cancellationToken)
+        {
+            var coreContext = _serviceProvider.GetService<CoreContext>();
+            if (coreContext == null)
+            {
+                var logger = host.Services.GetService<ILogger<Startup>>();
+                logger?.LogError("Unable to get Database Context");
+                return true;
+            }
+
+            await coreContext.Database.MigrateAsync(cancellationToken);
+            return false;
+        }
+
+        private List<IModule> RegisterShutdownCallbacks(IHost host, CancellationToken cancellationToken)
+        {
+            var processes = host.Services.GetServices<IModule>().ToList();
+            _shutdownCallbacks = processes
+                .SelectMany(type => type.GetType().GetMethods(),
+                    (type, method) => new
+                    {
+                        Type = type,
+                        Method = method,
+                        Attribute = method.GetCustomAttribute<ModuleShutdownAttribute>()
+                    })
+                .Where(a =>
+                {
+                    if (a.Attribute == null) return false;
+                    var parameters = a.Method.GetParameters();
+                    if (parameters.Length != 1) return false;
+                    var parameter = parameters.FirstOrDefault();
+                    if (parameter == null) return false;
+                    if (parameter.IsIn || parameter.IsLcid || parameter.IsOut || parameter.IsRetval) return false;
+                    return typeof(IServiceProvider).IsAssignableFrom(parameter.ParameterType);
+                }).Select(a => (a.Type, a.Method)).ToList();
+            cancellationToken.Register(Shutdown);
+            return processes;
         }
 
         private void Shutdown()

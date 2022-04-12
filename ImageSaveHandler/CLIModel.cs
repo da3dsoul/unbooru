@@ -1,9 +1,9 @@
 ﻿using CommandLine;
 
-namespace unbooru.ImageSaveHandler;
-
-public class CLIModel
+namespace unbooru.ImageSaveHandler
 {
-    [Option]
-    public bool Sync { get; set; }
+    public class CLIModel
+    {
+        [Option] public bool Sync { get; set; }
+    }
 }

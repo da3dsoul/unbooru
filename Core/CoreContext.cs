@@ -1,21 +1,37 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using unbooru.Abstractions.Interfaces;
 using unbooru.Abstractions.Poco;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 
 namespace unbooru.Core
 {
     public class CoreContext : DbContext, IContext<ImageTag>, IContext<ArtistAccount>, IReadWriteContext<Image>, IReadWriteContext<ResponseCache>, IDatabaseContext
     {
+        private readonly Dictionary<string, ArtistAccount> _artistCache = new(StringComparer.InvariantCultureIgnoreCase);
         private readonly ILogger<CoreContext> _logger;
         private readonly ISettingsProvider<CoreSettings> _settingsProvider;
+
+        private readonly Dictionary<string, ImageTag> _tagCache = new(StringComparer.InvariantCultureIgnoreCase);
+
+        public CoreContext() {}
+
+        public CoreContext(DbContextOptions<CoreContext> options, ISettingsProvider<CoreSettings> settingsProvider, ILogger<CoreContext> logger) : base(options)
+        {
+            _settingsProvider = settingsProvider;
+            _logger = logger;
+            SavedChanges += OnSavedChanges;
+        }
+
         [UsedImplicitly] public DbSet<Image> Images { get; set; }
         [UsedImplicitly] public DbSet<ImageBlob> ImageBlobs { get; set; }
         [UsedImplicitly] public DbSet<ArtistAccount> ArtistAccounts { get; set; }
@@ -24,40 +40,23 @@ namespace unbooru.Core
         [UsedImplicitly] public DbSet<ImageTag> ImageTags { get; set; }
         [UsedImplicitly] public DbSet<ResponseCache> ResponseCaches { get; set; }
 
-        private readonly Dictionary<string, ImageTag> _tagCache = new(StringComparer.InvariantCultureIgnoreCase);
-        private readonly Dictionary<string, ArtistAccount> _artistCache = new(StringComparer.InvariantCultureIgnoreCase);
-
-        public CoreContext() {}
-        
-        public CoreContext(DbContextOptions<CoreContext> options, ISettingsProvider<CoreSettings> settingsProvider, ILogger<CoreContext> logger) : base(options)
+        public async Task<ArtistAccount> Get(ArtistAccount artist, bool includeDepth = false, CancellationToken token = default)
         {
-            _settingsProvider = settingsProvider;
-            _logger = logger;
-            SavedChanges += OnSavedChanges;
+            var query = new Func<string, Task<ArtistAccount>>(url =>
+                ArtistAccounts.Include(a => a.Images).OrderBy(a => a.ArtistAccountId)
+                    .FirstOrDefaultAsync(a => a.Url == url, token));
+
+            return await Get(_artistCache, artist, a => a.Url, query);
         }
 
-        private void OnSavedChanges(object sender, SavedChangesEventArgs e)
+        public Task<List<ArtistAccount>> Get(IReadOnlyList<ArtistAccount> items, bool includeDepth = false, CancellationToken token = default)
         {
-            _tagCache.Clear();
-            _artistCache.Clear();
+            throw new NotImplementedException();
         }
 
-        private async Task<T> Get<T>(IDictionary<string, T> cache, T item, Func<T, string> selector, Func<string, Task<T>> query) where T : class
+        public Task<List<ArtistAccount>> FindAll(ArtistAccount item, bool includeDepth = false, CancellationToken token = default)
         {
-            var sw = Stopwatch.StartNew();
-            var key = selector.Invoke(item);
-            if (cache.ContainsKey(key))
-            {
-                var temp = cache[key];
-                if (temp != null) return temp;
-            }
-
-            var existingTag = await query.Invoke(key);
-            cache.Add(key, existingTag ?? item);
-
-            sw.Stop();
-            if (!DisableLogging) _logger.LogInformation("Getting {Type} took {Time}", typeof(T).Name, sw.Elapsed.ToString("g"));
-            return existingTag;
+            throw new InvalidOperationException("ArtistAccounts are unique per Url");
         }
 
         public bool DisableLogging { get; set; }
@@ -138,23 +137,20 @@ namespace unbooru.Core
             return func.Invoke(this);
         }
 
-        public async Task<ArtistAccount> Get(ArtistAccount artist, bool includeDepth = false, CancellationToken token = default)
+        IQueryable<T> IDatabaseContext.Set<T>(IEnumerable<Expression<Func<T, IEnumerable>>> includes)
         {
-            var query = new Func<string, Task<ArtistAccount>>(url =>
-                ArtistAccounts.Include(a => a.Images).OrderBy(a => a.ArtistAccountId)
-                    .FirstOrDefaultAsync(a => a.Url == url, token));
+            if (includes != null)
+            {
+                IQueryable<T> baseQuery = base.Set<T>();
+                foreach (var include in includes)
+                {
+                    baseQuery = baseQuery.Include(include);
+                }
 
-            return await Get(_artistCache, artist, a => a.Url, query);
-        }
+                return baseQuery;
+            }
 
-        public Task<List<ArtistAccount>> Get(IReadOnlyList<ArtistAccount> items, bool includeDepth = false, CancellationToken token = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<ArtistAccount>> FindAll(ArtistAccount item, bool includeDepth = false, CancellationToken token = default)
-        {
-            throw new InvalidOperationException("ArtistAccounts are unique per Url");
+            return base.Set<T>();
         }
 
         public async Task<Image> Get(Image image, bool includeDepth = false, CancellationToken token = default)
@@ -221,6 +217,24 @@ namespace unbooru.Core
             Images.Remove(item);
         }
 
+        public void RollbackChanges()
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Modified:
+                    case EntityState.Deleted:
+                        entry.State = EntityState.Modified; //Revert changes made to deleted entity.
+                        entry.State = EntityState.Unchanged;
+                        break;
+                    case EntityState.Added:
+                        entry.State = EntityState.Detached;
+                        break;
+                }
+            }
+        }
+
         public async Task<ResponseCache> Get(ResponseCache item, bool includeDepth = false, CancellationToken token = default)
         {
             return await ResponseCaches.FirstOrDefaultAsync(a => a.Uri == item.Uri, token);
@@ -248,22 +262,28 @@ namespace unbooru.Core
             ResponseCaches.Remove(item);
         }
 
-        public void RollbackChanges()
+        private void OnSavedChanges(object sender, SavedChangesEventArgs e)
         {
-            foreach (var entry in ChangeTracker.Entries())
+            _tagCache.Clear();
+            _artistCache.Clear();
+        }
+
+        private async Task<T> Get<T>(IDictionary<string, T> cache, T item, Func<T, string> selector, Func<string, Task<T>> query) where T : class
+        {
+            var sw = Stopwatch.StartNew();
+            var key = selector.Invoke(item);
+            if (cache.ContainsKey(key))
             {
-                switch (entry.State)
-                {
-                    case EntityState.Modified:
-                    case EntityState.Deleted:
-                        entry.State = EntityState.Modified; //Revert changes made to deleted entity.
-                        entry.State = EntityState.Unchanged;
-                        break;
-                    case EntityState.Added:
-                        entry.State = EntityState.Detached;
-                        break;
-                }
+                var temp = cache[key];
+                if (temp != null) return temp;
             }
+
+            var existingTag = await query.Invoke(key);
+            cache.Add(key, existingTag ?? item);
+
+            sw.Stop();
+            if (!DisableLogging) _logger.LogInformation("Getting {Type} took {Time}", typeof(T).Name, sw.Elapsed.ToString("g"));
+            return existingTag;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -325,11 +345,6 @@ namespace unbooru.Core
             // mappings
             modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);
             modelBuilder.Entity<ImageBlob>().HasOne(a => a.Image).WithMany(a => a.Blobs).IsRequired();
-        }
-
-        IQueryable<T> IDatabaseContext.Set<T>()
-        {
-            return base.Set<T>();
         }
     }
 }

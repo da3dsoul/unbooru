@@ -1,7 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using CommandLine;
 using unbooru.Abstractions.Interfaces;
@@ -28,8 +29,12 @@ namespace unbooru.ImageSaveHandler
             Parser.Default.ParseArguments<CLIModel>(args.Args)
                 .WithParsed(o =>
                 {
-                    var logger = args.Services.GetService<ILogger>();
-                    if (!o.Sync) return;
+                    var logger = args.Services.GetService<ILogger<ImageSaveHandlerStartup>>();
+                    if (!o.Sync)
+                    {
+                        logger?.LogInformation("Sync not enabled");
+                        return;
+                    }
                     logger?.LogInformation("Folder sync starting");
                     var context = args.Services.GetService<IContext<Image>>();
                     var settingsProvider = args.Services.GetService<ISettingsProvider<ImageSaveHandlerSettings>>();
@@ -37,22 +42,27 @@ namespace unbooru.ImageSaveHandler
                     if (exclude == null) return;
 
                     var token = new CancellationToken();
-                    var eventArgsList = context?.Execute(c => c.Set<Image>().Where(i =>
-                        !i.Tags.Select(a => a.Name).Any(a =>
-                            exclude.Any(b => a.Equals(b, StringComparison.InvariantCultureIgnoreCase)))).Select(image =>
-                        new ImageProvidedEventArgs
-                        {
-                            ServiceProvider = args.Services,
-                            CancellationToken = token,
-                            Images = new List<Image> { image }
-                        }).ToList());
-                    if (eventArgsList == null) return;
+                    var ids = context?.Execute(c =>
+                        c.Set<Image>()
+                            .Where(i => i.Tags.Any() && !i.Tags.Select(a => a.Name).Any(a => exclude.Contains(a)))
+                            .Select(a => a.ImageId).ToList());
+                    if (ids == null) return;
 
-                    var module = args.Services.GetService<ImageSaveHandlerModule>();
+                    var module = (ImageSaveHandlerModule) args.Services.GetServices<IModule>().FirstOrDefault(a => a is ImageSaveHandlerModule);
                     if (module == null) return;
 
-                    foreach (var eventArgs in eventArgsList)
+                    var includes = new Expression<Func<Image, IEnumerable>>[]
+                        { a => a.Sources, a => a.ArtistAccounts, a => a.Tags, a => a.Blobs };
+
+                    foreach (var id in ids)
                     {
+                        var image = context.Execute(c => c.Set(includes).FirstOrDefault(a => a.ImageId == id));
+
+                        var eventArgs = new ImageProvidedEventArgs
+                        {
+                            Images = new List<Image> { image },
+                            CancellationToken = token
+                        };
                         module.ImageProvided(null, eventArgs);
                         if (eventArgs.Cancel) return;
                     }

@@ -75,7 +75,7 @@ namespace unbooru.Pixiv.Jobs
                         if (!success) break;
                         Thread.Sleep(10000);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         await trans.RollbackAsync(context.CancellationToken);
                     }
