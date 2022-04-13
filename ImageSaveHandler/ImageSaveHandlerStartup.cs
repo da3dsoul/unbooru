@@ -30,11 +30,7 @@ namespace unbooru.ImageSaveHandler
                 .WithParsed(o =>
                 {
                     var logger = args.Services.GetService<ILogger<ImageSaveHandlerStartup>>();
-                    if (!o.Sync)
-                    {
-                        logger?.LogInformation("Sync not enabled");
-                        return;
-                    }
+                    if (!o.Sync) return;
                     logger?.LogInformation("Folder sync starting");
                     var context = args.Services.GetService<IContext<Image>>();
                     var settingsProvider = args.Services.GetService<ISettingsProvider<ImageSaveHandlerSettings>>();
@@ -54,6 +50,8 @@ namespace unbooru.ImageSaveHandler
                     var includes = new Expression<Func<Image, IEnumerable>>[]
                         { a => a.Sources, a => a.ArtistAccounts, a => a.Tags, a => a.Blobs };
 
+                    var index = 0;
+                    var total = ids.Count;
                     foreach (var id in ids)
                     {
                         var image = context.Execute(c => c.Set(includes).FirstOrDefault(a => a.ImageId == id));
@@ -65,6 +63,9 @@ namespace unbooru.ImageSaveHandler
                         };
                         module.ImageProvided(null, eventArgs);
                         if (eventArgs.Cancel) return;
+                        index++;
+                        var percent = Math.Floor(1000D * index / total);
+                        if (percent > Math.Floor(1000D * (index - 1D) / total)) logger?.LogInformation("{percent}% done processing files", Math.Round(percent / 10D, 1));
                     }
 
                     args.Cancel = true;
