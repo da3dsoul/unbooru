@@ -207,6 +207,9 @@ namespace unbooru.Core.Migrations
                     b.Property<int>("Safety")
                         .HasColumnType("int");
 
+                    b.Property<string>("Source")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(450)");
 

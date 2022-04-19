@@ -10,7 +10,7 @@ using unbooru.Core;
 namespace unbooru.Core.Migrations
 {
     [DbContext(typeof(CoreContext))]
-    [Migration("20220419212150_Add Tag Source")]
+    [Migration("20220419224332_AddTagSource")]
     partial class AddTagSource
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -208,6 +208,9 @@ namespace unbooru.Core.Migrations
 
                     b.Property<int>("Safety")
                         .HasColumnType("int");
+
+                    b.Property<string>("Source")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(450)");
