@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageInfrastructure.Abstractions.Interfaces;
 using Microsoft.Extensions.Logging;
+using unbooru.Abstractions.Interfaces;
 
-namespace ImageInfrastructure.Template
+namespace unbooru.Template
 {
     public class TemplateModule : IModule
     {

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <RootNamespace>unbooru.DeepDanbooru</RootNamespace>
+        <AssemblyName>unbooru.DeepDanbooru</AssemblyName>
+        <LangVersion>Latest</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="11.1.0" />
+        <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.11.0" />
+        <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.7.1" />
+    </ItemGroup>
+</Project>

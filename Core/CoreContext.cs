@@ -10,7 +10,6 @@ using unbooru.Abstractions.Interfaces;
 using unbooru.Abstractions.Poco;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 
 namespace unbooru.Core

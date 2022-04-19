@@ -1,20 +1,22 @@
-import React, { Component} from 'react';
+import React, {Component} from 'react';
 import {
     BrowserRouter,
     Route,
     Switch,
     StaticRouter,
 } from 'react-router-dom';
-import SafeImageList from "./safe.jsx";
-import ImageDetail from "./imagedetail.jsx";
-import Search from "./search.jsx";
-import Missing from "./missing.jsx";
-import NotFound from "./notfound.jsx";
-import Random from "./random.jsx";
+import SafeImageList from "Content/pages/safe.jsx";
+import ImageDetail from "Content/pages/imagedetail.jsx";
+import Search from "Content/pages/search.jsx";
+import Missing from "Content/pages/missing.jsx";
+import NotFound from "Content/pages/notfound.jsx";
+import Random from "Content/pages/random.jsx";
+import Nav from "Content/components/navbar";
 
 export default class RouterComponent extends Component {
     render() {
-        const app = (
+        const app = [ 
+            <Nav />,
             <div>
                 <Switch>
                     <Route exact path="/" component={() => (
@@ -37,8 +39,7 @@ export default class RouterComponent extends Component {
                         return <NotFound />
                     }}/>
                 </Switch>
-            </div>
-        );
+            </div>];
 
         if (typeof window === 'undefined') {
             return (

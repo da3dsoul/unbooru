@@ -85,7 +85,7 @@ namespace unbooru.Core
                     var evt = new StartupEventArgs { Args = args.ToArray(), Services = host.Services };
                     module.Main(evt);
                     if (!evt.Cancel) continue;
-                    logger?.LogWarning("{module} returned a cancellation request from startup. Closing", module);
+                    logger?.LogWarning("{Module} returned a cancellation request from startup. Closing", module);
                     return true;
                 }
                 catch (NotImplementedException)
@@ -94,7 +94,7 @@ namespace unbooru.Core
                 }
                 catch (Exception e)
                 {
-                    logger?.LogError(e, "{module} errored on startup: {ex}", module, e);
+                    logger?.LogError(e, "{Module} errored on startup: {Ex}", module, e);
                 }
             }
 

@@ -11,6 +11,6 @@ namespace unbooru.Web.SortParameters
         public override Type[] Types { get; } = { typeof(ArtistAccount) };
 
         public override Expression<Func<SearchViewModel, object>> Selector { get; } = a =>
-            a.ArtistAccounts.OrderBy(a => a.ArtistAccountId).FirstOrDefault().ArtistAccountId;
+            a.ArtistAccounts.OrderBy(b => b.ArtistAccountId).FirstOrDefault().ArtistAccountId;
     }
 }

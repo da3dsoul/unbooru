@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import ReactDOMServer from 'react-dom/server';
 
-import RootComponent from './router.jsx';
+import RootComponent from 'Content/router.jsx';
 import { ServerStyleSheet } from 'styled-components';
 import { JssProvider, SheetsRegistry } from 'react-jss';
 import { renderStylesToString } from 'emotion-server';

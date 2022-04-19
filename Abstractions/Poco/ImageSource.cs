@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace unbooru.Abstractions.Poco
 {
+    [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
     public class ImageSource
     {
         public int ImageSourceId { get; set; }

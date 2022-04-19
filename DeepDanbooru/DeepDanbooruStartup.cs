@@ -3,17 +3,17 @@ using Microsoft.Extensions.DependencyInjection;
 using unbooru.Abstractions.Interfaces;
 using unbooru.Abstractions.Poco.Events;
 
-namespace unbooru.Template
+namespace unbooru.DeepDanbooru
 {
-    public class TemplateStartup : IInfrastructureStartup
+    public class DeepDanbooruStartup : IInfrastructureStartup
     {
-        public string Id => "Template";
+        public string Id => "DeepDanbooru";
         public string Description => "lorem ipsum";
         public Version Version => new Version("0.0.0.1");
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IModule, TemplateModule>();
+            services.AddSingleton<IModule, DeepDanbooruModule>();
         }
 
         public void Main(StartupEventArgs args)

@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <RootNamespace>ImageInfrastructure.Template</RootNamespace>
-        <AssemblyName>ImageInfrastructure.Template</AssemblyName>
+        <RootNamespace>unbooru.Template</RootNamespace>
+        <AssemblyName>unbooru.Template</AssemblyName>
         <LangVersion>Latest</LangVersion>
     </PropertyGroup>
     <ItemGroup>

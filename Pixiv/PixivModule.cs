@@ -95,7 +95,7 @@ namespace unbooru.Pixiv
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, e.ToString());
+                        _logger.LogError(e, "An Error occurred: {Ex}", e.ToString());
                         await trans.RollbackAsync(token);
                     }
                 }
@@ -136,7 +136,7 @@ namespace unbooru.Pixiv
                 }
                 catch (HttpRequestException e)
                 {
-                    _logger.LogError(e, e.ToString());
+                    _logger.LogError(e, "An Error occurred: {Ex}", e.ToString());
                     if (e.StatusCode != HttpStatusCode.NotFound)
                     {
                         lastError++;
@@ -145,7 +145,7 @@ namespace unbooru.Pixiv
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, e.ToString());
+                    _logger.LogError(e, "An Error occurred: {Ex}", e.ToString());
                     lastError++;
                     if (lastError > 2) return (i, lastError);
                 }
@@ -332,7 +332,7 @@ namespace unbooru.Pixiv
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError("Unable to download {Uri}, retry {Retry}: {E}", content.Uri, RetryCount - retry + 1, e);
+                        _logger.LogError("Unable to download {Uri}, retry {Retry}: {E}", content.Uri, RetryCount - retry + 1, e.ToString());
                         retry--;
                         if (retry == 0) return prov;
                         Thread.Sleep(SleepTime);
@@ -396,7 +396,7 @@ namespace unbooru.Pixiv
                 catch (Exception e)
                 {
                     _logger.LogError("Unable to download {Uri}, retry {Retry}: {E}", avatar.Uri,
-                        RetryCount - retry + 1, e);
+                        RetryCount - retry + 1, e.ToString());
                     retry--;
                     if (retry == 0) return;
                     Thread.Sleep(SleepTime);

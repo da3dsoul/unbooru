@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using unbooru.Abstractions.Enums;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace unbooru.Abstractions.Poco
 {
+    [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
     public class ImageTag
     {
         public int ImageTagId { get; set; }
@@ -12,6 +14,7 @@ namespace unbooru.Abstractions.Poco
         public string Description { get; set; }
         public TagSafety Safety { get; set; }
         public string Type { get; set; }
+        public string Source { get; set; }
 
         [IgnoreDataMember]
         public virtual List<Image> Images { get; set; }

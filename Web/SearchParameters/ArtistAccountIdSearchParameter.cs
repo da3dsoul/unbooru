@@ -11,7 +11,7 @@ namespace unbooru.Web.SearchParameters
     {
         public override Expression<Func<SearchViewModel, bool>> Evaluate()
         {
-            return a => a.ArtistAccounts.Any(a => a.ArtistAccountId == ArtistAccountID);
+            return a => a.ArtistAccounts.Any(b => b.ArtistAccountId == ArtistAccountID);
         }
 
         public override Type[] Types { get; } = { typeof(ArtistAccount) };

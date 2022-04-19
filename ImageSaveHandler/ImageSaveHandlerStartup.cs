@@ -26,7 +26,8 @@ namespace unbooru.ImageSaveHandler
 
         public void Main(StartupEventArgs args)
         {
-            Parser.Default.ParseArguments<CLIModel>(args.Args)
+            var parser = new Parser(o => o.IgnoreUnknownArguments = true);
+            parser.ParseArguments<CLIModel>(args.Args)
                 .WithParsed(o =>
                 {
                     var logger = args.Services.GetService<ILogger<ImageSaveHandlerStartup>>();
@@ -65,7 +66,7 @@ namespace unbooru.ImageSaveHandler
                         if (eventArgs.Cancel) return;
                         index++;
                         var percent = Math.Floor(1000D * index / total);
-                        if (percent > Math.Floor(1000D * (index - 1D) / total)) logger?.LogInformation("{percent}% done processing files", Math.Round(percent / 10D, 1));
+                        if (percent > Math.Floor(1000D * (index - 1D) / total)) logger?.LogInformation("{Percent}% done processing files", Math.Round(percent / 10D, 1));
                     }
 
                     args.Cancel = true;

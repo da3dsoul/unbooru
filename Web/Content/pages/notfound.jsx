@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import ImageBox from "./imagebox.js";
+import ImageBox from "Content/components/imagebox";
 import axios from "axios";
 import ReactPaginate from "react-paginate";
 

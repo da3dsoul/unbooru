@@ -189,6 +189,49 @@ body {
 	border-top-right-radius: 5pt;
 }
 
+.Nav {
+	background-color: #2d2d2d;
+	border: solid black 2px;
+}
+
+.Nav__container {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+.Nav__brand {
+	margin: 1em;
+}
+
+.Nav__logo {
+	
+}
+
+.Nav__right {
+	align-self: center;
+	margin: 1em 1em 1em auto;
+}
+
+.Nav__item-wrapper {
+	margin: 1px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+.Nav__item {
+	padding: 0.5em;
+	margin-right: 0.25em;
+	margin-left: 0.25em;
+	border: white solid 1px;
+	border-radius: 0.5em;
+}
+
+.Nav__link, .Nav__link:hover, .Nav__link:focus, .Nav__link > a, .Nav__link > a:hover, .Nav__link > a:focus {
+	color: white;
+}
+
 @media (orientation: portrait) {
 	.info-container {
 		max-width: 100%;

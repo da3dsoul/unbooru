@@ -100,7 +100,7 @@ namespace unbooru.Pixiv.Jobs
             {
                 try
                 {
-                    logger.LogInformation("Getting User info for {id}", newArtist.Id);
+                    logger.LogInformation("Getting User info for {Id}", newArtist.Id);
                     if (string.IsNullOrEmpty(newArtist.Id) || newArtist.Id.Equals("0")) return true;
                     var user = await client.GetUserDetailAsync(int.Parse(newArtist.Id), token);
                     var avatar = user.Avatar;
@@ -119,7 +119,7 @@ namespace unbooru.Pixiv.Jobs
                     if (ex.StatusCode == HttpStatusCode.Forbidden) return true;
                     if (ex.StatusCode == HttpStatusCode.Unauthorized) return false;
                     logger.LogError(ex, "Unable to download {Uri}, retry {Retry}: {E}", newArtist.Id,
-                        4 - retry, ex);
+                        4 - retry, ex.ToString());
                     retry--;
                     if (retry == 0) return false;
                     Thread.Sleep(2000);

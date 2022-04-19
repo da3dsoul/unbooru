@@ -1,34 +1,37 @@
-import React, {useEffect} from 'react';
-import ImageBox from "./imagebox.js";
-import axios from "axios";
+import React, {useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
-import Stonemason from "@da3dsoul/react-stonemason";
 import {useLocation} from "react-router-dom";
+import axios from "axios";
+import queryString from "query-string";
+import ImageBox from "Content/components/imagebox";
+import Stonemason from "@da3dsoul/react-stonemason";
 
-export default function Missing() {
+export default function Random() {
     const imagesPerPage = 21;
     let query = useLocation().search.slice(1);
-    let [state, updateState] = React.useState({
+    const params = queryString.parse(query);
+    let page = params.page;
+    if (typeof page === 'undefined' || page === null) page = 1;
+    else {
+        const pageQuery = 'page=' + page;
+        query = query.replace('&'+pageQuery, '').replace('?'+pageQuery, '');
+    }
+    
+    let [state, updateState] = useState({
         images: [],
-        page: 1,
+        page: page,
         pages: 1
     });
+
     useEffect(() => window.scrollTo(0,0), [state.images]);
 
     useEffect(() => {
-        axios.get('/api/Image/Missing/Count').then(res => {
+        axios.get('/api/Search/Count' + (query === '' ? '' : '?' + query)).then(res => {
             updateState(prevState => ({
                 ...prevState,
                 pages: Math.ceil(res.data / imagesPerPage)
             }));
         });
-
-        axios.get(`/api/Image/Missing?limit=${imagesPerPage}`).then(res => {
-            updateState(prevState => ({
-                ...prevState,
-                images: res.data
-            }));
-        })
     }, [query])
 
     function goToPage(num) {
@@ -38,7 +41,7 @@ export default function Missing() {
             page: pageNum
         }));
 
-        let url = `/api/Image/Missing?limit=${imagesPerPage}&offset=${(pageNum-1)*imagesPerPage}`;
+        let url = `/api/Random?limit=${imagesPerPage}&${query}`;
         axios.get(url).then(res => {
             updateState(prevState => ({
                 ...prevState,
@@ -49,7 +52,7 @@ export default function Missing() {
 
     let imageNodes = state.images.map(image => {
         if (!image.hasOwnProperty("imageId")) return;
-        return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={(image.height + 120)} />);
+        return (<ImageBox id={image.imageId} key={image.imageId} image={image} width={image.width} height={(image.height)} />);
     });
 
     function getHeight(containerWidth) {
@@ -62,6 +65,7 @@ export default function Missing() {
                 {imageNodes}
             </Stonemason>
             <ReactPaginate
+                initialPage={page-1}
                 previousLabel={"<"}
                 nextLabel={">"}
                 breakLabel={"•••"}

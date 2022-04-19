@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace unbooru.Abstractions.Poco
 {
+    [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
     public class ArtistAccount
     {
         public int ArtistAccountId { get; set; }

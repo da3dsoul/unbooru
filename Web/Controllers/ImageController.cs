@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using ImageMagick;
 using unbooru.Abstractions.Poco;
@@ -47,11 +46,11 @@ namespace unbooru.Web.Controllers
         {
             var blob = await _dbHelper.GetImageBlobById(id);
             if (blob == default) return new NotFoundResult();
-            blob = ResizeImage(size, blob, upscale);
+            blob = ResizeImage(size, blob);
             return File(blob, MimeTypes.GetMimeType(filename));
         }
 
-        private static byte[] ResizeImage(string size, byte[] blob, bool upscale)
+        private static byte[] ResizeImage(string size, byte[] blob)
         {
             if ("small".Equals(size, StringComparison.InvariantCultureIgnoreCase))
             {

@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SauceNao", "SauceNao\SauceN
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meowtrix.PixivApi", "Meowtrix.PixivApi\Meowtrix.PixivApi.csproj", "{F8DF0E0B-A23E-40E7-992D-B0BED6A6C9DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepDanbooru", "DeepDanbooru\DeepDanbooru.csproj", "{2283B35F-EE88-46D8-B9D5-7EAB93770648}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,5 +96,9 @@ Global
 		{F8DF0E0B-A23E-40E7-992D-B0BED6A6C9DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8DF0E0B-A23E-40E7-992D-B0BED6A6C9DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8DF0E0B-A23E-40E7-992D-B0BED6A6C9DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2283B35F-EE88-46D8-B9D5-7EAB93770648}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2283B35F-EE88-46D8-B9D5-7EAB93770648}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2283B35F-EE88-46D8-B9D5-7EAB93770648}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2283B35F-EE88-46D8-B9D5-7EAB93770648}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

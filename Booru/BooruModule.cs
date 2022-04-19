@@ -92,6 +92,7 @@ namespace unbooru.Booru
                     var postTags = post.Tags.Where(a => a != null).Select(a => new ImageTag
                     {
                         Name = a.Replace("_", " "),
+                        Source = "BooruModule",
                         Images = new List<Image>()
                     }).ToList();
 

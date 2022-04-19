@@ -9,6 +9,15 @@ module.exports = {
 		path: path.resolve(__dirname, 'wwwroot/dist'),
 		publicPath: '/dist/'
 	},
+	resolve: {
+		modules: [
+			'node_modules',
+			path.resolve(__dirname + '/Content')
+		],
+		alias: {
+			Content: path.resolve(__dirname + '/Content')
+		}
+	},
 	mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
 	optimization: {
 		runtimeChunk: {

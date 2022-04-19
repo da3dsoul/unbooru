@@ -3,10 +3,10 @@ import ReactPaginate from "react-paginate";
 import {useLocation} from "react-router-dom";
 import axios from "axios";
 import queryString from "query-string";
-import ImageBox from "./imagebox.js";
+import ImageBox from "Content/components/imagebox.js";
 import Stonemason from "@da3dsoul/react-stonemason";
 
-export default function Random() {
+export default function Search() {
     const imagesPerPage = 21;
     let query = useLocation().search.slice(1);
     const params = queryString.parse(query);
@@ -41,7 +41,7 @@ export default function Random() {
             page: pageNum
         }));
 
-        let url = `/api/Random?limit=${imagesPerPage}&${query}`;
+        let url = `/api/Search?limit=${imagesPerPage}&offset=${(pageNum-1)*imagesPerPage}&${query}`;
         axios.get(url).then(res => {
             updateState(prevState => ({
                 ...prevState,
