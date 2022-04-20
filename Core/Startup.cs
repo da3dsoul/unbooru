@@ -210,6 +210,7 @@ namespace unbooru.Core
                 services.AddQuartzHostedService(a => a.WaitForJobsToComplete = true);
                 services.AddMemoryCache();
                 services.AddDbContext<CoreContext>();
+                services.AddScoped<IDatabaseContext>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<ImageTag>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<ArtistAccount>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IContext<Image>>(x => x.GetRequiredService<CoreContext>());
