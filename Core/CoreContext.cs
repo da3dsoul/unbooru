@@ -64,7 +64,7 @@ namespace unbooru.Core
         public async Task<ImageTag> Get(ImageTag tag, bool includeDepth = false, CancellationToken token = default)
         {
             var query = new Func<string, Task<ImageTag>>(name =>
-                ImageTags.AsSplitQuery().Include(a => a.TagSources).ThenInclude(a => a.Image).OrderBy(a => a.ImageTagId)
+                ImageTags.OrderBy(a => a.ImageTagId)
                     .FirstOrDefaultAsync(a => a.Name == name, token));
 
             return await Get(_tagCache, tag, a => a.Name, query);
@@ -149,6 +149,11 @@ namespace unbooru.Core
 
             return baseQuery;
 
+        }
+
+        public void Save()
+        {
+            SaveChanges();
         }
 
         public async Task<Image> Get(Image image, bool includeDepth = false, CancellationToken token = default)

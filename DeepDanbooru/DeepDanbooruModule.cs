@@ -84,6 +84,7 @@ namespace unbooru.DeepDanbooru
 
         public async Task FindTags(IServiceProvider provider, List<Image> images, CancellationToken token)
         {
+            if (token.IsCancellationRequested) return;
             _logger.LogInformation("Searching the abyss for tags for: {Image}",
                 string.Join(", ", images.Select(a => a.GetPixivFilename())));
             try
@@ -166,7 +167,6 @@ namespace unbooru.DeepDanbooru
                         Source = "DeepDanbooruModule"
                     };
                     image.TagSources.Add(edge);
-                    //tag.TagSources.Add(edge);
                 }
             }
         }

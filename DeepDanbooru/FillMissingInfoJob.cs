@@ -35,9 +35,11 @@ namespace unbooru.DeepDanbooru
 
                 foreach (var batch in images)
                 {
+                    if (context.CancellationToken.IsCancellationRequested) return;
                     var imageBatch = _context.Set<Image>(a => a.Blobs, a => a.TagSources, a => a.Sources)
                         .Where(a => batch.Contains(a.ImageId)).ToList();
                     await module.FindTags(ServiceProvider, imageBatch, context.CancellationToken);
+                    _context.Save();
                 }
             }
             catch (TaskCanceledException)

@@ -8,5 +8,6 @@ namespace unbooru.Abstractions.Interfaces
     public interface IDatabaseContext
     {
         IQueryable<T> Set<T>(params Expression<Func<T, IEnumerable>>[] includes) where T : class;
+        void Save();
     }
 }

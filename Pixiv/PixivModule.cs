@@ -37,18 +37,11 @@ namespace unbooru.Pixiv
         private const int SleepTime = 1500;
 
         public static bool CurrentlyImporting;
-        public static bool ShuttingDown;
 
         public PixivModule(ILogger<PixivModule> logger, ISettingsProvider<PixivSettings> settingsProvider)
         {
             _logger = logger;
             SettingsProvider = settingsProvider;
-        }
-
-        [ModuleShutdown]
-        public void Shutdown(IServiceProvider provider)
-        {
-            ShuttingDown = true;
         }
 
         public Task RunAsync(IServiceProvider provider, CancellationToken token)
@@ -171,7 +164,7 @@ namespace unbooru.Pixiv
                 {
                     if (i >= maxPosts) break;
                     if (!await iterator.MoveNextAsync()) break;
-                    if (ShuttingDown || token.IsCancellationRequested) break;
+                    if (token.IsCancellationRequested) break;
                     var image = iterator.Current;
 
                     _logger.LogInformation("Processing {Index}/{Total} from Pixiv: {Image} - {Title}", i + 1, maxPosts,
@@ -179,7 +172,7 @@ namespace unbooru.Pixiv
 
                     using var scope = provider.CreateScope();
                     var disc = ImageDiscovery(scope.ServiceProvider, image, token: token);
-                    if (ShuttingDown || token.IsCancellationRequested) break;
+                    if (token.IsCancellationRequested) break;
                     if (disc.Cancel || disc.Attachments.All(a => !a.Download))
                     {
                         _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
@@ -195,7 +188,7 @@ namespace unbooru.Pixiv
                     }
 
                     var prov = await ImageProviding(disc, image, token: token);
-                    if (ShuttingDown || token.IsCancellationRequested) break;
+                    if (token.IsCancellationRequested) break;
                     if (prov.Cancel)
                     {
                         _logger.LogInformation("Further Pixiv Downloading cancelled by provider subscriber");

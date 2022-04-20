@@ -189,8 +189,20 @@ namespace unbooru.Core
                     shutdown.Method.ReturnType.IsAssignableFrom(typeof(Task<>)))
                     return (Task) shutdown.Method.Invoke(shutdown.Instance, new object[] {_serviceProvider});
                 return Task.FromResult(shutdown.Method.Invoke(shutdown.Instance, new object[] {_serviceProvider}));
-            });
+            }).ToList();
+            tasks.Add(ShutdownQuartz());
             Task.WhenAll(tasks).Wait();
+        }
+
+        private async Task ShutdownQuartz()
+        {
+            var schedulerFactory = _serviceProvider.GetService<ISchedulerFactory>();
+            if (schedulerFactory == null) return;
+            var scheduler = await schedulerFactory.GetScheduler();
+            var jobs = await scheduler.GetCurrentlyExecutingJobs();
+            var tasks = jobs.Select(job => scheduler.Interrupt(job.FireInstanceId));
+            await Task.WhenAll(tasks);
+            await scheduler.Shutdown(waitForJobsToComplete: true);
         }
 
         public IHostBuilder CreateHostBuilder(string[] args)

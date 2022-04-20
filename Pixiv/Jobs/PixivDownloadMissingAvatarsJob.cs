@@ -56,6 +56,7 @@ namespace unbooru.Pixiv.Jobs
                 int i = 0;
                 foreach (var artistIds in artists.Batch(10))
                 {
+                    if (context.CancellationToken.IsCancellationRequested) return;
                     using var scope = ServiceProvider.CreateScope();
                     await using var scopeContext = scope.ServiceProvider.GetRequiredService<CoreContext>();
                     await using var trans = await scopeContext.Database.BeginTransactionAsync(context.CancellationToken);
