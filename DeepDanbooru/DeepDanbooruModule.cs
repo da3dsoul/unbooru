@@ -92,8 +92,6 @@ namespace unbooru.DeepDanbooru
                 var processedImages = PredictMultipleImages(images);
                 foreach (var (image, output) in processedImages)
                 {
-
-
                     var postTags = output.Select(a => new ImageTag
                     {
                         Name = a.Replace("_", " "),

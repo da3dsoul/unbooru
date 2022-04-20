@@ -31,7 +31,8 @@ namespace unbooru.DeepDanbooru
 
             try
             {
-                var images = _context.Set<Image>().Where(a => !a.TagSources.Any(b => b.Source == "DeepDanbooru")).OrderBy(a => a.ImportDate).ToList()
+                var images = _context.Set<Image>(a => a.Blobs, a => a.TagSources, a => a.TagSources.Select(b => b.Tag))
+                    .Where(a => !a.TagSources.Any(b => b.Source == "DeepDanbooru")).OrderBy(a => a.ImportDate).ToList()
                     .Batch(20);
 
                 foreach (var batch in images)

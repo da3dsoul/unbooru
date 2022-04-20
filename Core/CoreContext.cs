@@ -137,7 +137,7 @@ namespace unbooru.Core
             return func.Invoke(this);
         }
 
-        IQueryable<T> IDatabaseContext.Set<T>(IEnumerable<Expression<Func<T, IEnumerable>>> includes)
+        IQueryable<T> IDatabaseContext.Set<T>(params Expression<Func<T, IEnumerable>>[] includes)
         {
             if (includes != null)
             {
