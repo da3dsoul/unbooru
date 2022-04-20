@@ -7,7 +7,7 @@ export default class Nav extends Component {
             <nav className="Nav">
                 <div className="Nav__container">
                     <Link to="/" className="Nav__brand">
-                        <img src="favicon.png" className="Nav__logo"  alt=""/>
+                        <img src="/favicon.png" className="Nav__logo"  alt=""/>
                     </Link>
 
                     <div className="Nav__right">

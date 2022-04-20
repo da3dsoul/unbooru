@@ -46,7 +46,7 @@ export default function ImageDetail() {
         if (tagSource.tag.type === 'Character') color = "cyan";
         else if (tagSource.tag.type === 'Copyright') color = "pink"
         let append = "";
-        if (tagSource.source === 'DeepDanbooru') append = "*"
+        if (tagSource.source === 'DeepDanbooruModule') append = "*"
         return (<a key={tagSource.tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" style={{color: color}}
                    href={`/Search?TagID=${tagSource.tag.imageTagId}`}>{tagSource.tag.name + append}</a>)
     });

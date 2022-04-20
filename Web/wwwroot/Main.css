@@ -205,7 +205,8 @@ body {
 }
 
 .Nav__logo {
-	
+	width: 3em;
+	height: 3em;
 }
 
 .Nav__right {
