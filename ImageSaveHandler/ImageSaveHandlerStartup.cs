@@ -49,7 +49,7 @@ namespace unbooru.ImageSaveHandler
                     if (module == null) return;
 
                     var includes = new Expression<Func<Image, IEnumerable>>[]
-                        { a => a.Sources, a => a.ArtistAccounts, a => a.Tags, a => a.Blobs };
+                        { a => a.Sources, a => a.ArtistAccounts, a => a.TagSources, a => a.Blobs };
 
                     var index = 0;
                     var total = ids.Count;

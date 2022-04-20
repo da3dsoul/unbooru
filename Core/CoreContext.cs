@@ -187,7 +187,7 @@ namespace unbooru.Core
                 // to perform merge operations, we need everything...
                 // splitting this up to simplify the queries
                 existingImages = await Images.AsSplitQuery()
-                    .Include(a => a.Tags)
+                    .Include(a => a.TagSources)
                     .Include(a => a.Sources)
                     .Include(a => a.ArtistAccounts).ThenInclude(a => a.Images)
                     .Include(a => a.RelatedImages)
@@ -352,6 +352,9 @@ namespace unbooru.Core
             modelBuilder.Entity<ImageBlob>().HasOne(a => a.Image).WithMany(a => a.Blobs).IsRequired();
             modelBuilder.Entity<ImageTagSource>().HasOne(d => d.Image).WithMany(p => p.TagSources).HasForeignKey(d => d.ImagesImageId);
             modelBuilder.Entity<ImageTagSource>().HasOne(d => d.Tag).WithMany(p => p.TagSources).HasForeignKey(d => d.TagsImageTagId);
+            
+            // Auto-include
+            modelBuilder.Entity<ImageTagSource>().Navigation(a => a.Tag).AutoInclude();
         }
     }
 }

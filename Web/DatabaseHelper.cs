@@ -31,7 +31,6 @@ namespace unbooru.Web
             var image = await _context.Set<Image>().AsSplitQuery().AsNoTrackingWithIdentityResolution()
                 .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
                 .Include(a => a.TagSources.Where(t => t.Tag.Type != null))
-                .ThenInclude(a => a.Tag)
                 .Include(a => a.ArtistAccounts)
                 .OrderBy(a => a.ImageId)
                 .FirstOrDefaultAsync(a => a.ImageId == id);
