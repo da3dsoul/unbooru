@@ -139,18 +139,16 @@ namespace unbooru.Core
 
         IQueryable<T> IDatabaseContext.Set<T>(params Expression<Func<T, IEnumerable>>[] includes)
         {
-            if (includes != null)
-            {
-                IQueryable<T> baseQuery = base.Set<T>();
-                foreach (var include in includes)
-                {
-                    baseQuery = baseQuery.Include(include);
-                }
+            if (includes == null || includes.Length <= 0) return base.Set<T>();
 
-                return baseQuery;
+            var baseQuery = base.Set<T>().AsSplitQuery();
+            foreach (var include in includes)
+            {
+                baseQuery = baseQuery.Include(include);
             }
 
-            return base.Set<T>();
+            return baseQuery;
+
         }
 
         public async Task<Image> Get(Image image, bool includeDepth = false, CancellationToken token = default)

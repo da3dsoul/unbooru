@@ -209,37 +209,6 @@ namespace unbooru.Booru
         public Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
             return Task.CompletedTask;
-            /*var context = provider.GetRequiredService<CoreContext>();
-            var imageIds = context.Set<Image>().OrderByDescending(a => a.ImageId).Select(a => a.ImageId).Skip(1526).Take(6774);
-
-            var i = 1;
-            foreach (var imageId in imageIds)
-            {
-                var scope = provider.CreateScope();
-                var scopeContext = scope.ServiceProvider.GetRequiredService<CoreContext>();
-                var image = await scopeContext.Images.AsSplitQuery().Include(a => a.Tags).Include(a => a.Sources)
-                    .Include(a => a.ArtistAccounts).ThenInclude(a => a.Images).Include(a => a.RelatedImages)
-                    .OrderByDescending(a => a.ImageId).FirstOrDefaultAsync(a => a.ImageId == imageId, token);
-                if (image == null || token.IsCancellationRequested) return;
-                await FindTags(scope.ServiceProvider, image, token);
-                if (token.IsCancellationRequested) return;
-
-                await using var trans = await scopeContext.Database.BeginTransactionAsync(token);
-                try
-                {
-                    await scopeContext.ImageTags.AddRangeAsync(image.Tags.Where(a => a.ImageTagId == 0).Distinct(), token);
-                    await scopeContext.SaveChangesAsync(token);
-                    await trans.CommitAsync(token);
-                    _logger.LogInformation("Finished saving {Index}/6774 images to database for {Image}", i, image.GetPixivFilename());
-                }
-                catch (Exception exception)
-                {
-                    await trans.RollbackAsync(token);
-                    _logger.LogError(exception, "Unable to write {File}: {Exception}", image.GetPixivFilename(), exception);
-                }
-
-                i++;
-            }*/
         }
     }
 }
