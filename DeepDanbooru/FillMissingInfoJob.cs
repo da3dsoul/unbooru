@@ -30,13 +30,14 @@ namespace unbooru.DeepDanbooru
 
             try
             {
-                var images = _context.Set<Image>(a => a.Blobs, a => a.TagSources)
-                    .Where(a => !a.TagSources.Any(b => b.Source == "DeepDanbooru")).OrderBy(a => a.ImportDate).ToList()
-                    .Batch(20);
+                var images = _context.Set<Image>().Where(a => !a.TagSources.Any(b => b.Source == "DeepDanbooru"))
+                    .Select(a => a.ImageId).OrderBy(a => a).ToList().Batch(20);
 
                 foreach (var batch in images)
                 {
-                    await module.FindTags(ServiceProvider, batch.ToList(), context.CancellationToken);
+                    var imageBatch = _context.Set<Image>(a => a.Blobs, a => a.TagSources, a => a.Sources)
+                        .Where(a => batch.Contains(a.ImageId)).ToList();
+                    await module.FindTags(ServiceProvider, imageBatch, context.CancellationToken);
                 }
             }
             catch (TaskCanceledException)

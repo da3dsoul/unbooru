@@ -13,12 +13,12 @@ namespace unbooru.Web.SearchParameters
         public override Expression<Func<SearchViewModel, bool>> Evaluate()
         {
             if (AnyTag)
-                return a => a.Tags.Any() &&
-                            (!IncludedTagIds.Any() || a.Tags.Any(b => IncludedTagIds.Contains(b.ImageTagId))) &&
-                            a.Tags.All(b => !ExcludedTagIds.Contains(b.ImageTagId));
-            return a => a.Tags.Any() &&
-                        (!IncludedTagIds.Any() || a.Tags.Count(b => IncludedTagIds.Contains(b.ImageTagId)) ==
-                            IncludedTagIds.Count()) && a.Tags.All(b => !ExcludedTagIds.Contains(b.ImageTagId));
+                return a => a.TagSources.Any() &&
+                            (!IncludedTagIds.Any() || a.TagSources.Any(b => IncludedTagIds.Contains(b.TagsImageTagId))) &&
+                            a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
+            return a => a.TagSources.Any() &&
+                        (!IncludedTagIds.Any() || a.TagSources.Count(b => IncludedTagIds.Contains(b.TagsImageTagId)) ==
+                            IncludedTagIds.Count()) && a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
         }
 
         public override Type[] Types { get; } = { typeof(ImageTag) };

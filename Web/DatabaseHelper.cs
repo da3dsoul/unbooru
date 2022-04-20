@@ -150,13 +150,13 @@ namespace unbooru.Web
             if (searchParameters.Any(a => a.Types.Contains(typeof(ImageTag))) ||
                 sortParameters.Any(a => a.Types.Contains(typeof(ImageTag))))
             {
-                images = images.Select(a => new SearchViewModel { Image = a.Image, Tags = a.Image.Tags });
+                images = images.Select(a => new SearchViewModel { Image = a.Image, TagSources = a.Image.TagSources });
             }
 
             if (searchParameters.Any(a => a.Types.Contains(typeof(ArtistAccount))) ||
                 sortParameters.Any(a => a.Types.Contains(typeof(ArtistAccount))))
             {
-                images = images.Select(a => new SearchViewModel { Image = a.Image, Tags = a.Tags, ArtistAccounts = a.Image.ArtistAccounts});
+                images = images.Select(a => new SearchViewModel { Image = a.Image, TagSources = a.TagSources, ArtistAccounts = a.Image.ArtistAccounts});
             }
 
             if (searchParameters.Any(a => a.Types.Contains(typeof(ImageBlob))) ||
@@ -166,7 +166,7 @@ namespace unbooru.Web
                     .GroupJoin(_context.Set<ImageBlob>(), model => model.Image.ImageId,
                         blob => EF.Property<int>(blob, "ImageId"), (model, blobs) => new { model, blob = blobs })
                     .SelectMany(a => a.blob.DefaultIfEmpty(),
-                        (a, b) => new SearchViewModel { Image = a.model.Image, Blob = b, Tags = a.model.Tags });
+                        (a, b) => new SearchViewModel { Image = a.model.Image, Blob = b, TagSources = a.model.TagSources });
             }
 
             if (searchParameters.Any(a => a.Types.Contains(typeof(ImageSource))) ||
@@ -177,7 +177,7 @@ namespace unbooru.Web
                         source => EF.Property<int>(source, "ImageId"), (model, source) => new { model, source })
                     .SelectMany(a => a.source.DefaultIfEmpty(),
                         (a, b) => new SearchViewModel
-                            { Image = a.model.Image, Blob = a.model.Blob, PixivSource = b, Tags = a.model.Tags })
+                            { Image = a.model.Image, Blob = a.model.Blob, PixivSource = b, TagSources = a.model.TagSources })
                     .Where(a => a.PixivSource.Source == "Pixiv");
             }
 

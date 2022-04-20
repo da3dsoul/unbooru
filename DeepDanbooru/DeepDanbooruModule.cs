@@ -166,7 +166,7 @@ namespace unbooru.DeepDanbooru
                         Source = "DeepDanbooruModule"
                     };
                     image.TagSources.Add(edge);
-                    tag.TagSources.Add(edge);
+                    //tag.TagSources.Add(edge);
                 }
             }
         }

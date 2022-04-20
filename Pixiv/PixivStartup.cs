@@ -19,7 +19,7 @@ namespace unbooru.Pixiv
             services.AddSingleton<IModule>(x => x.GetRequiredService<PixivModule>());
             services.AddSingleton<IServiceModule>(x => x.GetRequiredService<PixivModule>());
             services.AddSingleton<IImageProvider>(x => x.GetRequiredService<PixivModule>());
-            services.AddOptions<QuartzOptions>().Configure(options =>
+            /*services.AddOptions<QuartzOptions>().Configure(options =>
             {
                 var importKey = new JobKey("PixivImport", "Pixiv");
                 options.AddJob<PixivImportJob>(builder => builder.WithIdentity(importKey));
@@ -39,7 +39,7 @@ namespace unbooru.Pixiv
                 options.AddTrigger(builder =>
                     builder.WithIdentity("PixivAvatarTrigger", "Pixiv").ForJob(avatarKey)
                         .StartAt(DateTimeOffset.Now + TimeSpan.FromSeconds(5)));
-            });
+            });*/
         }
 
         public void Main(StartupEventArgs args)
