@@ -24,19 +24,21 @@ namespace unbooru.Web.Controllers
         {
             var image = await _dbHelper.GetImageById(id);
             if (image == null) return new NotFoundResult();
-            image.Tags.Sort((a, b) =>
+            image.TagSources.Sort((a, b) =>
             {
-                if (a.Type == null && b.Type == null) return 0;
-                if (a.Type == null) return 1;
-                if (b.Type == null) return -1;
-                var aIndex = Array.IndexOf(TagOrder, a.Type.ToLowerInvariant());
-                var bIndex = Array.IndexOf(TagOrder, b.Type.ToLowerInvariant());
+                if (a.Tag?.Type == null && b.Tag?.Type == null) return 0;
+                if (a.Tag?.Type == null) return 1;
+                if (b.Tag?.Type == null) return -1;
+                var aIndex = Array.IndexOf(TagOrder, a.Tag.Type.ToLowerInvariant());
+                var bIndex = Array.IndexOf(TagOrder, b.Tag.Type.ToLowerInvariant());
                 var compare = aIndex.CompareTo(bIndex);
                 if (compare != 0) return compare;
-                if (a.Name == null && b.Name == null) return 0;
-                if (a.Name == null) return -1;
-                if (b.Name == null) return -1;
-                return string.Compare(a.Name, b.Name, StringComparison.InvariantCultureIgnoreCase);
+                if (a.Tag.Name == null && b.Tag.Name == null) return 0;
+                if (a.Tag.Name == null) return 1;
+                if (b.Tag.Name == null) return -1;
+                var nameCompare = string.Compare(a.Tag.Name, b.Tag.Name, StringComparison.InvariantCultureIgnoreCase);
+                if (nameCompare != 0) return nameCompare;
+                return string.Compare(a.Source, b.Source, StringComparison.InvariantCultureIgnoreCase);
             });
             return image;
         }

@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.Serialization;
+using MoreLinq;
 using unbooru.Abstractions.Enums;
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace unbooru.Abstractions.Poco
@@ -14,10 +17,12 @@ namespace unbooru.Abstractions.Poco
         public string Description { get; set; }
         public TagSafety Safety { get; set; }
         public string Type { get; set; }
-        public string Source { get; set; }
 
         [IgnoreDataMember]
-        public virtual List<Image> Images { get; set; }
+        [NotMapped]
+        public IReadOnlyList<Image> Images => TagSources.Select(a => a.Image).DistinctBy(a => a.ImageId).ToList();
+        [IgnoreDataMember]
+        public virtual List<ImageTagSource> TagSources { get; set; }
 
         protected bool Equals(ImageTag other)
         {

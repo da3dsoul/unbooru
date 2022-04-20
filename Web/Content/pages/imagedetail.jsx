@@ -41,14 +41,14 @@ export default function ImageDetail() {
 
     const pixiv = state.image.sources.find(isPixivSource);
     const artistInfo = state.image.artistAccounts.map(aa => <ArtistLink key={aa.artistAccountId} artist={aa} />);
-    const tags = state.image.tags.map(tag => {
+    const tags = state.image.tagSources.map(tagSource => {
         let color = "white";
-        if (tag.type === 'Character') color = "cyan";
-        else if (tag.type === 'Copyright') color = "pink"
+        if (tagSource.tag.type === 'Character') color = "cyan";
+        else if (tagSource.tag.type === 'Copyright') color = "pink"
         let append = "";
         if (tag.source === 'DeepDanbooru') append = "*"
-        return (<a key={tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" style={{color: color}}
-                   href={`/Search?TagID=${tag.imageTagId}`}>{tag.name + append}</a>)
+        return (<a key={tagSource.tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" style={{color: color}}
+                   href={`/Search?TagID=${tagSource.tag.imageTagId}`}>{tagSource.tag.name + append}</a>)
     });
 
     const description = pixiv.description !== null && pixiv.description.length > 0 ?

@@ -36,6 +36,7 @@ namespace unbooru.Core
         [UsedImplicitly] public DbSet<ArtistAccount> ArtistAccounts { get; set; }
         [UsedImplicitly] public DbSet<ImageSource> ImageSources { get; set; }
         [UsedImplicitly] public DbSet<RelatedImage> RelatedImages { get; set; }
+        [UsedImplicitly] public DbSet<ImageTagSource> ImageImageTags { get; set; }
         [UsedImplicitly] public DbSet<ImageTag> ImageTags { get; set; }
         [UsedImplicitly] public DbSet<ResponseCache> ResponseCaches { get; set; }
 
@@ -309,6 +310,9 @@ namespace unbooru.Core
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Table Override
+            modelBuilder.Entity<ImageTagSource>().ToTable("ImageImageTag");
+
             // nullability
             modelBuilder.Entity<Image>().Property(a => a.Width).IsRequired();
             modelBuilder.Entity<Image>().Property(a => a.Height).IsRequired();
@@ -337,13 +341,17 @@ namespace unbooru.Core
             modelBuilder.Entity<ArtistAccount>().HasIndex(a => a.Url).IsUnique();
             modelBuilder.Entity<ResponseCache>().HasIndex(a => a.Uri).IsUnique();
             modelBuilder.Entity<ResponseCache>().HasIndex(a => new {a.LastUpdated, a.StatusCode});
+            modelBuilder.Entity<ImageTagSource>().HasIndex(e => e.TagsImageTagId, "IX_ImageImageTag_TagsImageTagId");
 
             // keys
             modelBuilder.Entity<ArtistAccount>().HasKey(a => a.ArtistAccountId);
+            modelBuilder.Entity<ImageTagSource>().HasKey(e => new { e.ImagesImageId, e.TagsImageTagId });
 
             // mappings
             modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);
             modelBuilder.Entity<ImageBlob>().HasOne(a => a.Image).WithMany(a => a.Blobs).IsRequired();
+            modelBuilder.Entity<ImageTagSource>().HasOne(d => d.Image).WithMany(p => p.TagSources).HasForeignKey(d => d.ImagesImageId);
+            modelBuilder.Entity<ImageTagSource>().HasOne(d => d.Tag).WithMany(p => p.TagSources).HasForeignKey(d => d.TagsImageTagId);
         }
     }
 }

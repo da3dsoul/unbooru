@@ -290,7 +290,7 @@ namespace unbooru.Pixiv
                         }
                     },
                     ArtistAccounts = new List<ArtistAccount> {newArtist},
-                    Tags = new List<ImageTag>()
+                    TagSources = new List<ImageTagSource>()
                 }).ToList()
             };
 

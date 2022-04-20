@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Runtime.Serialization;
+using MoreLinq;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace unbooru.Abstractions.Poco
 {
@@ -36,7 +39,10 @@ namespace unbooru.Abstractions.Poco
         public virtual List<ArtistAccount> ArtistAccounts { get; set; }
 
         public virtual List<ImageSource> Sources { get; set; }
-        public virtual List<ImageTag> Tags { get; set; }
+        [IgnoreDataMember]
+        [NotMapped]
+        public IReadOnlyList<ImageTag> Tags => TagSources.Select(a => a.Tag).DistinctBy(a => a.ImageTagId).ToList();
+        public virtual List<ImageTagSource> TagSources { get; set; }
 
         [IgnoreDataMember]
         public virtual List<RelatedImage> RelatedImages { get; set; }

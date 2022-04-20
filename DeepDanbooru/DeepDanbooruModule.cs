@@ -97,8 +97,7 @@ namespace unbooru.DeepDanbooru
                     var postTags = output.Select(a => new ImageTag
                     {
                         Name = a.Replace("_", " "),
-                        Source = "DeepDanbooruModule",
-                        Images = new List<Image>()
+                        TagSources = new List<ImageTagSource>()
                     }).ToList();
 
                     sw.Restart();
@@ -112,7 +111,7 @@ namespace unbooru.DeepDanbooru
                     _logger.LogInformation("Got tags from database in {Time}", sw.Elapsed.ToString("g"));
 
                     sw.Restart();
-                    image.Tags.AddRange(outputTags.Where(tag => !image.Tags.Contains(tag)));
+                    WriteTagsToModel(image, outputTags);
 
                     sw.Stop();
                     _logger.LogInformation("Post processing tags finished in {Time}", sw.Elapsed.ToString("g"));
@@ -154,6 +153,24 @@ namespace unbooru.DeepDanbooru
             }
 
             return data;
+        }
+
+        private void WriteTagsToModel(Image image, List<ImageTag> outputTags)
+        {
+            foreach (var tag in outputTags)
+            {
+                if (!image.Tags.Contains(tag))
+                {
+                    var edge = new ImageTagSource
+                    {
+                        Image = image,
+                        Tag = tag,
+                        Source = "DeepDanbooruModule"
+                    };
+                    image.TagSources.Add(edge);
+                    tag.TagSources.Add(edge);
+                }
+            }
         }
 
         public Task RunAsync(IServiceProvider provider, CancellationToken token)

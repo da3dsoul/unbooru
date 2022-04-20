@@ -92,8 +92,7 @@ namespace unbooru.Booru
                     var postTags = post.Tags.Where(a => a != null).Select(a => new ImageTag
                     {
                         Name = a.Replace("_", " "),
-                        Source = "BooruModule",
-                        Images = new List<Image>()
+                        TagSources = new List<ImageTagSource>()
                     }).ToList();
 
                     sw.Restart();
@@ -183,7 +182,14 @@ namespace unbooru.Booru
                 var updateTag = string.IsNullOrEmpty(tag.Type);
                 if (!image.Tags.Contains(tag))
                 {
-                    image.Tags.Add(tag);
+                    var edge = new ImageTagSource
+                    {
+                        Image = image,
+                        Tag = tag,
+                        Source = "BooruModule"
+                    };
+                    image.TagSources.Add(edge);
+                    tag.TagSources.Add(edge);
                 }
 
                 if (!updateTag) continue;

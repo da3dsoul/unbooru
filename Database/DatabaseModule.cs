@@ -11,6 +11,7 @@ using unbooru.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using unbooru.Abstractions.Poco;
 
 namespace unbooru.Database
 {
@@ -60,10 +61,10 @@ namespace unbooru.Database
             try
             {
                 _logger.LogInformation("Saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
-                context.ArtistAccounts.AddRange(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct());
-                context.ImageTags.AddRange(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct());
-                context.RelatedImages.AddRange(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct());
-                context.Images.AddRange(e.Images.Where(a => a.ImageId == 0).Distinct());
+                context.Set<ArtistAccount>().AddRange(e.Images.SelectMany(a => a.ArtistAccounts).Where(a => a.ArtistAccountId == 0).Distinct());
+                context.Set<ImageTag>().AddRange(e.Images.SelectMany(a => a.Tags).Where(a => a.ImageTagId == 0).Distinct());
+                context.Set<RelatedImage>().AddRange(e.Images.SelectMany(a => a.RelatedImages).Where(a => a.RelatedImageId == 0).Distinct());
+                context.Set<Image>().AddRange(e.Images.Where(a => a.ImageId == 0).Distinct());
                 await context.SaveChangesAsync(e.CancellationToken);
                 await trans.CommitAsync(e.CancellationToken);
                 _logger.LogInformation("Finished saving {Count} images to database for {Image}", e.Images.Count, e.Images.FirstOrDefault()?.GetPixivFilename());
