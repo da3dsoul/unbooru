@@ -12,5 +12,6 @@
         <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="11.1.0" />
         <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.11.0" />
         <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.7.1" />
+        <PackageReference Include="morelinq" Version="3.3.2" />
     </ItemGroup>
 </Project>

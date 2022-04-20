@@ -45,8 +45,10 @@ export default function ImageDetail() {
         let color = "white";
         if (tag.type === 'Character') color = "cyan";
         else if (tag.type === 'Copyright') color = "pink"
+        let append = "";
+        if (tag.source === 'DeepDanbooru') append = "*"
         return (<a key={tag.imageTagId.toString()} target="_blank" rel="noopener noreferrer" style={{color: color}}
-                   href={`/Search?TagID=${tag.imageTagId}`}>{tag.name}</a>)
+                   href={`/Search?TagID=${tag.imageTagId}`}>{tag.name + append}</a>)
     });
 
     const description = pixiv.description !== null && pixiv.description.length > 0 ?

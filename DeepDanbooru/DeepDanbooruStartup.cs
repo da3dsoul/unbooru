@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
 using unbooru.Abstractions.Interfaces;
 using unbooru.Abstractions.Poco.Events;
 
@@ -13,7 +14,16 @@ namespace unbooru.DeepDanbooru
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IModule, DeepDanbooruModule>();
+            services.AddSingleton<DeepDanbooruModule>();
+            services.AddSingleton<IModule>(x => x.GetRequiredService<DeepDanbooruModule>());
+            services.AddOptions<QuartzOptions>().Configure(options =>
+            {
+                var importKey = new JobKey("FillMissingInfo", "DeepDanbooru");
+                options.AddJob<FillMissingInfoJob>(builder => builder.WithIdentity(importKey));
+                options.AddTrigger(builder =>
+                    builder.WithIdentity("FillMissingInfoTrigger", "DeepDanbooru").ForJob(importKey)
+                        .StartAt(DateTimeOffset.Now + TimeSpan.FromSeconds(5)));
+            });
         }
 
         public void Main(StartupEventArgs args)

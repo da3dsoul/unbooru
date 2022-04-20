@@ -82,7 +82,7 @@ namespace unbooru.DeepDanbooru
             return FindTags(e.ServiceProvider, e.Images, e.CancellationToken);
         }
 
-        private async Task FindTags(IServiceProvider provider, List<Image> images, CancellationToken token)
+        public async Task FindTags(IServiceProvider provider, List<Image> images, CancellationToken token)
         {
             _logger.LogInformation("Searching the abyss for tags for: {Image}",
                 string.Join(", ", images.Select(a => a.GetPixivFilename())));
