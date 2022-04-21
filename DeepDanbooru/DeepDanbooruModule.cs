@@ -142,7 +142,7 @@ namespace unbooru.DeepDanbooru
         
         private static float[] GetImage(byte[] imageBlob)
         {
-            using var mImage = new MagickImage(imageBlob);
+            using var mImage = new MagickImage(imageBlob.ToArray());
             mImage.Quality = 100;
             mImage.HasAlpha = true;
             mImage.Resize(new MagickGeometry($"{ModelInput.Width}>x{ModelInput.Height}>"));

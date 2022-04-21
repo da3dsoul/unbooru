@@ -13,12 +13,10 @@ namespace unbooru.DeepDanbooru
     public class FillMissingInfoJob : IJob
     {
         private IServiceProvider ServiceProvider { get; }
-        private readonly IDatabaseContext _context;
 
-        public FillMissingInfoJob(IServiceProvider serviceProvider, IDatabaseContext context)
+        public FillMissingInfoJob(IServiceProvider serviceProvider)
         {
             ServiceProvider = serviceProvider;
-            _context = context;
         }
 
         public async Task Execute(IJobExecutionContext context)
@@ -30,16 +28,21 @@ namespace unbooru.DeepDanbooru
 
             try
             {
-                var images = _context.Set<Image>().Where(a => !a.TagSources.Any(b => b.Source == "DeepDanbooruModule"))
-                    .Select(a => a.ImageId).OrderByDescending(a => a).ToList().Batch(20);
+                var _context = ServiceProvider.GetRequiredService<IDatabaseContext>();
+                var images = _context.ReadOnlySet<Image>().Where(a => !a.TagSources.Any(b => b.Source == "DeepDanbooruModule"))
+                    .Select(a => a.ImageId).OrderByDescending(a => a).ToArray();
 
-                foreach (var batch in images)
+                int i = 0;
+                foreach (var batch in images.Batch(20))
                 {
+                    if (i == 20) Console.WriteLine("Done 20 more");
                     if (context.CancellationToken.IsCancellationRequested) return;
-                    var imageBatch = _context.Set<Image>(a => a.Blobs, a => a.TagSources, a => a.Sources)
+                    var dbContext = ServiceProvider.GetRequiredService<IDatabaseContext>();
+                    var imageBatch = dbContext.Set<Image>(a => a.Blobs, a => a.TagSources, a => a.Sources)
                         .Where(a => batch.Contains(a.ImageId)).ToList();
                     await module.FindTags(ServiceProvider, imageBatch, context.CancellationToken);
-                    _context.Save();
+                    dbContext.Save();
+                    i++;
                 }
             }
             catch (TaskCanceledException)

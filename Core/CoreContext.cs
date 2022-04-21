@@ -147,7 +147,19 @@ namespace unbooru.Core
             }
 
             return baseQuery;
+        }
 
+        IQueryable<T> IDatabaseContext.ReadOnlySet<T>(params Expression<Func<T, object>>[] includes)
+        {
+            if (includes == null || includes.Length <= 0) return base.Set<T>().AsNoTrackingWithIdentityResolution();
+
+            var baseQuery = base.Set<T>().AsNoTrackingWithIdentityResolution().AsSplitQuery();
+            foreach (var include in includes)
+            {
+                baseQuery = baseQuery.Include(include);
+            }
+
+            return baseQuery;
         }
 
         public void Save()

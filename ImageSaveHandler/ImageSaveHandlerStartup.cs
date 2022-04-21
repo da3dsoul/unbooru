@@ -32,16 +32,14 @@ namespace unbooru.ImageSaveHandler
                     var logger = args.Services.GetService<ILogger<ImageSaveHandlerStartup>>();
                     if (!o.Sync) return;
                     logger?.LogInformation("Folder sync starting");
-                    var context = args.Services.GetService<IContext<Image>>();
+                    var context = args.Services.GetService<IDatabaseContext>();
                     var settingsProvider = args.Services.GetService<ISettingsProvider<ImageSaveHandlerSettings>>();
                     var exclude = settingsProvider?.Get(a => a.ExcludeTags);
                     if (exclude == null) return;
 
                     var token = new CancellationToken();
-                    var ids = context?.Execute(c =>
-                        c.Set<Image>()
-                            .Where(i => i.Tags.Any() && !i.Tags.Select(a => a.Name).Any(a => exclude.Contains(a)))
-                            .Select(a => a.ImageId).ToList());
+                    var ids = context?.Set<Image>().Where(i => i.Tags.Any() && !i.Tags.Select(a => a.Name).Any(a => exclude.Contains(a)))
+                        .Select(a => a.ImageId).ToList();
                     if (ids == null) return;
 
                     var module = (ImageSaveHandlerModule) args.Services.GetServices<IModule>().FirstOrDefault(a => a is ImageSaveHandlerModule);
@@ -54,7 +52,7 @@ namespace unbooru.ImageSaveHandler
                     var total = ids.Count;
                     foreach (var id in ids)
                     {
-                        var image = context.Execute(c => c.Set(includes).FirstOrDefault(a => a.ImageId == id));
+                        var image = context.Set(includes).FirstOrDefault(a => a.ImageId == id);
 
                         var eventArgs = new ImageProvidedEventArgs
                         {
