@@ -31,7 +31,7 @@ namespace unbooru.DeepDanbooru
             try
             {
                 var images = _context.Set<Image>().Where(a => !a.TagSources.Any(b => b.Source == "DeepDanbooru"))
-                    .Select(a => a.ImageId).OrderBy(a => a).ToList().Batch(20);
+                    .Select(a => a.ImageId).OrderByDescending(a => a).ToList().Batch(20);
 
                 foreach (var batch in images)
                 {
