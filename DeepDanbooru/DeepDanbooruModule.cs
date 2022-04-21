@@ -158,14 +158,14 @@ namespace unbooru.DeepDanbooru
         {
             foreach (var tag in outputTags)
             {
-                if (!image.Tags.Contains(tag))
+                var edge = new ImageTagSource
                 {
-                    var edge = new ImageTagSource
-                    {
-                        Image = image,
-                        Tag = tag,
-                        Source = "DeepDanbooruModule"
-                    };
+                    Image = image,
+                    Tag = tag,
+                    Source = "DeepDanbooruModule"
+                };
+                if (!image.TagSources.Any(a => a == edge))
+                {
                     image.TagSources.Add(edge);
                 }
             }

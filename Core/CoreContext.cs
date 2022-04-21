@@ -348,7 +348,7 @@ namespace unbooru.Core
 
             // keys
             modelBuilder.Entity<ArtistAccount>().HasKey(a => a.ArtistAccountId);
-            modelBuilder.Entity<ImageTagSource>().HasKey(e => new { e.ImagesImageId, e.TagsImageTagId });
+            modelBuilder.Entity<ImageTagSource>().HasKey(e => new { e.ImagesImageId, e.TagsImageTagId, e.Source });
 
             // mappings
             modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);

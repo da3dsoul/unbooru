@@ -180,16 +180,15 @@ namespace unbooru.Booru
             foreach (var tag in outputTags)
             {
                 var updateTag = string.IsNullOrEmpty(tag.Type);
-                if (!image.Tags.Contains(tag))
+                var edge = new ImageTagSource
                 {
-                    var edge = new ImageTagSource
-                    {
-                        Image = image,
-                        Tag = tag,
-                        Source = "BooruModule"
-                    };
+                    Image = image,
+                    Tag = tag,
+                    Source = "DeepDanbooruModule"
+                };
+                if (!image.TagSources.Any(a => a == edge))
+                {
                     image.TagSources.Add(edge);
-                    tag.TagSources.Add(edge);
                 }
 
                 if (!updateTag) continue;
