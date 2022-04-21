@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using unbooru.Abstractions.Attributes;
 using unbooru.Abstractions.Interfaces;
 using unbooru.Abstractions.Poco;
 using unbooru.Abstractions.Poco.Events;

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -48,7 +47,7 @@ namespace unbooru.ImageSaveHandler
                     var module = (ImageSaveHandlerModule) args.Services.GetServices<IModule>().FirstOrDefault(a => a is ImageSaveHandlerModule);
                     if (module == null) return;
 
-                    var includes = new Expression<Func<Image, IEnumerable>>[]
+                    var includes = new Expression<Func<Image, object>>[]
                         { a => a.Sources, a => a.ArtistAccounts, a => a.TagSources, a => a.Blobs };
 
                     var index = 0;

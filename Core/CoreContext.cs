@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -137,7 +136,7 @@ namespace unbooru.Core
             return func.Invoke(this);
         }
 
-        IQueryable<T> IDatabaseContext.Set<T>(params Expression<Func<T, IEnumerable>>[] includes)
+        IQueryable<T> IDatabaseContext.Set<T>(params Expression<Func<T, object>>[] includes)
         {
             if (includes == null || includes.Length <= 0) return base.Set<T>();
 
