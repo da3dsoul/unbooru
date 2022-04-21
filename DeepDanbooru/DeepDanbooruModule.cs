@@ -41,8 +41,14 @@ namespace unbooru.DeepDanbooru
             var modelLocation = Path.Combine(Arguments.DataPath, "DeepDanbooru", "model-resnet-custom_v3.onnx");
             if (!File.Exists(modelLocation)) return null;
             // Define scoring pipeline
-            var estimator = _mlContext.Transforms.ApplyOnnxModel(ModelOutput.OutputString, ModelInput.InputString,
-                modelLocation);
+            var estimator = _mlContext.Transforms.ApplyOnnxModel(new()
+            {
+                InputColumns = new[] { ModelInput.InputString },
+                OutputColumns = new[] { ModelOutput.OutputString },
+                ModelFile = modelLocation,
+                InterOpNumThreads = 10,
+                IntraOpNumThreads = 10
+            });
 
             var transformer = estimator.Fit(_mlContext.Data.LoadFromEnumerable(Array.Empty<ModelInput>()));
             return transformer;

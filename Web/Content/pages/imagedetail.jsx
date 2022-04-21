@@ -42,7 +42,7 @@ export default function ImageDetail() {
     const pixiv = state.image.sources.find(isPixivSource);
     const artistInfo = state.image.artistAccounts.map(aa => <ArtistLink key={aa.artistAccountId} artist={aa} />);
     const tags = state.image.tagSources.filter((item, pos, self) => {
-        return self.findIndex(v => v.imagesImageId === item.imagesImageId && v.tagsImageId === item.tagsImageId) === pos;
+        return self.findIndex(v => v.tag.name === item.tag.name) === pos;
     }).map(tagSource => {
         let color = "white";
         if (tagSource.tag.type === 'Character') color = "cyan";

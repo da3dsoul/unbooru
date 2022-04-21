@@ -13,7 +13,15 @@ public class ImageTagSource
 
     protected bool Equals(ImageTagSource other)
     {
-        return ImagesImageId == other.ImagesImageId && TagsImageTagId == other.TagsImageTagId && string.Equals(Source, other.Source, StringComparison.InvariantCultureIgnoreCase);
+        var newItem = ImagesImageId == 0 && TagsImageTagId == 0;
+        var modelsExist = Image != null && Tag != null && other.Image != null && other.Tag != null;
+        var modelIdsMatch = modelsExist && Image.ImageId == other.Image.ImageId && Tag.ImageTagId == other.Tag.ImageTagId;
+        var directIdsMatch = !newItem && ImagesImageId == other.ImagesImageId && TagsImageTagId == other.TagsImageTagId;
+        var sourcesMatch = string.Equals(Source, other.Source, StringComparison.InvariantCultureIgnoreCase);
+
+        if (sourcesMatch && modelIdsMatch) return true;
+        if (sourcesMatch && directIdsMatch) return true;
+        return newItem && !modelsExist && !sourcesMatch;
     }
 
     public override bool Equals(object obj)

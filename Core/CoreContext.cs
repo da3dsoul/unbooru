@@ -302,7 +302,7 @@ namespace unbooru.Core
                 connectionString = "Server=localhost;Database=unbooru;";
             }
 
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseSqlServer(connectionString, builder => builder.CommandTimeout(3600));
             optionsBuilder.EnableSensitiveDataLogging();
             optionsBuilder.ConfigureWarnings(builder =>
             {
