@@ -13,12 +13,28 @@ namespace unbooru.Web.SearchParameters
         public override Expression<Func<SearchViewModel, bool>> Evaluate()
         {
             if (AnyTag)
-                return a => a.TagSources.Any() &&
-                            (!IncludedTagIds.Any() || a.TagSources.Any(b => IncludedTagIds.Contains(b.TagsImageTagId))) &&
-                            a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
-            return a => a.TagSources.Any() &&
-                        (!IncludedTagIds.Any() || a.TagSources.Count(b => IncludedTagIds.Contains(b.TagsImageTagId)) ==
-                            IncludedTagIds.Count()) && a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
+            {
+                if (IncludedTagIds.Any() && ExcludedTagIds.Any())
+                    return a => a.TagSources.Any() && a.TagSources.Any(b =>
+                        IncludedTagIds.Contains(b.TagsImageTagId)) && a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
+                if (IncludedTagIds.Any())
+                    return a => a.TagSources.Any() && a.TagSources.Any(b => IncludedTagIds.Contains(b.TagsImageTagId));
+                if (ExcludedTagIds.Any())
+                    return a => a.TagSources.Any() && a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
+            }
+            else
+            {
+                if (IncludedTagIds.Any() && ExcludedTagIds.Any())
+                    return a => a.TagSources.Any() && a.TagSources.Select(b => b.TagsImageTagId).Distinct().Count(b =>
+                        IncludedTagIds.Contains(b)) == IncludedTagIds.Count() && a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
+                if (IncludedTagIds.Any())
+                    return a => a.TagSources.Any() && a.TagSources.Select(b => b.TagsImageTagId).Distinct().Count(b =>
+                        IncludedTagIds.Contains(b)) == IncludedTagIds.Count();
+                if (ExcludedTagIds.Any())
+                    return a => a.TagSources.Any() && a.TagSources.All(b => !ExcludedTagIds.Contains(b.TagsImageTagId));
+            }
+
+            return a => a.TagSources.Any();
         }
 
         public override Type[] Types { get; } = { typeof(ImageTag) };

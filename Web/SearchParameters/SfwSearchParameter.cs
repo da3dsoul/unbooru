@@ -19,6 +19,7 @@ namespace unbooru.Web.SearchParameters
             {
                 "penis",
                 "sex",
+                "hetero",
                 "nipples",
                 "pussy",
                 "vaginal",
