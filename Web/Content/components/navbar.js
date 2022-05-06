@@ -1,5 +1,6 @@
-﻿import React, { Component} from 'react';
+﻿import React, {Component} from 'react';
 import { Link } from 'react-router-dom';
+import SearchInput from './searchbox/searchbox'
 
 export default class Nav extends Component {
     render() {
@@ -12,6 +13,7 @@ export default class Nav extends Component {
 
                     <div className="Nav__right">
                         <div className="Nav__item-wrapper">
+                            <SearchInput placeholder="find a public api" />
                             <div className="Nav__item">
                                 <Link className="Nav__link" to="/Search">Search</Link>
                             </div>

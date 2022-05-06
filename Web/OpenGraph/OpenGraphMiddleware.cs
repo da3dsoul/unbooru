@@ -94,6 +94,7 @@ namespace unbooru.Web.OpenGraph
         private static readonly Regex ImageId =
             new("/Image/(\\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        private static readonly string[] Order = { "Character", "Copyright", "Trivia" };
         private async Task<(string title, string description, string image)> GetDataForRequest(string path, DatabaseHelper dbHelper)
         {
             var match = ImageId.Match(path);
@@ -106,7 +107,11 @@ namespace unbooru.Web.OpenGraph
             if (pixiv == null) return default;
             var title = image.ArtistAccounts.FirstOrDefault()?.Name + " - " + pixiv.Title;
             var desc = string.Join(" ",
-                image.Tags.Where(a => a.Safety == TagSafety.Safe).Take(5).Select(a => a.Name));
+                image.Tags.Where(a => a.Safety == TagSafety.Safe).OrderBy(a =>
+                {
+                    var index = Array.IndexOf(Order, a.Type);
+                    return index == -1 ? int.MaxValue : index;
+                }).Take(5).Select(a => a.Name));
             return (title, desc, $"https://da3dsoul.dev/api/Image/{imageId}/{pixiv.OriginalFilename}?size=small");
 
         }
