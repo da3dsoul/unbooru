@@ -202,7 +202,7 @@ namespace unbooru.Web
         public async Task<List<Image>> GetMissingData(int limit = 0, int offset = 0)
         {
             var images = _context.Images.AsNoTracking()
-                .Where(a => !a.Tags.Any())
+                .Where(a => !a.TagSources.Any())
                 .OrderByDescending(a => a.ImageId)
                 .Skip(offset);
             if (limit > 0) images = images.Take(limit);
@@ -212,7 +212,7 @@ namespace unbooru.Web
 
         public async Task<int> GetMissingDataCount()
         {
-            return await _context.Images.CountAsync(a => !a.Tags.Any());
+            return await _context.Images.CountAsync(a => !a.TagSources.Any());
         }
 
         public async Task<int> GetDownloadedPostCount()
