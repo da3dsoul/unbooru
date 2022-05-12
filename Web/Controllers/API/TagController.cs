@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using unbooru.Abstractions.Poco;
 using Microsoft.AspNetCore.Mvc;
+using unbooru.Abstractions.Poco;
 
-namespace unbooru.Web.Controllers
+namespace unbooru.Web.Controllers.API
 {
     [ApiController]
     [Route("api/[controller]")]

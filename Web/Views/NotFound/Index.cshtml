@@ -1,0 +1,19 @@
+@using Microsoft.AspNetCore.Http.Extensions
+@using React.AspNet
+@using React.RenderFunctions
+
+@{
+    Layout = "_Layout";
+    var emotionFunctions = new EmotionFunctions();
+    var styledComponentsFunctions = new StyledComponentsFunctions();
+    var reactJssFunctions = new ReactJssFunctions();
+    var helmetFunctions = new ReactHelmetFunctions();
+
+    var chainedFunctions = new ChainedRenderFunctions(emotionFunctions, styledComponentsFunctions, reactJssFunctions, helmetFunctions);
+}
+@Html.React("Components.Nav", new { location=Context.Request.GetEncodedUrl() }, renderFunctions: chainedFunctions)
+@Html.React("Components.NotFound", new { location=Context.Request.GetEncodedUrl() }, renderFunctions: chainedFunctions)
+@{
+    ViewBag.ServerStyles = styledComponentsFunctions.RenderedStyles + reactJssFunctions.RenderedStyles;
+    ViewBag.HelmetTitle = helmetFunctions.RenderedHelmet?.GetValueOrDefault("title");
+}

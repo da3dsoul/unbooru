@@ -4,7 +4,7 @@ using ImageMagick;
 using Microsoft.AspNetCore.Mvc;
 using unbooru.Abstractions.Poco;
 
-namespace unbooru.Web.Controllers
+namespace unbooru.Web.Controllers.API
 {
     [ApiController]
     [Route("api/[controller]")]

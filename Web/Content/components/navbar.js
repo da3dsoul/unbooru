@@ -1,35 +1,29 @@
-﻿import React, {Component} from 'react';
-import { Link } from 'react-router-dom';
+﻿import React from 'react';
 import SearchInput from './searchbox/searchbox'
 
-export default class Nav extends Component {
-    render() {
-        return (
-            <nav className="Nav">
-                <div className="Nav__container">
-                    <Link to="/" className="Nav__brand">
-                        <img src="/favicon.png" className="Nav__logo"  alt=""/>
-                    </Link>
+export default function Nav() {
+    return (
+        <nav className="Nav">
+            <div className="Nav__container">
+                <a href="/" className="Nav__brand">
+                    <img src="/favicon.png" className="Nav__logo"  alt=""/>
+                </a>
 
-                    <div className="Nav__right">
-                        <div className="Nav__item-wrapper">
-                            <SearchInput placeholder="find a public api" />
-                            <div className="Nav__item">
-                                <Link className="Nav__link" to="/Search">Search</Link>
-                            </div>
-                            <div className="Nav__item">
-                                <Link className="Nav__link" to="/Artists">Artists</Link>
-                            </div>
-                            <div className="Nav__item">
-                                <Link className="Nav__link" to="/Tags">Tags</Link>
-                            </div>
-                            <div className="Nav__item">
-                                <Link className="Nav__link" to="/Random">Random</Link>
-                            </div>
+                <div className="Nav__right">
+                    <div className="Nav__item-wrapper">
+                        <SearchInput placeholder="find a public api" />
+                        <div className="Nav__item">
+                            <a className="Nav__link" href="/Artists">Artists</a>
+                        </div>
+                        <div className="Nav__item">
+                            <a className="Nav__link" href="/Tags">Tags</a>
+                        </div>
+                        <div className="Nav__item">
+                            <a className="Nav__link" href="/Random">Random</a>
                         </div>
                     </div>
                 </div>
-            </nav>
-        );
-    }
+            </div>
+        </nav>
+    );
 }

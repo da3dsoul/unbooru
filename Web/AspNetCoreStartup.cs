@@ -71,6 +71,17 @@ namespace unbooru.Web
             {
                 conf.MapControllers();
             });
+            app.Use(async (context, next) =>
+            {
+                await next();
+                var path = context.Request.Path;
+                if (path.HasValue && path.Value != null && !path.Value.StartsWith("/api") &&
+                    context.Response.StatusCode == 404)
+                {
+                    context.Request.Path = "/NotFound";
+                    await next();
+                }
+            });
         }
     }
 }

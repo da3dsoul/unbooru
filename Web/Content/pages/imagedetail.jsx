@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import { useParams } from 'react-router-dom';
 import axios from "axios";
 import ReactHtmlParser from 'react-html-parser'
 import {isPixivSource} from "Content/modelutils";
@@ -19,21 +18,21 @@ function ArtistLink(props) {
     )
 }
 
-export default function ImageDetail() {
-    let { id } = useParams();
+export default function ImageDetail(properties) {
     let [state, updateState] = useState({
-        image: null,
-        id: id
+        image: null
     });
 
     useEffect(() => {
+        const location = properties.location;
+        const id = location.split('/').slice(-1);
         axios.get('/api/Image/' + id).then(res => {
             updateState(prevState => ({
                 ...prevState,
                 image: res.data
             }));
         });
-    }, [id])
+    }, [])
 
     if (state.image?.sources === null || "undefined" ===  typeof state.image?.sources) {
         return <div id="main" className="container-fluid" style={{width: "100%", height: "100%"}} />

@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace unbooru.Web.Controllers
 {
     [Route("[controller]")]
-    public class ReactController : Controller
+    public class MissingController : Controller
     {
-        [HttpGet("{**url}")]
+        [HttpGet]
         public ActionResult Index()
         {
             return View();
