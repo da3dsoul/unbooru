@@ -26,6 +26,7 @@ namespace unbooru.Web
             AddPixivIdQueries(query, searchParameters);
             AddArtistAccountIdQueries(query, searchParameters);
             AddArtistUserIdQueries(query, searchParameters);
+            AddArtistNameQueries(query, searchParameters);
             AddSfwQuery(query, searchParameters, provider);
             return searchParameters;
         }
@@ -80,6 +81,8 @@ namespace unbooru.Web
                     return new ArtistAccountIdSortParameter();
                 case "artistuserid":
                     return new ArtistUserIdSortParameter();
+                case "artist":
+                    return new ArtistNameSortParameter();
                 default:
                     return null;
             }
@@ -217,6 +220,16 @@ namespace unbooru.Web
             foreach (var s in queryStrings)
             {
                 searchParameters.Add(new ArtistUserIDSearchParameter(s));
+            }
+        }
+        
+        private static void AddArtistNameQueries(IQueryCollection query, List<SearchParameter> searchParameters)
+        {
+            var queryStrings = query["Artist"];
+            if (!queryStrings.Any()) return;
+            foreach (var s in queryStrings)
+            {
+                searchParameters.Add(new ArtistNameSearchParameter(s));
             }
         }
 

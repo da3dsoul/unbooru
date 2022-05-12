@@ -18,7 +18,7 @@ const getApiSuggestions = async (word) => {
         let terms = []
         for(let i = 0; i < searchTags.length; i++) {
             const current = searchTags[i];
-            if (current.startsWith(last)) {
+            if (current.startsWith(last.toLowerCase())) {
                 terms.push({ type: 'term', name: current });
             }
         }
@@ -51,7 +51,7 @@ function getAutofillType(groups) {
     const group = groups[Math.max(groups.length - 1, 0)].trim();
     for (let j = 0; j < searchTags.length; j++) {
         const term = searchTags[j];
-        const replaced = group.replace(term, '').trim();
+        const replaced = group.toLowerCase().replace(term, '').trim();
         if (group.length !== replaced.length) {
             return { type: term, query: replaced};
         }
@@ -65,11 +65,11 @@ function findOverlap(a, b) {
         return "";
     }
 
-    if (a.endsWith(b)) {
+    if (a.toLowerCase().endsWith(b.toLowerCase())) {
         return b;
     }
 
-    if (a.indexOf(b) >= 0) {
+    if (a.toLowerCase().indexOf(b.toLowerCase()) >= 0) {
         return b;
     }
 
@@ -85,8 +85,9 @@ export default function SearchInput({ placeholder, }) {
         let text = inputValue;
         const overlap = findOverlap(text, data.name);
         if (text.endsWith(',') || text.endsWith(', ')) return;
-        if (!text.endsWith(overlap)) return;
-        text += data.name.replace(overlap, '') + ', ';
+        if (!text.toLowerCase().endsWith(overlap.toLowerCase())) return;
+        text += data.name.replace(new RegExp(overlap, 'ig'), '');
+        if (data.type !== 'term' || data.name === 'sfw') text += ', ';
         setInputValue(text)
     };
 
