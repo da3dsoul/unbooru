@@ -15,13 +15,28 @@ namespace unbooru.Web
 {
     public class DatabaseHelper
     {
+        public class RequireStruct<T> where T : struct { }
+        public class RequireClass<T> where T : class { }
+
+        public static readonly string[] TagOrder = {"character", "copyright", "trivia", "metadata"};
         private readonly CoreContext _context;
+
         public DatabaseHelper(CoreContext context)
         {
             _context = context;
         }
 
-        public async Task<T> ExecuteExpression<T>(Func<CoreContext, Task<T>> func) where T : class
+        public async Task<T> ExecuteExpression<T>(Func<CoreContext, Task<T>> func, RequireStruct<T> ignore = null) where T : struct
+        {
+            return await func.Invoke(_context);
+        }
+
+        public async Task<T?> ExecuteExpression<T>(Func<CoreContext, Task<T?>> func) where T : struct
+        {
+            return await func.Invoke(_context);
+        }
+
+        public async Task<T> ExecuteExpression<T>(Func<CoreContext, Task<T>> func, RequireClass<T> ignore = null) where T : class
         {
             return await func.Invoke(_context);
         }
@@ -228,6 +243,25 @@ namespace unbooru.Web
         public async Task<ActionResult<IEnumerable<ImageTag>>> GetAllTags(int limit, int offset)
         {
             return await _context.Set<ImageTag>().OrderBy(a => a.Name).Skip(offset).Take(limit).ToListAsync();
+        }
+
+        public async Task<Image> GetArtistLatestImageById(IServiceProvider serviceProvider, int id)
+        {
+            var image = await Search(
+                new List<SearchParameter>()
+                {
+                    new SfwSearchParameter(serviceProvider),
+                    new ArtistAccountIDSearchParameter(NumberComparator.Equal, id),
+                    new AspectRatioSearchParameter(NumberComparator.LessThan | NumberComparator.Equal, 0.8D),
+                    new AspectRatioSearchParameter(NumberComparator.GreaterThan | NumberComparator.Equal, 0.4D)
+                }, new List<SortParameter>()).FirstOrDefaultAsync();
+            image ??= await Search(
+                new List<SearchParameter>()
+                {
+                    new SfwSearchParameter(serviceProvider),
+                    new ArtistAccountIDSearchParameter(NumberComparator.Equal, id)
+                }, new List<SortParameter>()).FirstOrDefaultAsync();
+            return image;
         }
     }
 }

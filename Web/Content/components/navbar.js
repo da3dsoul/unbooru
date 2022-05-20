@@ -13,10 +13,10 @@ export default function Nav() {
                     <div className="Nav__item-wrapper">
                         <SearchInput placeholder="find a public api" />
                         <div className="Nav__item">
-                            <a className="Nav__link" href="/Artists">Artists</a>
+                            <a className="Nav__link" href="/Artist">Artists</a>
                         </div>
                         <div className="Nav__item">
-                            <a className="Nav__link" href="/Tags">Tags</a>
+                            <a className="Nav__link" href="/Tag">Tags</a>
                         </div>
                         <div className="Nav__item">
                             <a className="Nav__link" href="/Random">Random</a>

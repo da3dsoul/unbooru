@@ -106,7 +106,7 @@ namespace unbooru.Web.OpenGraph
             var pixiv = image.Sources.FirstOrDefault(a => "Pixiv".Equals(a.Source));
             if (pixiv == null) return default;
             var title = image.ArtistAccounts.FirstOrDefault()?.Name + " - " + pixiv.Title;
-            var desc = string.Join(" ",
+            var desc = string.Join(", ",
                 image.Tags.Where(a => a.Safety == TagSafety.Safe).OrderBy(a =>
                 {
                     var index = Array.IndexOf(Order, a.Type);

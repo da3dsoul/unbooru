@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ImageMagick;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using unbooru.Abstractions.Poco;
 
 namespace unbooru.Web.Controllers.API
@@ -22,6 +25,13 @@ namespace unbooru.Web.Controllers.API
             return await _dbHelper.GetAllArtistAccounts(limit, offset);
         }
 
+        [HttpGet("Count")]
+        public async Task<ActionResult<int>> Count()
+        {
+            return await _dbHelper.ExecuteExpression(c =>
+                c.Set<ArtistAccount>().Select(a => a.Name).Distinct().CountAsync());
+        }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ArtistAccount>> GetById(int id)
         {
@@ -37,6 +47,15 @@ namespace unbooru.Web.Controllers.API
             if (blob == default) return new NotFoundResult();
             var image = new MagickImage(blob);
             return File(blob, image.FormatInfo?.MimeType);
+        }
+
+        [HttpGet("{id:int}/LatestImage")]
+        public async Task<ActionResult<Image>> GetLatestImage(int id)
+        {
+            var image = await _dbHelper.GetArtistLatestImageById(HttpContext.RequestServices, id);
+            if (image == null) return new NotFoundResult();
+            var newImage = await _dbHelper.GetImageById(image.ImageId);
+            return newImage;
         }
 
         [HttpGet("ExternalId/{id}")]

@@ -14,7 +14,9 @@ const getApiSuggestions = async (word) => {
     if (autofillType.type === 'term') {
         // no search terms specified
         // the autofillType should be 'term' here
-        const last = groups.slice(-1)[0].trim()
+        let last = groups.slice(-1)[0].trim()
+        const excludes = last.startsWith('!');
+        if (excludes) last = last.substring(1);
         let terms = []
         for(let i = 0; i < searchTags.length; i++) {
             const current = searchTags[i];
@@ -48,32 +50,21 @@ const getApiSuggestions = async (word) => {
 };
 
 function getAutofillType(groups) {
-    const group = groups[Math.max(groups.length - 1, 0)].trim();
+    let group = groups[Math.max(groups.length - 1, 0)].trim();
+    let excludes = group.startsWith('!');
+    if (excludes) group = group.substring(1);
     for (let j = 0; j < searchTags.length; j++) {
         const term = searchTags[j];
-        const replaced = group.toLowerCase().replace(term, '').trim();
+        let replaced = group.toLowerCase().replace(term, '').trim();
+        excludes = replaced.startsWith('!');
+        if (excludes) replaced = replaced.substring(1);
+
         if (group.length !== replaced.length) {
             return { type: term, query: replaced};
         }
     }
 
     return { type: 'term', query: group };
-}
-
-function findOverlap(a, b) {
-    if (b.length === 0) {
-        return "";
-    }
-
-    if (a.toLowerCase().endsWith(b.toLowerCase())) {
-        return b;
-    }
-
-    if (a.toLowerCase().indexOf(b.toLowerCase()) >= 0) {
-        return b;
-    }
-
-    return findOverlap(a, b.substring(0, b.length - 1));
 }
 
 export default function SearchInput({ placeholder, }) {
@@ -83,17 +74,16 @@ export default function SearchInput({ placeholder, }) {
 
     const fillBox = (data) => {
         let text = inputValue;
-        const overlap = findOverlap(text, data.name);
         if (text.endsWith(',') || text.endsWith(', ')) return;
-        if (!text.toLowerCase().endsWith(overlap.toLowerCase())) return;
-        text += data.name.replace(new RegExp(overlap, 'ig'), '');
-        if (data.type !== 'term' || data.name === 'sfw') text += ', ';
-        setInputValue(text)
-    };
-
-    const getTagApiUrl = (data) => {
-        const name = encodeURIComponent(data.name)
-        window.open(`/Search?tag=${name}`, '_blank');
+        if (text.includes(data.name + ',')) return;
+        let endIndex = Math.max(text.lastIndexOf(':') + 1, text.lastIndexOf(',') + 1);
+        const endText = text.substring(endIndex, text.length - 1).trim();
+        let excludes = false;
+        if (endText.startsWith('!')) excludes = true;
+        let newText = text.slice(0, endIndex).trim();
+        newText += ' ' + (excludes ? '!' : '') + data.name;
+        if (data.type !== 'term' || data.name === 'sfw') newText += ', ';
+        setInputValue(newText);
     };
     
     const search = (text) => {
@@ -102,14 +92,15 @@ export default function SearchInput({ placeholder, }) {
         for (let i = 0; i < queries.length; i++) {
             const query = queries[i].trim();
             if (query === '') continue;
-            if (!url.endsWith('&') && !url.endsWith('?')) url += '&';
             if (query === 'sfw') {
+                if (!url.endsWith('&') && !url.endsWith('?')) url += '&';
                 url += 'sfw';
-            } else {
+            } else if(query === '!sfw') {} else {
                 const parts = query.split(':');
                 if (parts.length !== 2) continue;
                 const term = parts[0].trim();
                 const value = parts[1].trim();
+                if (!url.endsWith('&') && !url.endsWith('?')) url += '&';
                 url += term + '=' + encodeURIComponent(value);
             }
         }

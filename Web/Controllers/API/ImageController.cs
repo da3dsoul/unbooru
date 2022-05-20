@@ -11,7 +11,6 @@ namespace unbooru.Web.Controllers.API
     [Route("api/[controller]")]
     public class ImageController : Controller
     {
-        private static readonly string[] TagOrder = {"character", "copyright", "trivia", "metadata"};
         private readonly DatabaseHelper _dbHelper;
 
         public ImageController(DatabaseHelper helper)
@@ -29,8 +28,8 @@ namespace unbooru.Web.Controllers.API
                 if (a.Tag?.Type == null && b.Tag?.Type == null) return 0;
                 if (a.Tag?.Type == null) return 1;
                 if (b.Tag?.Type == null) return -1;
-                var aIndex = Array.IndexOf(TagOrder, a.Tag.Type.ToLowerInvariant());
-                var bIndex = Array.IndexOf(TagOrder, b.Tag.Type.ToLowerInvariant());
+                var aIndex = Array.IndexOf(DatabaseHelper.TagOrder, a.Tag.Type.ToLowerInvariant());
+                var bIndex = Array.IndexOf(DatabaseHelper.TagOrder, b.Tag.Type.ToLowerInvariant());
                 var compare = aIndex.CompareTo(bIndex);
                 if (compare != 0) return compare;
                 if (a.Tag.Name == null && b.Tag.Name == null) return 0;
