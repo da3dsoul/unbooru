@@ -9,6 +9,8 @@ using ImageMagick;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms.Onnx;
 using unbooru.Abstractions;
 using unbooru.Abstractions.Attributes;
 using unbooru.Abstractions.Enums;
@@ -29,8 +31,15 @@ namespace unbooru.DeepDanbooru
         {
             _logger = logger;
             _mlContext = new MLContext(seed: 0);
-            _transformer = GetBasicTransformer();
-            
+            try
+            {
+                _transformer = GetBasicTransformer();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "{Message}", e.ToString());
+            }
+
             var tagsLocation = Path.Combine(Arguments.DataPath, "DeepDanbooru", "tags.txt");
             if (!File.Exists(tagsLocation)) return;
             _tags = File.ReadAllLines(tagsLocation);
@@ -38,19 +47,28 @@ namespace unbooru.DeepDanbooru
         
         private ITransformer GetBasicTransformer()
         {
+            _logger.LogInformation("Creating OnnxTransformer");
             var modelLocation = Path.Combine(Arguments.DataPath, "DeepDanbooru", "model-resnet-custom_v3.onnx");
             if (!File.Exists(modelLocation)) return null;
             // Define scoring pipeline
-            var estimator = _mlContext.Transforms.ApplyOnnxModel(new()
+            var estimator = _mlContext.Transforms.ApplyOnnxModel(new OnnxOptions
             {
                 InputColumns = new[] { ModelInput.InputString },
                 OutputColumns = new[] { ModelOutput.OutputString },
                 ModelFile = modelLocation,
                 InterOpNumThreads = 10,
-                IntraOpNumThreads = 10
+                IntraOpNumThreads = 10,
+                GpuDeviceId = 0,
+                FallbackToCpu = true
             });
 
+            _mlContext.Log += (_, args) =>
+            {
+                if (args.Kind != ChannelMessageKind.Error) return;
+                _logger.LogError("{Message}", args.Message);
+            };
             var transformer = estimator.Fit(_mlContext.Data.LoadFromEnumerable(Array.Empty<ModelInput>()));
+            _logger.LogInformation("Created OnnxTransformer");
             return transformer;
         }
 
@@ -130,7 +148,7 @@ namespace unbooru.DeepDanbooru
             }
         }
         
-        private List<(Image image, string[] Tags)> PredictMultipleImages(List<Image> images)
+        public List<(Image image, string[] Tags)> PredictMultipleImages(List<Image> images)
         {
             var data = images.Select(image => new ModelInput { Data = GetImage(image.Blob) }).ToList();
 
@@ -140,7 +158,7 @@ namespace unbooru.DeepDanbooru
                 .ToList();
         }
         
-        private static float[] GetImage(byte[] imageBlob)
+        private static float[] GetImage(IEnumerable<byte> imageBlob)
         {
             using var mImage = new MagickImage(imageBlob.ToArray());
             mImage.Quality = 100;
@@ -151,6 +169,7 @@ namespace unbooru.DeepDanbooru
             mImage.HasAlpha = false;
             var pixels = mImage.GetPixels();
             var array = pixels.ToArray();
+            if (array == null) return null;
             var data = new float[ModelInput.Width * ModelInput.Height * ModelInput.Channels];
             for (var index = 0; index < array.Length; index++)
             {

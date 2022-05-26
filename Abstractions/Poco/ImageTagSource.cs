@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 
 namespace unbooru.Abstractions.Poco;
 
 public class ImageTagSource
 {
-    public int ImagesImageId { get; set; }
-    public int TagsImageTagId { get; set; }
+    public int ImagesImageId { get; [UsedImplicitly] set; }
+    public int TagsImageTagId { get; [UsedImplicitly] set; }
     public string Source { get; set; }
     
     public virtual Image Image { get; set; }
@@ -32,6 +34,7 @@ public class ImageTagSource
         return Equals((ImageTagSource)obj);
     }
 
+    [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
     public override int GetHashCode()
     {
         unchecked

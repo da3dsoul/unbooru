@@ -10,6 +10,7 @@ using unbooru.Web.SearchParameters;
 using unbooru.Web.SortParameters;
 using unbooru.Web.ViewModel;
 using Microsoft.EntityFrameworkCore;
+// ReSharper disable UnusedTypeParameter
 
 namespace unbooru.Web
 {

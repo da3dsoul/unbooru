@@ -1,7 +1,12 @@
 using System;
+using System.Linq;
+using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Quartz;
+using Quartz.Impl.Matchers;
 using unbooru.Abstractions.Interfaces;
+using unbooru.Abstractions.Poco;
 using unbooru.Abstractions.Poco.Events;
 
 namespace unbooru.DeepDanbooru
@@ -28,7 +33,43 @@ namespace unbooru.DeepDanbooru
 
         public void Main(StartupEventArgs args)
         {
-            throw new NotImplementedException();
+            var parser = new Parser(o => o.IgnoreUnknownArguments = true);
+            parser.ParseArguments<CLIModel>(args.Args)
+                .WithParsed(o =>
+                {
+                    StopQuartz(args);
+                    try
+                    {
+                        var logger = args.Services.GetService<ILogger<DeepDanbooruStartup>>();
+                        for (var i = 0; i < 5; i++)
+                        {
+
+                            logger?.LogInformation("Tagging Image ID: {ID}", o.ID);
+                            var context = args.Services.GetRequiredService<IDatabaseContext>();
+                            var module = args.Services.GetRequiredService<DeepDanbooruModule>();
+                            var imageBatch = context.ReadOnlySet<Image>(a => a.Blobs, a => a.TagSources, a => a.Sources)
+                                .Where(a => a.ImageId == o.ID).ToList();
+                            var tags = module.PredictMultipleImages(imageBatch);
+                            logger?.LogInformation("Found Tags: \n{Tags}",
+                                string.Join("\n", tags.FirstOrDefault().Tags));
+                        }
+                    }
+                    catch
+                    {
+                        // swallow
+                    }
+                    args.Cancel = true;
+                });
+        }
+
+        private static void StopQuartz(StartupEventArgs args)
+        {
+            var scheduler = args.Services.GetService<ISchedulerFactory>()?.GetScheduler().Result;
+            if (scheduler == null) return;
+            var triggers = scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.AnyGroup()).Result;
+            scheduler.UnscheduleJobs(triggers);
+            if (scheduler.IsStarted) scheduler.Shutdown();
+            else scheduler.PauseAll();
         }
     }
 }
