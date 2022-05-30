@@ -14,5 +14,8 @@
         <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.11.0" />
         <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.7.1" />
         <PackageReference Include="morelinq" Version="3.3.2" />
+        <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="2.7.0" />
+        <PackageReference Include="TensorFlow.Keras" Version="0.7.0" />
+        <PackageReference Include="TensorFlow.NET" Version="0.70.1" />
     </ItemGroup>
 </Project>

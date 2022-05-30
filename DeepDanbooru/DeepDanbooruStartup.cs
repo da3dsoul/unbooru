@@ -20,6 +20,8 @@ namespace unbooru.DeepDanbooru
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<DeepDanbooruModule>();
+            services.AddSingleton<Evaluator>();
+            services.AddSingleton<Trainer>();
             services.AddSingleton<IModule>(x => x.GetRequiredService<DeepDanbooruModule>());
             services.AddOptions<QuartzOptions>().Configure(options =>
             {
@@ -37,6 +39,7 @@ namespace unbooru.DeepDanbooru
             parser.ParseArguments<CLIModel>(args.Args)
                 .WithParsed(o =>
                 {
+                    if (o.ID == 0) return;
                     StopQuartz(args);
                     try
                     {
@@ -46,10 +49,10 @@ namespace unbooru.DeepDanbooru
 
                             logger?.LogInformation("Tagging Image ID: {ID}", o.ID);
                             var context = args.Services.GetRequiredService<IDatabaseContext>();
-                            var module = args.Services.GetRequiredService<DeepDanbooruModule>();
+                            var evaluator = args.Services.GetRequiredService<Evaluator>();
                             var imageBatch = context.ReadOnlySet<Image>(a => a.Blobs, a => a.TagSources, a => a.Sources)
                                 .Where(a => a.ImageId == o.ID).ToList();
-                            var tags = module.PredictMultipleImages(imageBatch);
+                            var tags = evaluator.PredictMultipleImages(imageBatch);
                             logger?.LogInformation("Found Tags: \n{Tags}",
                                 string.Join("\n", tags.FirstOrDefault().Tags));
                         }

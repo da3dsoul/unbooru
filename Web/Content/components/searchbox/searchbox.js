@@ -1,8 +1,9 @@
 ﻿import axios from "axios";
-import React, {useState, useCallback, Fragment} from 'react';
+import React, {useState, useCallback, Fragment, useEffect} from 'react';
 import {Input, Ul, Li, SuggestContainer, Span} from './style';
 import debounce from 'lodash.debounce';
 import regeneratorRuntime from "regenerator-runtime";
+import queryString from "query-string";
 
 const searchTags = ['tag:', 'tagID:', 'pixivID:', 'artist:', 'artistID:', 'aspect:', 'filesize:', 'sfw'];
 const tagUrl = axios.create({baseURL: '/api/Tag/ByName/'});
@@ -67,10 +68,46 @@ function getAutofillType(groups) {
     return { type: 'term', query: group };
 }
 
-export default function SearchInput({ placeholder, }) {
+export default function SearchInput({ placeholder, location, }) {
     const [inputValue, setInputValue] = useState('');
     const [options, setOptions] = useState([]);
     const [loading, setLoading] = useState(false);
+    
+    useEffect(() => {
+        if (!location.includes('?')) return;
+        const query = location.slice(location.indexOf('?') + 1);
+        const params = queryString.parse(query);
+        let text = '';
+        for (const param in params) {
+            const value = params[param];
+            if (value !== null && value !== undefined && value !== '') {
+                // things like tag: 1girl
+                if (Array.isArray(value)) {
+                    for (const valuePart in value) {
+                        const newPart = param + ': ' + valuePart;
+                        if (text.length > 0)
+                            text += ', ' + newPart;
+                        else
+                            text += newPart;
+                    }
+                } else {
+                    const newPart = param + ': ' + value;
+                    if (text.length > 0)
+                        text += ', ' + newPart;
+                    else
+                        text += newPart;
+                }
+            } else {
+                // things like sfw
+                if (text.length > 0)
+                    text += ', ' + param;
+                else 
+                    text += param;
+            }
+        }
+        
+        setInputValue(text);
+    }, [location])
 
     const fillBox = (data) => {
         let text = inputValue;

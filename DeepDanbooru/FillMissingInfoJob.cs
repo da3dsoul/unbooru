@@ -22,7 +22,7 @@ namespace unbooru.DeepDanbooru
         public async Task Execute(IJobExecutionContext context)
         {
             var logger = ServiceProvider.GetRequiredService<ILogger<FillMissingInfoJob>>();
-            var module = ServiceProvider.GetRequiredService<DeepDanbooruModule>();
+            var evaluator = ServiceProvider.GetRequiredService<Evaluator>();
 
             logger.LogInformation("Running {ModuleType} module", GetType());
 
@@ -45,7 +45,7 @@ namespace unbooru.DeepDanbooru
                         var dbContext = scope2.ServiceProvider.GetRequiredService<IDatabaseContext>();
                         var imageBatch = dbContext.Set<Image>(a => a.Blobs, a => a.TagSources, a => a.Sources)
                             .Where(a => batch.Contains(a.ImageId)).ToList();
-                        await module.FindTags(scope2.ServiceProvider, imageBatch, context.CancellationToken);
+                        await evaluator.FindTags(scope2.ServiceProvider, imageBatch, context.CancellationToken);
                         dbContext.Save();
                     }
 

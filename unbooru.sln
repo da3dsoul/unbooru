@@ -1,36 +1,39 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{5A98510C-649B-4691-9C87-4FBB9EA92500}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32510.428
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{5A98510C-649B-4691-9C87-4FBB9EA92500}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI", "CLI\CLI.csproj", "{2C4B4468-EE90-4D93-9C8E-F08D27E82ABB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CLI", "CLI\CLI.csproj", "{2C4B4468-EE90-4D93-9C8E-F08D27E82ABB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstractions", "Abstractions\Abstractions.csproj", "{D0A3537D-A93C-41E1-97A1-F02CA8B52B01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions", "Abstractions\Abstractions.csproj", "{D0A3537D-A93C-41E1-97A1-F02CA8B52B01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixiv", "Pixiv\Pixiv.csproj", "{A8A69FAB-E1C6-42C0-8CDC-B0973E5C22D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pixiv", "Pixiv\Pixiv.csproj", "{A8A69FAB-E1C6-42C0-8CDC-B0973E5C22D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageSaveHandler", "ImageSaveHandler\ImageSaveHandler.csproj", "{A09DFB05-7A33-415A-8CAD-678147AC0A33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageSaveHandler", "ImageSaveHandler\ImageSaveHandler.csproj", "{A09DFB05-7A33-415A-8CAD-678147AC0A33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database", "Database\Database.csproj", "{7F14C808-1259-49C0-9BC4-C5B94E903315}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database", "Database\Database.csproj", "{7F14C808-1259-49C0-9BC4-C5B94E903315}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageCompressor", "ImageCompressor\ImageCompressor.csproj", "{6FC99AF1-A959-46C6-91FD-46D6E3F07B39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageCompressor", "ImageCompressor\ImageCompressor.csproj", "{6FC99AF1-A959-46C6-91FD-46D6E3F07B39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iqdb", "Iqdb\Iqdb.csproj", "{06E110E0-FBDE-4C6C-8E2E-5D3024961BF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Iqdb", "Iqdb\Iqdb.csproj", "{06E110E0-FBDE-4C6C-8E2E-5D3024961BF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reimport", "Reimport\Reimport.csproj", "{4AF35EEE-4C34-4B30-BB11-5ADD8BF5530C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reimport", "Reimport\Reimport.csproj", "{4AF35EEE-4C34-4B30-BB11-5ADD8BF5530C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "Web\Web.csproj", "{7EAB617B-7E69-4156-BC32-220113A5CCD7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "Web\Web.csproj", "{7EAB617B-7E69-4156-BC32-220113A5CCD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonSettingsProvider", "JsonSettingsProvider\JsonSettingsProvider.csproj", "{A7CBB243-27AB-4407-8A91-0C70F58275A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonSettingsProvider", "JsonSettingsProvider\JsonSettingsProvider.csproj", "{A7CBB243-27AB-4407-8A91-0C70F58275A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Booru", "Booru\Booru.csproj", "{A1E73486-45D6-4512-99B7-694C3DB37F06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Booru", "Booru\Booru.csproj", "{A1E73486-45D6-4512-99B7-694C3DB37F06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceMerger", "SourceMerger\SourceMerger.csproj", "{68EF9E76-61A0-4627-B8DA-EAA9A541F299}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SourceMerger", "SourceMerger\SourceMerger.csproj", "{68EF9E76-61A0-4627-B8DA-EAA9A541F299}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SauceNao", "SauceNao\SauceNao.csproj", "{B2878B4A-D0D3-4756-8FD6-6F568723BD31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SauceNao", "SauceNao\SauceNao.csproj", "{B2878B4A-D0D3-4756-8FD6-6F568723BD31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meowtrix.PixivApi", "Meowtrix.PixivApi\Meowtrix.PixivApi.csproj", "{F8DF0E0B-A23E-40E7-992D-B0BED6A6C9DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meowtrix.PixivApi", "Meowtrix.PixivApi\Meowtrix.PixivApi.csproj", "{F8DF0E0B-A23E-40E7-992D-B0BED6A6C9DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepDanbooru", "DeepDanbooru\DeepDanbooru.csproj", "{2283B35F-EE88-46D8-B9D5-7EAB93770648}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeepDanbooru", "DeepDanbooru\DeepDanbooru.csproj", "{2283B35F-EE88-46D8-B9D5-7EAB93770648}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,9 +58,9 @@ Global
 		{A8A69FAB-E1C6-42C0-8CDC-B0973E5C22D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8A69FAB-E1C6-42C0-8CDC-B0973E5C22D7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A09DFB05-7A33-415A-8CAD-678147AC0A33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A09DFB05-7A33-415A-8CAD-678147AC0A33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A09DFB05-7A33-415A-8CAD-678147AC0A33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A09DFB05-7A33-415A-8CAD-678147AC0A33}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A09DFB05-7A33-415A-8CAD-678147AC0A33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F14C808-1259-49C0-9BC4-C5B94E903315}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7F14C808-1259-49C0-9BC4-C5B94E903315}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F14C808-1259-49C0-9BC4-C5B94E903315}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -99,5 +102,11 @@ Global
 		{2283B35F-EE88-46D8-B9D5-7EAB93770648}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2283B35F-EE88-46D8-B9D5-7EAB93770648}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2283B35F-EE88-46D8-B9D5-7EAB93770648}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EC0EF353-4365-4D1E-B0B7-1D81456BE873}
 	EndGlobalSection
 EndGlobal

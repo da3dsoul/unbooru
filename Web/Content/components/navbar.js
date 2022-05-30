@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import SearchInput from './searchbox/searchbox'
 
-export default function Nav() {
+export default function Nav(props) {
     return (
         <nav className="Nav">
             <div className="Nav__container">
@@ -11,7 +11,7 @@ export default function Nav() {
 
                 <div className="Nav__right">
                     <div className="Nav__item-wrapper">
-                        <SearchInput placeholder="find a public api" />
+                        <SearchInput placeholder="ex. tag: 1girl, sfw" location={props.location} />
                         <div className="Nav__item">
                             <a className="Nav__link" href="/Artist">Artists</a>
                         </div>
