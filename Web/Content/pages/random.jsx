@@ -1,14 +1,14 @@
 import React, {useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
-import {useLocation} from "react-router-dom";
 import axios from "axios";
 import queryString from "query-string";
 import ImageBox from "Content/components/imagebox";
 import Stonemason from "@da3dsoul/react-stonemason";
 
-export default function Random() {
+export default function Random(props) {
     const imagesPerPage = 21;
-    let query = useLocation().search.slice(1);
+    const location = props.location;
+    let query = location.slice(location.indexOf('?') + 1);
     const params = queryString.parse(query);
     let page = params.page;
     if (typeof page === 'undefined' || page === null) page = 1;

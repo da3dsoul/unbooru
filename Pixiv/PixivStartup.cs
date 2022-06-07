@@ -25,13 +25,14 @@ namespace unbooru.Pixiv
                 options.AddJob<PixivImportJob>(builder => builder.WithIdentity(importKey));
                 options.AddTrigger(builder =>
                     builder.WithIdentity("PixivImportTrigger", "Pixiv").ForJob(importKey)
+                        .WithSchedule(SimpleScheduleBuilder.Create().WithIntervalInHours(168).RepeatForever())
                         .StartAt(DateTimeOffset.Now + TimeSpan.FromSeconds(5)));
 
                 var serviceKey = new JobKey("PixivService", "Pixiv");
                 options.AddJob<PixivServiceJob>(builder => builder.WithIdentity(serviceKey));
                 options.AddTrigger(builder =>
                     builder.WithIdentity("PixivServiceTrigger", "Pixiv").ForJob(serviceKey)
-                        .WithSchedule(SimpleScheduleBuilder.RepeatHourlyForever())
+                        .WithSchedule(SimpleScheduleBuilder.Create().WithIntervalInMinutes(30).RepeatForever())
                         .StartAt(DateTimeOffset.Now + TimeSpan.FromHours(1)));
                 
                 var avatarKey = new JobKey("PixivAvatar", "Pixiv");
