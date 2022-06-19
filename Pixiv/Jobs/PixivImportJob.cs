@@ -45,7 +45,7 @@ namespace unbooru.Pixiv.Jobs
                 if (!string.IsNullOrEmpty(settingsProvider.Get(a => a.ContinueFrom)))
                     continueFrom = new Uri(settingsProvider.Get(a => a.ContinueFrom));
                 await pixivModule.DownloadBookmarks(ServiceProvider, pixivClient,
-                    settingsProvider.Get(a => a.MaxImagesToDownloadImport), continueFrom, false,
+                    settingsProvider.Get(a => a.MaxImagesToDownloadImport), 0, continueFrom,
                     token: context.CancellationToken);
             }
             catch (TaskCanceledException)

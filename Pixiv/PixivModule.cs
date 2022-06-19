@@ -150,7 +150,7 @@ namespace unbooru.Pixiv
             return (i, lastError);
         }
 
-        public async Task DownloadBookmarks(IServiceProvider provider, PixivClient pixivClient, int maxPosts, Uri continueFrom = null, bool stopAtFirstCancellation = true, CancellationToken token = default)
+        public async Task DownloadBookmarks(IServiceProvider provider, PixivClient pixivClient, int maxPosts, int maxExisting, Uri continueFrom = null, CancellationToken token = default)
         {
             try
             {
@@ -158,6 +158,7 @@ namespace unbooru.Pixiv
                 var userBookmarks = pixivClient.GetMyBookmarksAsync(cancellation: token, continueFrom: continueFrom);
                 var iterator = userBookmarks.GetAsyncEnumerator(token);
                 var i = 0;
+                var existing = 0;
 
                 do
                 {
@@ -175,7 +176,8 @@ namespace unbooru.Pixiv
                     if (disc.Cancel || disc.Attachments.All(a => !a.Download))
                     {
                         _logger.LogInformation("Pixiv Image Discovered. Downloading Cancelled by Discovery Subscriber");
-                        if (stopAtFirstCancellation)
+                        existing++;
+                        if (maxExisting > 0 && maxExisting <= existing)
                         {
                             _logger.LogInformation("{PixivModule} set to exit on first cancellation. Exiting!",
                                 nameof(PixivModule));
@@ -195,6 +197,7 @@ namespace unbooru.Pixiv
                     }
 
                     i++;
+                    existing = 0;
                 } while (true);
 
             }

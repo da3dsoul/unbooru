@@ -38,7 +38,7 @@ namespace unbooru.Pixiv.Jobs
 
             var pixivModule = Provider.GetRequiredService<PixivModule>();
             await pixivModule.DownloadBookmarks(Provider, pixivClient,
-                settingsProvider.Get(a => a.MaxImagesToDownloadService), token: context.CancellationToken);
+                settingsProvider.Get(a => a.MaxImagesToDownloadService), settingsProvider.Get(a => a.MaxExistingFilesBeforeExit), token: context.CancellationToken);
         }
     }
 }
