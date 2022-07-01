@@ -41,6 +41,7 @@ namespace unbooru.Web
             services.AddResponseCaching(options =>
             {
                 options.SizeLimit = 1024L * 1024L * 1024L * 10L;
+                options.UseCaseSensitivePaths = false;
             });
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
