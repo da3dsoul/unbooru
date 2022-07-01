@@ -26,6 +26,10 @@ namespace unbooru.Web.SearchParameters
                 "fellatio",
                 "paizuri",
                 "cunnilingus",
+                "anus",
+                "peeing",
+                "pee",
+                "pubic hair"
             };
 
             var context = provider.GetRequiredService<CoreContext>();

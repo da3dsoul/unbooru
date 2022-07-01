@@ -1,9 +1,11 @@
+using System;
 using JavaScriptEngineSwitcher.ChakraCore;
 using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using React.AspNet;
 using unbooru.Web.OpenGraph;
@@ -48,6 +50,32 @@ namespace unbooru.Web
         {
             app.UseMiddleware<ErrorHandlingMiddleware>();
             app.UseMiddleware<OpenGraphMiddleware>();
+            // Caching Control
+            app.Use(async (ctx, next) =>
+            {
+                var url = ctx.Request.Path.ToString().Trim('/');
+                if (url.StartsWith("image", StringComparison.InvariantCultureIgnoreCase) ||
+                    url.StartsWith("api/image", StringComparison.InvariantCultureIgnoreCase) ||
+                    url.StartsWith("api/tag", StringComparison.InvariantCultureIgnoreCase) ||
+                    url.StartsWith("api/artist", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    ctx.Request.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromMinutes(60)
+                    };
+                }
+                if (url.StartsWith("search", StringComparison.InvariantCultureIgnoreCase) ||
+                    url.StartsWith("api/search", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    ctx.Request.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromMinutes(15)
+                    };
+                }
+                await next();
+            });
             app.UseResponseCaching();
             // Initialise ReactJS.NET. Must be before static files.
             app.UseReact(config =>
