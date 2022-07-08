@@ -83,7 +83,8 @@ export default function SearchInput({ placeholder, location, }) {
             if (value !== null && value !== undefined && value !== '') {
                 // things like tag: 1girl
                 if (Array.isArray(value)) {
-                    for (const valuePart in value) {
+                    for (const valuePartKey in value) {
+                        const valuePart = value[valuePartKey];
                         const newPart = param + ': ' + valuePart;
                         if (text.length > 0)
                             text += ', ' + newPart;
