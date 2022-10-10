@@ -112,7 +112,7 @@ namespace unbooru.Web.OpenGraph
                     var index = Array.IndexOf(Order, a.Type);
                     return index == -1 ? int.MaxValue : index;
                 }).Take(5).Select(a => a.Name));
-            return (title, desc, $"https://da3dsoul.dev/api/Image/{imageId}/{pixiv.OriginalFilename}?size=small");
+            return (title, desc, $"https://da3dsoul.dev/api/Image/{imageId}/{pixiv.OriginalFilename}?size=medium");
 
         }
     }
