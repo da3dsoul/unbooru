@@ -61,5 +61,25 @@ namespace unbooru.Web.Controllers.API
             var name = source?.OriginalFilename ?? "file.jpg";
             return File(blob, MimeTypes.GetMimeType(name), name);
         }
+
+        [HttpGet("Redirect")]
+        public async Task<ActionResult> RandomRedirect()
+        {
+            var query = HttpContext.Request.Query;
+
+            var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
+            var sortParameters = SearchHelper.ParseSortParameters(query);
+
+            IEnumerable<Image> images = await _dbHelper.Search(searchParameters, sortParameters).Include(a => a.Sources).ToListAsync();
+            var seedQuery = query["seed"].FirstOrDefault();
+            int? seed = null;
+            if (int.TryParse(seedQuery, out var temp)) seed = temp;
+            var random = seed == null ? new Random() : new Random(seed.Value);
+            var result = images.Shuffle(random).FirstOrDefault();
+            if (result == null) return new NotFoundResult();
+            var source = result.Sources?.FirstOrDefault(a => !string.IsNullOrEmpty(a.OriginalFilename));
+            if (source == null) return new NotFoundResult();
+            return RedirectToAction("GetImageById", "Image", new { id = result.ImageId, filename = source.OriginalFilename });
+        }
     }
 }
