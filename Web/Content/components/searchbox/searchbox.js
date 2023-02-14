@@ -5,7 +5,7 @@ import debounce from 'lodash.debounce';
 import regeneratorRuntime from "regenerator-runtime";
 import queryString from "query-string";
 
-const searchTags = ['tag:', 'tagID:', 'pixivID:', 'artist:', 'artistID:', 'aspect:', 'filesize:', 'sfw'];
+const searchTags = ['tag:', 'tagID:', 'pixivID:', 'artist:', 'artistID:', 'aspect:', 'filesize:', 'sfw', 'monochrome'];
 const tagUrl = axios.create({baseURL: '/api/Tag/ByName/'});
 const artistUrl = axios.create({baseURL: '/api/Artist/ByName/'});
 
@@ -120,7 +120,7 @@ export default function SearchInput({ placeholder, location, }) {
         if (endText.startsWith('!')) excludes = true;
         let newText = text.slice(0, endIndex).trim();
         newText += ' ' + (excludes ? '!' : '') + data.name;
-        if (data.type !== 'term' || data.name === 'sfw') newText += ', ';
+        if (data.type !== 'term' || !data.name.includes(':')) newText += ', ';
         setInputValue(newText);
     };
     
@@ -130,10 +130,10 @@ export default function SearchInput({ placeholder, location, }) {
         for (let i = 0; i < queries.length; i++) {
             const query = queries[i].trim();
             if (query === '') continue;
-            if (query === 'sfw') {
+            if (!query.includes(':')) {
                 if (!url.endsWith('&') && !url.endsWith('?')) url += '&';
                 url += 'sfw';
-            } else if(query === '!sfw') {} else {
+            } else {
                 const parts = query.split(':');
                 if (parts.length !== 2) continue;
                 const term = parts[0].trim();

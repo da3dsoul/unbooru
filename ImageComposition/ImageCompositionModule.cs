@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageMagick;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using unbooru.Abstractions;
@@ -63,7 +64,8 @@ namespace unbooru.ImageComposition
                 _logger.LogInformation("Analyzing {Path}", img.GetPixivFilename());
                 using var image = new MagickImage(img.Blob);
 
-                var histogram = image.Histogram().Where(a => !a.Key.IsCmyk && a.Value > 0).Select(a => new ImageHistogramColor
+                var hist = image.Histogram();
+                var histogram = hist.Where(a => !a.Key.IsCmyk && a.Value > 0).Select(a => new ImageHistogramColor
                     { RGBA = a.Key.ToByteArray(), Value = a.Value }).ToList();
                 var blackAndWhite = histogram.All(IsBlackOrWhite);
                 var grayscale = blackAndWhite || histogram.All(IsGray);
@@ -78,7 +80,6 @@ namespace unbooru.ImageComposition
                 img.Composition = new Abstractions.Poco.ImageComposition
                 {
                     Image = img,
-                    Histogram = histogram,
                     IsBlackAndWhite = blackAndWhite,
                     IsGrayscale = grayscale,
                     IsMonochrome = monochrome
@@ -144,17 +145,35 @@ namespace unbooru.ImageComposition
         public Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
             _logger.LogInformation("Running {ModuleType} module", GetType());
-            var context = provider.GetRequiredService<CoreContext>();
-            var imagesToProcess = context.Set<Image>().Where(a => a.Composition == null).ToList();
+            using var context = provider.GetRequiredService<CoreContext>();
+            var count = context.Set<Image>().Count(a => a.Composition == null);
+            var imagesToProcess = context.Set<Image>().Where(a => a.Composition == null).Select(a => a.ImageId).ToList();
 
-            if (imagesToProcess.Count == 0) return Task.CompletedTask;
-            
-            _logger.LogInformation("Analyzing {Count} images", imagesToProcess.Count);
-            for (var index = 0; index < imagesToProcess.Count; index++)
+            if (count == 0) return Task.CompletedTask;
+            if (token.IsCancellationRequested) return Task.CompletedTask;
+
+            _logger.LogInformation("Analyzing {Count} images", count);
+            var index = 0;
+            foreach (var imageId in imagesToProcess)
             {
-                if (index % 20 == 1) _logger.LogInformation("Analyzed {Index}/{Count} images", index, imagesToProcess.Count);
-                var image = imagesToProcess[index];
-                AnalyzeImage(image);
+                try
+                {
+                    if (token.IsCancellationRequested) return Task.CompletedTask;
+                    using var scope = provider.CreateScope();
+                    using var sContext = scope.ServiceProvider.GetRequiredService<CoreContext>();
+                    if (index % 20 == 1) _logger.LogInformation("Analyzed {Index}/{Count} images", index, count);
+                    var image = sContext.Set<Image>().Include(a => a.Blobs).Include(a => a.Sources)
+                        .Include(a => a.Composition).FirstOrDefault(a => a.ImageId == imageId);
+                    if (token.IsCancellationRequested) return Task.CompletedTask;
+                    AnalyzeImage(image);
+                    if (token.IsCancellationRequested) return Task.CompletedTask;
+                    index++;
+                    sContext.SaveChanges();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Unable to save composition: {Ex}", e);
+                }
             }
 
             return Task.CompletedTask;

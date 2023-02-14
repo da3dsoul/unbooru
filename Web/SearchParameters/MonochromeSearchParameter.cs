@@ -9,7 +9,7 @@ namespace unbooru.Web.SearchParameters
     {
         public override Expression<Func<SearchViewModel, bool>> Evaluate()
         {
-            return a => a.Image.Composition.IsMonochrome ^ invert;
+            return a => a.Image.Composition != null && a.Image.Composition.IsMonochrome != invert;
         }
 
         public override Type[] Types { get; } = { typeof(ImageComposition) };
