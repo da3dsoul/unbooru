@@ -4,6 +4,7 @@ using unbooru.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NLog.Web;
 using Quartz;
 using Quartz.Impl.Matchers;
@@ -45,8 +46,7 @@ namespace unbooru.Web
         {
             return hostBuilder.ConfigureWebHostDefaults(options =>
             {
-                //
-                options.UseStartup<AspNetCoreStartup>().UseUrls("http://*:9280", "https://*:9281").ConfigureLogging(a => a.AddNLogWeb());
+                options.UseStartup<AspNetCoreStartup>().UseUrls("http://*:9280", "https://*:9281").ConfigureLogging(a => a.AddNLogWeb().SetMinimumLevel(LogLevel.Error));
             });
         }
     }
