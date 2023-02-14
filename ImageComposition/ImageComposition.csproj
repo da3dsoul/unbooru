@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <RootNamespace>unbooru.ImageComposition</RootNamespace>
+        <AssemblyName>unbooru.ImageComposition</AssemblyName>
+        <LangVersion>Latest</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+      <ProjectReference Include="..\Database\Database.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.3.0" />
+    </ItemGroup>
+
+</Project>

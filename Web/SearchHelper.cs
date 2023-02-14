@@ -20,6 +20,7 @@ namespace unbooru.Web
             AddAspectRatioQueries(query, searchParameters);
             AddWidthQueries(query, searchParameters);
             AddHeightQueries(query, searchParameters);
+            AddMonochromeQueries(query, searchParameters);
             AddFileSizeQueries(query, searchParameters);
             AddPostDateQueries(query, searchParameters);
             AddImportDateQueries(query, searchParameters);
@@ -151,6 +152,19 @@ namespace unbooru.Web
                 var height = new string(s.SkipWhile(a => !char.IsDigit(a)).ToArray());
                 searchParameters.Add(new HeightSearchParameter(op, int.Parse(height)));
             }
+        }
+
+        private static void AddMonochromeQueries(IQueryCollection query, List<SearchParameter> searchParameters)
+        {
+            var queryStrings = query["Monochrome"];
+            if (!queryStrings.Any())
+            {
+                queryStrings = query["!Monochrome"];
+                if (!queryStrings.Any()) return;
+                searchParameters.Add(new MonochromeSearchParameter(true));
+                return;
+            }
+            searchParameters.Add(new MonochromeSearchParameter());
         }
 
         private static void AddFileSizeQueries(IQueryCollection query, List<SearchParameter> searchParameters)

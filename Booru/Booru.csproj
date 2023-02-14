@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BooruSharp" Version="4.0.0-beta" />
+      <PackageReference Include="BooruSharp" Version="3.5.5" />
     </ItemGroup>
 
     <ItemGroup>
