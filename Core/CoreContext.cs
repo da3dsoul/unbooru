@@ -356,6 +356,7 @@ namespace unbooru.Core
             modelBuilder.Entity<ResponseCache>().HasIndex(a => a.Uri).IsUnique();
             modelBuilder.Entity<ResponseCache>().HasIndex(a => new {a.LastUpdated, a.StatusCode});
             modelBuilder.Entity<ImageTagSource>().HasIndex(e => e.TagsImageTagId, "IX_ImageImageTag_TagsImageTagId");
+            modelBuilder.Entity<ImageHistogramColor>().HasIndex(e => e.ColorKey);
 
             // keys
             modelBuilder.Entity<ArtistAccount>().HasKey(a => a.ArtistAccountId);
@@ -366,7 +367,8 @@ namespace unbooru.Core
             modelBuilder.Entity<ImageBlob>().HasOne(a => a.Image).WithMany(a => a.Blobs).IsRequired();
             modelBuilder.Entity<ImageTagSource>().HasOne(d => d.Image).WithMany(p => p.TagSources).HasForeignKey(d => d.ImagesImageId);
             modelBuilder.Entity<ImageTagSource>().HasOne(d => d.Tag).WithMany(p => p.TagSources).HasForeignKey(d => d.TagsImageTagId);
-            
+            modelBuilder.Entity<ImageComposition>().HasOne(d => d.Image).WithOne(p => p.Composition).HasForeignKey<ImageComposition>(a => a.ImageId);
+
             // Auto-include
             modelBuilder.Entity<ImageTagSource>().Navigation(a => a.Tag).AutoInclude();
         }

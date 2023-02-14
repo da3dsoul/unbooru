@@ -35,7 +35,8 @@ namespace unbooru.Abstractions.Poco
             }
         }
         [IgnoreDataMember] public virtual List<ImageBlob> Blobs { get; set; }
-        
+        public virtual ImageComposition Composition { get; set; }
+
         public virtual List<ArtistAccount> ArtistAccounts { get; set; }
 
         public virtual List<ImageSource> Sources { get; set; }
