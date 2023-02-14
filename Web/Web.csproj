@@ -15,11 +15,11 @@
   </ItemGroup>
   <ItemGroup>
     <!--<FrameworkReference Include="Microsoft.AspNetCore.App" />-->
-    <PackageReference Include="ByteSize" Version="2.0.0" />
+    <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.24.1" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.6" />
-    <PackageReference Include="MimeTypes" Version="2.2.0">
+    <PackageReference Include="MimeTypes" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -30,7 +30,7 @@
     <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.win-x64" Version="3.9.1" />
     <PackageReference Include="JavaScriptEngineSwitcher.Extensions.MsDependencyInjection" Version="3.3.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.0-preview.4.21274.1" />
-    <PackageReference Include="NLog.Web.AspNetCore" Version="4.13.0-readme-preview" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="5.2.1" />
     <PackageReference Include="React.AspNet" Version="5.2.11" />
     <PackageReference Include="React.Router" Version="5.2.11" />
   </ItemGroup>

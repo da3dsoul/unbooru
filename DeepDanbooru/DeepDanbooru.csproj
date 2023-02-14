@@ -9,13 +9,13 @@
       <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="11.1.0" />
-        <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.11.0" />
-        <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.7.1" />
+        <PackageReference Include="CommandLineParser" Version="2.9.1" />
+        <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.3.0" />
+        <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.14.0" />
+        <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="2.0.1" />
         <PackageReference Include="morelinq" Version="3.3.2" />
-        <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="2.7.0" />
-        <PackageReference Include="TensorFlow.Keras" Version="0.7.0" />
-        <PackageReference Include="TensorFlow.NET" Version="0.70.1" />
+        <PackageReference Include="SciSharp.TensorFlow.Redist-Windows-GPU" Version="2.10.0" />
+        <PackageReference Include="TensorFlow.Keras" Version="0.10.2" />
+        <PackageReference Include="TensorFlow.NET" Version="0.100.2" />
     </ItemGroup>
 </Project>
