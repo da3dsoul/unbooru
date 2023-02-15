@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ImageMagick;
 using unbooru.Abstractions;
 using unbooru.Abstractions.Attributes;
 using unbooru.Abstractions.Enums;
@@ -88,8 +89,10 @@ namespace unbooru.ImageSaveHandler
                                               throw new NullReferenceException("Image path cannot be null"));
                     if (File.Exists(path)) return;
                     _logger.LogInformation("Saving image to {Path}", path);
+                    using var img = new MagickImage(image.Blob);
+                    img.Resize(new MagickGeometry("x3840>"));
                     await using var stream = File.OpenWrite(path);
-                    await stream.WriteAsync(image.Blob.ToArray(), e.CancellationToken);
+                    await img.WriteAsync(stream, e.CancellationToken);
                 }
                 catch (Exception exception)
                 {
