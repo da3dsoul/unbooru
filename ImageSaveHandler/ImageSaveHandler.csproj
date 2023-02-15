@@ -13,15 +13,7 @@
 
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="Magick.NET-Q8-AnyCPU">
-        <HintPath>..\..\..\.nuget\packages\magick.net-q8-anycpu\12.3.0\lib\netstandard21\Magick.NET-Q8-AnyCPU.dll</HintPath>
-      </Reference>
-      <Reference Include="Magick.NET.Core">
-        <HintPath>..\..\..\.nuget\packages\magick.net.core\12.3.0\lib\netstandard21\Magick.NET.Core.dll</HintPath>
-      </Reference>
+      <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.3.0" />
     </ItemGroup>
 
 </Project>
