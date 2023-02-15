@@ -17,19 +17,23 @@ namespace unbooru.Web.SearchParameters
         {
             var nsfw = new List<string>
             {
-                "penis",
-                "sex",
-                "hetero",
-                "nipples",
-                "pussy",
-                "vaginal",
-                "fellatio",
-                "paizuri",
-                "cunnilingus",
                 "anus",
-                "peeing",
+                "bar censor",
+                "blur censor",
+                "censored",
+                "cunnilingus",
+                "fellatio",
+                "hetero",
+                "mosaic censoring",
+                "nipples",
+                "paizuri",
                 "pee",
-                "pubic hair"
+                "peeing",
+                "penis",
+                "pubic hair",
+                "pussy",
+                "sex",
+                "vaginal",
             };
 
             var context = provider.GetRequiredService<CoreContext>();

@@ -9,14 +9,24 @@ namespace unbooru.ImageSaveHandler
 
         public HashSet<string> ExcludeTags { get; set; } = new()
         {
-            "penis",
-            "sex",
-            "nipples",
-            "pussy",
-            "vaginal",
+            "anus",
+            "blur censor",
+            "blurry",
+            "blurry foreground",
+            "censored",
+            "cunnilingus",
             "fellatio",
+            "hetero",
+            "mosaic censoring",
+            "nipples",
             "paizuri",
-            "cunnilingus"
+            "pee",
+            "peeing",
+            "penis",
+            "pubic hair",
+            "pussy",
+            "sex",
+            "vaginal",
         };
         public bool ExcludeMissingInfo { get; set; } = true;
         public bool EnableAspectRatioSplitting { get; set; } = true;

@@ -59,6 +59,7 @@ namespace unbooru.ImageSaveHandler
             {
                 try
                 {
+                    if (image.Composition?.IsMonochrome ?? false) return;
                     var tags = image.Tags;
                     if (tags == null || !tags.Any())
                     {
