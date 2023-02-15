@@ -132,7 +132,7 @@ export default function SearchInput({ placeholder, location, }) {
             if (query === '') continue;
             if (!query.includes(':')) {
                 if (!url.endsWith('&') && !url.endsWith('?')) url += '&';
-                url += 'sfw';
+                url += query;
             } else {
                 const parts = query.split(':');
                 if (parts.length !== 2) continue;

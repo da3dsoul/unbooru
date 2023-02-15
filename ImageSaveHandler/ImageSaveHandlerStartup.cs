@@ -38,7 +38,7 @@ namespace unbooru.ImageSaveHandler
                     if (exclude == null) return;
 
                     var token = new CancellationToken();
-                    var ids = context?.Set<Image>().Where(i => i.Tags.Any() && !i.Tags.Select(a => a.Name).Any(a => exclude.Contains(a)))
+                    var ids = context?.Set<Image>().Where(i => i.TagSources.Select(a => a.Tag).Any() && !i.TagSources.Select(a => a.Tag.Name).Any(a => exclude.Contains(a)))
                         .Select(a => a.ImageId).ToList();
                     if (ids == null) return;
 

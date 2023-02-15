@@ -46,7 +46,7 @@ namespace unbooru.Web
         {
             return hostBuilder.ConfigureWebHostDefaults(options =>
             {
-                options.UseStartup<AspNetCoreStartup>().UseUrls("http://*:9280", "https://*:9281").ConfigureLogging(a => a.AddNLogWeb().SetMinimumLevel(LogLevel.Error));
+                options.UseStartup<AspNetCoreStartup>().UseUrls("http://*:9280", "https://*:9281");
             });
         }
     }
