@@ -90,7 +90,7 @@ namespace unbooru.ImageSaveHandler
                     if (File.Exists(path)) return;
                     _logger.LogInformation("Saving image to {Path}", path);
                     using var img = new MagickImage(image.Blob);
-                    img.Resize(new MagickGeometry("x3840>"));
+                    if (img.Height > 3840 || img.Width > 3840) img.Resize(new MagickGeometry("x3840>"));
                     await using var stream = File.OpenWrite(path);
                     await img.WriteAsync(stream, e.CancellationToken);
                 }
