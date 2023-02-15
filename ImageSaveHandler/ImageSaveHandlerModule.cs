@@ -60,7 +60,7 @@ namespace unbooru.ImageSaveHandler
             {
                 try
                 {
-                    if (image.Composition?.IsMonochrome ?? false) return;
+                    if (image.Composition is { IsMonochrome: true }) return;
                     var tags = image.Tags;
                     if (tags == null || !tags.Any())
                     {
@@ -90,7 +90,7 @@ namespace unbooru.ImageSaveHandler
                     if (File.Exists(path)) return;
                     _logger.LogInformation("Saving image to {Path}", path);
                     using var img = new MagickImage(image.Blob);
-                    if (img.Height > 3840 || img.Width > 3840) img.Resize(new MagickGeometry("x3840>"));
+                    if (img.Height > 3840 || img.Width > 3840) img.Resize(new MagickGeometry("3840x3840>"));
                     await using var stream = File.OpenWrite(path);
                     await img.WriteAsync(stream, e.CancellationToken);
                 }
@@ -101,7 +101,7 @@ namespace unbooru.ImageSaveHandler
             }
         }
         
-        private string GetImagePath(Image image)
+        public string GetImagePath(Image image)
         {
             var source = image.Sources.FirstOrDefault(a => a.Source == "Pixiv");
             if (source == null) return null;

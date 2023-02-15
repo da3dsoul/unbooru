@@ -18,6 +18,7 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 using Quartz;
 using unbooru.Abstractions.Poco.Events;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace unbooru.Core
 {
@@ -228,16 +229,19 @@ namespace unbooru.Core
                 services.AddScoped<IContext<Image>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IReadWriteContext<Image>>(x => x.GetRequiredService<CoreContext>());
                 services.AddScoped<IReadWriteContext<ResponseCache>>(x => x.GetRequiredService<CoreContext>());
-                services.AddLogging(a =>
-                {
-                    a.ClearProviders();
-                    a.AddNLog();
-                    ConfigureNLog();
-                });
+
                 foreach (var module in Modules)
                 {
                     module.ConfigureServices(services);
                 }
+            });
+            hostBuilder.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddNLog();
+                logging.SetMinimumLevel(LogLevel.Trace);
+                logging.AddFilter<NLogLoggerProvider>("Microsoft", LogLevel.Warning);
+                ConfigureNLog();
             });
             return hostBuilder;
         }

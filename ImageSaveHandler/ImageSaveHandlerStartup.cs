@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -38,9 +39,12 @@ namespace unbooru.ImageSaveHandler
                     if (exclude == null) return;
 
                     var token = new CancellationToken();
-                    var ids = context?.Set<Image>().Where(i => i.TagSources.Select(a => a.Tag).Any() && !i.TagSources.Select(a => a.Tag.Name).Any(a => exclude.Contains(a)))
+                    //var ids = context?.Set<Image>().Where(i => (i.TagSources.Any() && !i.TagSources.Select(a => a.Tag.Name).Any(a => exclude.Contains(a))) && (i.Composition == null || !i.Composition.IsMonochrome))
+                    //    .Select(a => a.ImageId).ToList();
+                    var idsToRemove = context?.Set<Image>().Where(i => !i.TagSources.Any() || i.TagSources.Select(a => a.Tag.Name).Any(a => exclude.Contains(a)) || (i.Composition != null && i.Composition.IsMonochrome))
                         .Select(a => a.ImageId).ToList();
-                    if (ids == null) return;
+                    //if (ids == null) return;
+                    //ids.Reverse();
 
                     var module = (ImageSaveHandlerModule) args.Services.GetServices<IModule>().FirstOrDefault(a => a is ImageSaveHandlerModule);
                     if (module == null) return;
@@ -49,8 +53,8 @@ namespace unbooru.ImageSaveHandler
                         { a => a.Sources, a => a.ArtistAccounts, a => a.TagSources, a => a.Blobs };
 
                     var index = 0;
-                    var total = ids.Count;
-                    foreach (var id in ids)
+                    var total = 0;//ids.Count;
+                    /*foreach (var id in ids)
                     {
                         var image = context.Set(includes).FirstOrDefault(a => a.ImageId == id);
 
@@ -63,6 +67,29 @@ namespace unbooru.ImageSaveHandler
                         if (eventArgs.Cancel) return;
                         index++;
                         var percent = Math.Floor(1000D * index / total);
+                        if (percent > Math.Floor(1000D * (index - 1D) / total)) logger?.LogInformation("{Percent}% done processing files", Math.Round(percent / 10D, 1));
+                    }*/
+
+                    index = 0;
+                    total = idsToRemove.Count;
+                    foreach (var id in idsToRemove)
+                    {
+                        var image = context.Set(includes).FirstOrDefault(a => a.ImageId == id);
+                        var path = module.GetImagePath(image);
+                        double percent;
+                        if (!File.Exists(path))
+                        {
+                            index++;
+                            percent = Math.Floor(1000D * index / total);
+                            if (percent > Math.Floor(1000D * (index - 1D) / total)) logger?.LogInformation("{Percent}% done processing files", Math.Round(percent / 10D, 1));
+                            continue;
+                        }
+
+                        logger?.LogInformation("Deleting {Image}", path);
+                        File.Delete(path);
+
+                        index++;
+                        percent = Math.Floor(1000D * index / total);
                         if (percent > Math.Floor(1000D * (index - 1D) / total)) logger?.LogInformation("{Percent}% done processing files", Math.Round(percent / 10D, 1));
                     }
 
