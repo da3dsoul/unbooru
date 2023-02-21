@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using CommandLine;
 using unbooru.Abstractions;
 using unbooru.Abstractions.Attributes;
 using unbooru.Abstractions.Interfaces;
@@ -77,13 +78,21 @@ namespace unbooru.Core
         private bool HandleCLI(string[] args, IHost host)
         {
             // run CLI handlers
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
+            ParserResult<object> parser = new Parser(o => o.IgnoreUnknownArguments = true).ParseArguments(args, types);
+            
             foreach (var module in Modules)
             {
                 var logger = host.Services.GetService<ILogger<Startup>>();
+
                 try
                 {
                     // make a copy to prevent modules from interfering with each other
                     var evt = new StartupEventArgs { Args = args.ToArray(), Services = host.Services };
+                    if (module is ICommandLineParser cli) cli.ParseArguments(evt, parser);
+
                     module.Main(evt);
                     if (!evt.Cancel) continue;
                     logger?.LogWarning("{Module} returned a cancellation request from startup. Closing", module);

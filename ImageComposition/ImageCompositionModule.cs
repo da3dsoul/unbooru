@@ -65,14 +65,16 @@ namespace unbooru.ImageComposition
                 using var image = new MagickImage(img.Blob);
 
                 var hist = image.Histogram();
-                var histogram = hist.Where(a => !a.Key.IsCmyk && a.Value > 0).Select(a => new ImageHistogramColor
+                var threshold = Math.Max(image.Width * image.Height * 0.000002D, 5);
+                var histogram = hist.Where(a => !a.Key.IsCmyk && a.Value > threshold).Select(a => new ImageHistogramColor
                     { RGBA = a.Key.ToByteArray(), Value = a.Value }).ToList();
                 var blackAndWhite = histogram.All(IsBlackOrWhite);
-                var grayscale = blackAndWhite || histogram.All(IsGray);
+                // very desaturated or very dark or very bright
+                var grayscale = blackAndWhite || histogram.All(IsGray) || histogram.Select(a => HSLAFromRGBA(a.RGBA)).All(a => a[1] < 0.05 || a[2] < 0.1 || a[2] > 0.9);
                 var monochrome = grayscale;
                 if (!monochrome)
                 {
-                    var hsl = histogram.Select(a => HSLAFromRGB(a.RGBA)).ToList();
+                    var hsl = histogram.Select(a => HSLAFromRGBA(a.RGBA)).ToList();
                     var deltaH = hsl.Max(a => a[0]) - hsl.Min(a => a[0]);
                     monochrome = deltaH < 0.1;
                 }
@@ -101,46 +103,49 @@ namespace unbooru.ImageComposition
             return a.RGBA[0] == a.RGBA[1] && a.RGBA[0] == a.RGBA[2];
         }
 
-        public static double[] HSLAFromRGB(byte[] rgba)
+        public static double[] HSLAFromRGBA(byte[] rgba)
         {
-            var normR = rgba[0] / 255D;
-            var normG = rgba[1] / 255D;
-            var normB = rgba[2] / 255D;
-            var normA = rgba[3] / 255D;
+            double h;
+            double s;
+            var modifiedR = rgba[0] / 255.0;
+            var modifiedG = rgba[1] / 255.0;
+            var modifiedB = rgba[2] / 255.0;
+            var normA = rgba[3] / 255.0;
 
-            var min = Math.Min(Math.Min(normR, normG), normB);
-            var max = Math.Max(Math.Max(normR, normG), normB);
+            var min = Math.Min(Math.Min(modifiedR, modifiedG), modifiedB);
+            var max = Math.Max(Math.Max(modifiedR, modifiedG), modifiedB);
             var delta = max - min;
+            var l = (min + max) / 2;
 
-            var h = 0D;
-            var s = 0D;
-            var l = (max + min) / 2.0D;
-
-            if (delta == 0) return new[] { h, s, l, normA };
-            if (l < 0.5D)
+            if (delta == 0)
             {
-                s = delta / (max + min);
+                h = 0;
+                s = 0;
             }
             else
             {
-                s = delta / (2.0D - max - min);
+                s = l <= 0.5 ? delta / (min + max) : delta / (2 - max - min);
+
+                if (Math.Abs(modifiedR - max) < 0.000001D)
+                {
+                    h = (modifiedG - modifiedB) / 6 / delta;
+                }
+                else if (Math.Abs(modifiedG - max) < 0.000001D)
+                {
+                    h = 1.0 / 3 + (modifiedB - modifiedR) / 6 / delta;
+                }
+                else
+                {
+                    h = 2.0 / 3 + (modifiedR - modifiedG) / 6 / delta;
+                }
+
+                h = h < 0 ? ++h : h;
+                h = h > 1 ? --h : h;
             }
 
-            if (Math.Abs(normR - max) < 0.001D)
-            {
-                h = (normG - normB) / delta;
-            }
-            else if (Math.Abs(normG - max) < 0.001D)
-            {
-                h = 2D + (normB - normR) / delta;
-            }
-            else if (Math.Abs(normB - max) < 0.001D)
-            {
-                h = 4 + (normR - normG) / delta;
-            }
-
-            return new[] { h, s, l, normA };
+            return new [] {h, s, l, normA};
         }
+
 
         public Task RunAsync(IServiceProvider provider, CancellationToken token)
         {
@@ -154,19 +159,34 @@ namespace unbooru.ImageComposition
 
             _logger.LogInformation("Analyzing {Count} images", count);
             var index = 0;
-            foreach (var imageId in imagesToProcess)
+            Parallel.ForEach(imagesToProcess, new ParallelOptions{MaxDegreeOfParallelism = 8, CancellationToken = token}, (imageId, state) =>
             {
                 try
                 {
-                    if (token.IsCancellationRequested) return Task.CompletedTask;
+                    if (token.IsCancellationRequested)
+                    {
+                        state.Break();
+                        return;
+                    }
+
                     using var scope = provider.CreateScope();
                     using var sContext = scope.ServiceProvider.GetRequiredService<CoreContext>();
                     if (index % 20 == 1) _logger.LogInformation("Analyzed {Index}/{Count} images", index, count);
                     var image = sContext.Set<Image>().Include(a => a.Blobs).Include(a => a.Sources)
                         .Include(a => a.Composition).FirstOrDefault(a => a.ImageId == imageId);
-                    if (token.IsCancellationRequested) return Task.CompletedTask;
+                    if (token.IsCancellationRequested)
+                    {
+                        state.Break();
+                        return;
+                    }
+
                     AnalyzeImage(image);
-                    if (token.IsCancellationRequested) return Task.CompletedTask;
+                    if (token.IsCancellationRequested)
+                    {
+                        state.Break();
+                        return;
+                    }
+
                     index++;
                     sContext.SaveChanges();
                 }
@@ -174,7 +194,7 @@ namespace unbooru.ImageComposition
                 {
                     _logger.LogError(e, "Unable to save composition: {Ex}", e);
                 }
-            }
+            });
 
             return Task.CompletedTask;
         }

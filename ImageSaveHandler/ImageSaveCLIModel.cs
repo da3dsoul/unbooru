@@ -3,7 +3,7 @@
 namespace unbooru.ImageSaveHandler
 {
     [Verb("ImageSaveHandler")]
-    public class CLIModel
+    public class ImageSaveCLIModel
     {
         [Option('S')] public bool Sync { get; set; }
     }

@@ -10,6 +10,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Booru\Booru.csproj" />
       <ProjectReference Include="..\DeepDanbooru\DeepDanbooru.csproj" />
+      <ProjectReference Include="..\FoldSaveHandler\FoldSaveHandler.csproj" />
       <ProjectReference Include="..\ImageComposition\ImageComposition.csproj" />
       <ProjectReference Include="..\ImageCompressor\ImageCompressor.csproj" />
       <ProjectReference Include="..\Core\Core.csproj" />

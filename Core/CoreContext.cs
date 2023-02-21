@@ -357,6 +357,9 @@ namespace unbooru.Core
             modelBuilder.Entity<ResponseCache>().HasIndex(a => new {a.LastUpdated, a.StatusCode});
             modelBuilder.Entity<ImageTagSource>().HasIndex(e => e.TagsImageTagId, "IX_ImageImageTag_TagsImageTagId");
             modelBuilder.Entity<ImageHistogramColor>().HasIndex(e => e.ColorKey);
+            modelBuilder.Entity<ImageComposition>().HasIndex(e => e.IsMonochrome);
+            modelBuilder.Entity<ImageComposition>().HasIndex(e => e.IsGrayscale);
+            modelBuilder.Entity<ImageComposition>().HasIndex(e => e.IsBlackAndWhite);
 
             // keys
             modelBuilder.Entity<ArtistAccount>().HasKey(a => a.ArtistAccountId);

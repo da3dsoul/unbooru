@@ -27,4 +27,10 @@
       <Folder Include="Migrations" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="CommandLine">
+        <HintPath>..\..\..\.nuget\packages\commandlineparser\2.9.1\lib\netstandard2.0\CommandLine.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>
