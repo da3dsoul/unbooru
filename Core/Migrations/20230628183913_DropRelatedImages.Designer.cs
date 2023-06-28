@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using unbooru.Core;
 
 namespace unbooru.Core.Migrations
 {
     [DbContext(typeof(CoreContext))]
-    partial class CoreContextModelSnapshot : ModelSnapshot
+    [Migration("20230628183913_DropRelatedImages")]
+    partial class DropRelatedImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -291,14 +293,9 @@ namespace unbooru.Core.Migrations
                     b.Property<int?>("ImageId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RelationImageId")
-                        .HasColumnType("int");
-
                     b.HasKey("RelatedImageId");
 
                     b.HasIndex("ImageId");
-
-                    b.HasIndex("RelationImageId");
 
                     b.ToTable("RelatedImages");
                 });
@@ -411,16 +408,9 @@ namespace unbooru.Core.Migrations
                 {
                     b.HasOne("unbooru.Abstractions.Poco.Image", "Image")
                         .WithMany("RelatedImages")
-                        .HasForeignKey("ImageId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("unbooru.Abstractions.Poco.Image", "Relation")
-                        .WithMany()
-                        .HasForeignKey("RelationImageId");
+                        .HasForeignKey("ImageId");
 
                     b.Navigation("Image");
-
-                    b.Navigation("Relation");
                 });
 
             modelBuilder.Entity("unbooru.Abstractions.Poco.Image", b =>

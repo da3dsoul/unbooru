@@ -6,6 +6,6 @@ namespace unbooru.Abstractions.Poco
         public int RelatedImageId { get; set; }
         
         public virtual Image Image { get; set; }
-        public virtual ImageSource ImageSource { get; set; } 
+        public virtual Image Relation { get; set; } 
     }
 }

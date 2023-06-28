@@ -9,6 +9,7 @@ import ImageDetail from 'Content/pages/imagedetail.jsx';
 import Missing from "Content/pages/missing.jsx";
 import NotFound from "Content/pages/notfound.jsx";
 import Random from "Content/pages/random.jsx";
+import Home from "Content/pages/home.jsx";
 import { ServerStyleSheet } from 'styled-components';
 import { JssProvider, SheetsRegistry } from 'react-jss';
 import { renderStylesToString } from 'emotion-server';
@@ -47,4 +48,4 @@ global.ReactJss = { JssProvider, SheetsRegistry };
 global.EmotionServer = { renderStylesToString };
 global.Helmet = Helmet;
 
-global.Components = { Nav, Search, ArtistList, ImageDetail, Missing, NotFound, Random };
+global.Components = { Nav, Search, ArtistList, ImageDetail, Missing, NotFound, Random, Home };

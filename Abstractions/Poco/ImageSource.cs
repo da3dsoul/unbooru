@@ -26,11 +26,6 @@ namespace unbooru.Abstractions.Poco
         [IgnoreDataMember]
         public virtual Image Image { get; set; }
 
-        [IgnoreDataMember]
-        public virtual List<RelatedImage> RelatedImages { get; set; }
-
-        [NotMapped] public List<int> RelatedImageIds => RelatedImages?.Select(a => a.Image.ImageId).ToList() ?? new List<int>();
-
         protected bool Equals(ImageSource other)
         {
             return Source == other.Source && Uri == other.Uri;

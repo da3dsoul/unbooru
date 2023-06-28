@@ -47,5 +47,8 @@ namespace unbooru.Abstractions.Poco
 
         [IgnoreDataMember]
         public virtual List<RelatedImage> RelatedImages { get; set; }
+
+        [NotMapped] public List<int> RelatedImageIds =>
+            RelatedImages?.Select(a => a.Relation.ImageId).Where(a => a != ImageId).ToList() ?? new List<int>();
     }
 }

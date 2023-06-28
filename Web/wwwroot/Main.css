@@ -233,6 +233,46 @@ body {
 	color: white;
 }
 
+.Related {
+	border: solid black 2px;
+	display: flex;
+	flex-direction: column;
+}
+
+.Related__container {
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+	display: flex;
+	overflow-x: auto;
+	overflow-y: hidden;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	height: 250px;
+}
+
+.Related__container img {
+	width: auto;
+}
+
+::-webkit-scrollbar {
+	height: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+
 @media (orientation: portrait) {
 	.info-container {
 		max-width: 100%;

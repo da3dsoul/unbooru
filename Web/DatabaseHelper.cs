@@ -45,7 +45,7 @@ namespace unbooru.Web
         public async Task<Image> GetImageById(int id)
         {
             var image = await _context.Set<Image>().AsSplitQuery().AsNoTrackingWithIdentityResolution()
-                .Include(a => a.Sources).ThenInclude(a => a.RelatedImages).ThenInclude(a => a.Image)
+                .Include(a => a.Sources).Include(a => a.RelatedImages).ThenInclude(a => a.Relation)
                 .Include(a => a.TagSources.Where(t => t.Tag.Type != null))
                 .Include(a => a.ArtistAccounts)
                 .OrderBy(a => a.ImageId)
@@ -124,16 +124,11 @@ namespace unbooru.Web
 
         public IQueryable<Image> Search(List<SearchParameter> searchParameters, List<SortParameter> sortParameters)
         {
-            var input = _context.Set<Image>().AsNoTracking();
-            var images = IncludeModels(input, searchParameters, sortParameters);
-
-            var expr = EvaluateSearchParameters(searchParameters);
-            if (expr != null) images = images.Where(expr);
-
+            var images = SearchInternal(searchParameters, sortParameters);
             var first = sortParameters.FirstOrDefault();
             if (first != null)
             {
-                images =  first.Descending ? images.OrderByDescending(first.Selector) : images.OrderBy(first.Selector);
+                images = first.Descending ? images.OrderByDescending(first.Selector) : images.OrderBy(first.Selector);
                 foreach (var para in sortParameters.Skip(1))
                 {
                     images = para.Descending
@@ -147,6 +142,24 @@ namespace unbooru.Web
             }
 
             return images.Select(a => a.Image);
+        }
+
+        public IQueryable<Image> Search(List<SearchParameter> searchParameters)
+        {
+            var images = SearchInternal(searchParameters, new List<SortParameter>());
+            return images.Select(a => a.Image);
+        }
+
+        private IQueryable<SearchViewModel> SearchInternal(List<SearchParameter> searchParameters, List<SortParameter> sortParameters)
+        {
+
+            var input = _context.Set<Image>().AsNoTracking();
+            var images = IncludeModels(input, searchParameters, sortParameters);
+
+            var expr = EvaluateSearchParameters(searchParameters);
+            if (expr != null) images = images.Where(expr);
+
+            return images;
         }
 
         public async Task<int> GetSearchPostCount(List<SearchParameter> searchParameters)

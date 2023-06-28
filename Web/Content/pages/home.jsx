@@ -5,7 +5,7 @@ import queryString from "query-string";
 import ImageBox from "Content/components/imagebox";
 import Stonemason from "@da3dsoul/react-stonemason";
 
-export default function Random(props) {
+export default function Home(props) {
     const imagesPerPage = 21;
     const location = props.location;
     const queryIndex = location.indexOf('?');
@@ -27,7 +27,7 @@ export default function Random(props) {
     useEffect(() => window.scrollTo(0,0), [state.images]);
 
     useEffect(() => {
-        axios.get('/api/Search/Count' + (query === '' ? '' : '?' + query)).then(res => {
+        axios.get('/api/Search/Count?sfw&!monochrome' + (query === '' ? '' : '&' + query)).then(res => {
             updateState(prevState => ({
                 ...prevState,
                 pages: Math.ceil(res.data / imagesPerPage)
@@ -42,7 +42,7 @@ export default function Random(props) {
             page: pageNum
         }));
 
-        let url = `/api/Random?limit=${imagesPerPage}` + (query === '' ? '' : '&' + query);
+        let url = `/api/Random?sfw&!monochrome&limit=${imagesPerPage}` + (query === '' ? '' : '&' + query);
         axios.get(url).then(res => {
             updateState(prevState => ({
                 ...prevState,

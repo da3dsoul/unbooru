@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import axios from "axios";
 import ReactHtmlParser from 'react-html-parser'
 import {isPixivSource} from "Content/modelutils";
+import Related from "Content/components/relatedbox";
 
 function ArtistLink(props) {
     const {artist} = props
@@ -78,6 +79,7 @@ export default function ImageDetail(properties) {
                     <div className="tag-container">
                         {tags}
                     </div>
+                    <Related ids={state.image.relatedImageIds} />
                 </div>
                 <div className="image-detail-image">
                     <img src={`/api/Image/${state.image.imageId}/${pixiv.originalFilename}`} alt={pixiv.title} />

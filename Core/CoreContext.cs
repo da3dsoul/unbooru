@@ -310,7 +310,7 @@ namespace unbooru.Core
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                connectionString = "Server=localhost;Database=unbooru;";
+                connectionString = "Server=localhost;Database=unbooru;User=sa;Password=D3@dsoul";
             }
 
             optionsBuilder.UseSqlServer(connectionString, builder => builder.CommandTimeout(3600));
@@ -366,6 +366,8 @@ namespace unbooru.Core
             modelBuilder.Entity<ImageTagSource>().HasKey(e => new { e.ImagesImageId, e.TagsImageTagId, e.Source });
 
             // mappings
+            modelBuilder.Entity<RelatedImage>().HasOne(a => a.Image).WithMany(a => a.RelatedImages).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<RelatedImage>().HasOne(a => a.Relation);
             modelBuilder.Entity<ArtistAccount>().HasMany(a => a.Images).WithMany(a => a.ArtistAccounts);
             modelBuilder.Entity<ImageBlob>().HasOne(a => a.Image).WithMany(a => a.Blobs).IsRequired();
             modelBuilder.Entity<ImageTagSource>().HasOne(d => d.Image).WithMany(p => p.TagSources).HasForeignKey(d => d.ImagesImageId);

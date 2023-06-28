@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MoreLinq;
 using unbooru.Abstractions.Poco;
 
 // ReSharper disable StringLiteralTypo
@@ -23,18 +22,15 @@ namespace unbooru.Web.Controllers.API
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Image>>> Random(int limit = 1, int? seed = null)
+        public async Task<ActionResult<List<Image>>> Random(int limit = 1)
         {
             var query = HttpContext.Request.Query;
 
             var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
-            var sortParameters = SearchHelper.ParseSortParameters(query);
 
-            IEnumerable<Image> images = await _dbHelper.Search(searchParameters, sortParameters).ToListAsync();
-            var random = seed == null ? new Random() : new Random(seed.Value); 
-            images = images.Shuffle(random);
+            IQueryable<Image> images = _dbHelper.Search(searchParameters).OrderBy(a => Guid.NewGuid());
             if(limit > 0) images = images.Take(limit);
-            var results = images.ToList();
+            var results = await images.ToListAsync();
             if (!results.Any()) return new NotFoundResult();
             return results;
         }
@@ -43,16 +39,9 @@ namespace unbooru.Web.Controllers.API
         public async Task<ActionResult> RandomImage()
         {
             var query = HttpContext.Request.Query;
-
             var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
-            var sortParameters = SearchHelper.ParseSortParameters(query);
-
-            IEnumerable<Image> images = await _dbHelper.Search(searchParameters, sortParameters).ToListAsync();
-            var seedQuery = query["seed"].FirstOrDefault();
-            int? seed = null;
-            if (int.TryParse(seedQuery, out var temp)) seed = temp;
-            var random = seed == null ? new Random() : new Random(seed.Value);
-            var result = images.Shuffle(random).FirstOrDefault();
+            IQueryable<Image> images = _dbHelper.Search(searchParameters).OrderBy(a => Guid.NewGuid());
+            var result = await images.FirstOrDefaultAsync();
             if (result == null) return new NotFoundResult();
             var blob = await _dbHelper.GetImageBlobById(result.ImageId);
             if (blob == default) return new NotFoundResult();
@@ -66,16 +55,9 @@ namespace unbooru.Web.Controllers.API
         public async Task<ActionResult> RandomRedirect()
         {
             var query = HttpContext.Request.Query;
-
             var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
-            var sortParameters = SearchHelper.ParseSortParameters(query);
-
-            IEnumerable<Image> images = await _dbHelper.Search(searchParameters, sortParameters).Include(a => a.Sources).ToListAsync();
-            var seedQuery = query["seed"].FirstOrDefault();
-            int? seed = null;
-            if (int.TryParse(seedQuery, out var temp)) seed = temp;
-            var random = seed == null ? new Random() : new Random(seed.Value);
-            var result = images.Shuffle(random).FirstOrDefault();
+            IQueryable<Image> images = _dbHelper.Search(searchParameters).Include(a => a.Sources).OrderBy(a => Guid.NewGuid());
+            var result = await images.FirstOrDefaultAsync();
             if (result == null) return new NotFoundResult();
             var source = result.Sources?.FirstOrDefault(a => !string.IsNullOrEmpty(a.OriginalFilename));
             if (source == null) return new NotFoundResult();

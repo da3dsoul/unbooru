@@ -4,11 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "rimraf wwwroot/dist && webpack"
+    "build": "rimraf wwwroot/dist && NODE_OPTIONS=\"--openssl-legacy-provider\" webpack"
   },
   "dependencies": {
     "@da3dsoul/react-stonemason": "^0.0.13",
     "axios": "^0.21.1",
+    "build": "^0.1.4",
     "emotion": "^9.2.12",
     "emotion-server": "^9.2.12",
     "lodash.debounce": "^4.0.8",

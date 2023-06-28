@@ -360,11 +360,27 @@ namespace unbooru.Pixiv
                 foreach (var source in tempImage.Sources)
                 {
                     source.Image = tempImage;
-                    source.RelatedImages = prov.Images
-                        .Select(a => new RelatedImage {Image = a, ImageSource = source}).ToList();
                 }
 
-                tempImage.RelatedImages = tempImage.Sources.FirstOrDefault()?.RelatedImages;
+                tempImage.RelatedImages = prov.Images.Where(a => a != tempImage).Select(a => new RelatedImage
+                {
+                    Image = tempImage,
+                    Relation = a
+                }).ToList();
+            }
+
+            foreach (var tempImage in prov.Images.Where(a => a.ImageId > 0))
+            {
+                foreach (var image1 in prov.Images.Where(a => a != tempImage))
+                {
+                    if (tempImage.RelatedImages.Any(a =>
+                            ReferenceEquals(a.Image, tempImage) && ReferenceEquals(a.Relation, image1))) continue;
+                    tempImage.RelatedImages.Add(new RelatedImage
+                    {
+                        Image = tempImage,
+                        Relation = image1
+                    });
+                }
             }
 
             ImageProvided?.Invoke(this, prov);
