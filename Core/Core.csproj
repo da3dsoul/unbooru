@@ -6,8 +6,12 @@
         <AssemblyName>unbooru.Core</AssemblyName>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
+    <ItemGroup>
+        <Content Include="nlog.config" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0-preview.5.21301.9" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0-preview.5.21301.9" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0-preview.5.21301.9">
@@ -22,15 +26,4 @@
     <ItemGroup>
       <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Migrations" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="CommandLine">
-        <HintPath>..\..\..\.nuget\packages\commandlineparser\2.9.1\lib\netstandard2.0\CommandLine.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog;
+using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 using Quartz;
@@ -257,22 +258,9 @@ namespace unbooru.Core
 
         private void ConfigureNLog()
         {
-            var configuration = new NLog.Config.LoggingConfiguration();
-            Target target = new FileTarget("file")
-            {
-                FileName = Path.Combine(Arguments.DataPath, "Logs", "${shortdate}.log"),
-            };
-            configuration.AddTarget(target);
-            configuration.AddRule(NLog.LogLevel.Info, NLog.LogLevel.Fatal, target);
-
-            target = new ConsoleTarget("console")
-            {
-                //Layout = "${longdate}|${level:uppercase=true}|${logger}|${message}${exception:exceptionSeparator=\r\n:format=toString,Data}"
-            };
-            configuration.AddTarget(target);
-            configuration.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, target);
-
-            LogManager.Configuration = configuration;
+            var target = (FileTarget)LogManager.Configuration.FindTargetByName("file");
+            if (target != null) target.FileName = Path.Combine(Arguments.DataPath, "Logs", "${shortdate}.log");
+            LogManager.ReconfigExistingLoggers();
         }
         
         private void FindTypes()

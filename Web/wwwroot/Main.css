@@ -234,7 +234,6 @@ body {
 }
 
 .Related {
-	border: solid black 2px;
 	display: flex;
 	flex-direction: column;
 }
@@ -252,6 +251,7 @@ body {
 
 .Related__container img {
 	width: auto;
+	border: solid #2d2d2d 1px;
 }
 
 ::-webkit-scrollbar {

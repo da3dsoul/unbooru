@@ -4,8 +4,6 @@ using unbooru.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using NLog.Web;
 using Quartz;
 using Quartz.Impl.Matchers;
 using unbooru.Abstractions.Poco.Events;
