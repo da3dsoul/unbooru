@@ -109,20 +109,18 @@ namespace Meowtrix.PixivApi
         /// <param name="requestFunc">Accesses the url parameter in browser,
         /// listens and returns for pixiv:// request.</param>
         /// <returns>The refresh token.</returns>
-        public async Task<string> LoginAsync(Func<string, Task<Uri>> requestFunc)
+        public async Task<string> LoginAsync(Func<string, string> requestFunc)
         {
             try
             {
                 await _semaphore.WaitAsync().ConfigureAwait(false);
 
                 var (codeVerify, loginUrl) = Api.BeginAuth();
-                var uri = await requestFunc(loginUrl).ConfigureAwait(false);
+                var uri = requestFunc(loginUrl);
 
-                if (uri.Scheme != "pixiv")
-                    throw new InvalidOperationException("Bad login request.");
-                var query = HttpUtility.ParseQueryString(uri.Query);
+                var query = HttpUtility.ParseQueryString(new Uri(uri).Query);
                 string code = query["code"] ?? throw new InvalidOperationException("The login request doesn't contain code.");
-                var (time, response) = await Api.CompleteAuthAsync(code, codeVerify).ConfigureAwait(false);
+                var (time, response) = await Api.CompleteAuthAsync(code, codeVerify);
                 SetLogin(time, response);
 
                 return response.RefreshToken;
