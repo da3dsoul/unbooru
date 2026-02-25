@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>unbooru.Web</RootNamespace>
     <AssemblyName>unbooru.Web</AssemblyName>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
@@ -15,24 +15,24 @@
   </ItemGroup>
   <ItemGroup>
     <!--<FrameworkReference Include="Microsoft.AspNetCore.App" />-->
-    <PackageReference Include="ByteSize" Version="2.1.1" />
+    <PackageReference Include="ByteSize" Version="2.1.2" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.6" />
-    <PackageReference Include="MimeTypes" Version="2.4.0">
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.3" />
+    <PackageReference Include="MimeTypes" Version="2.5.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore" Version="3.9.1" />
-    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.linux-x64" Version="3.9.1" />
-    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.osx-x64" Version="3.9.1" />
-    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.win-x86" Version="3.9.1" />
-    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.win-x64" Version="3.9.1" />
-    <PackageReference Include="JavaScriptEngineSwitcher.Extensions.MsDependencyInjection" Version="3.3.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.0-preview.4.21274.1" />
-    <PackageReference Include="NLog.Web.AspNetCore" Version="5.2.1" />
-    <PackageReference Include="React.AspNet" Version="5.2.11" />
-    <PackageReference Include="React.Router" Version="5.2.11" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore" Version="3.31.0" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.linux-x64" Version="3.31.0" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.osx-x64" Version="3.31.0" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.win-x86" Version="3.31.0" />
+    <PackageReference Include="JavaScriptEngineSwitcher.ChakraCore.Native.win-x64" Version="3.31.0" />
+    <PackageReference Include="JavaScriptEngineSwitcher.Extensions.MsDependencyInjection" Version="3.31.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.1" />
+    <PackageReference Include="React.AspNet" Version="5.2.12" />
+    <PackageReference Include="React.Router" Version="5.2.12" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />

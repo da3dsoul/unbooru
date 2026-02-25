@@ -67,7 +67,7 @@ namespace unbooru.ImageComposition
                 var hist = image.Histogram();
                 var threshold = Math.Max(image.Width * image.Height * 0.000002D, 5);
                 var histogram = hist.Where(a => !a.Key.IsCmyk && a.Value > threshold).Select(a => new ImageHistogramColor
-                    { RGBA = a.Key.ToByteArray(), Value = a.Value }).ToList();
+                    { RGBA = a.Key.ToByteArray(), Value = (int)a.Value }).ToList();
                 var blackAndWhite = histogram.All(IsBlackOrWhite);
                 // very desaturated or very dark or very bright
                 var grayscale = blackAndWhite || histogram.All(IsGray) || histogram.Select(a => HSLAFromRGBA(a.RGBA)).All(a => a[1] < 0.05 || a[2] < 0.1 || a[2] > 0.9);

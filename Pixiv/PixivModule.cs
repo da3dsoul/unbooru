@@ -318,9 +318,9 @@ namespace unbooru.Pixiv
                         prov.Attachments[i].Data = data;
                         prov.Attachments[i].Filesize = data.LongLength;
                         var pic = new MagickImage(data);
-                        prov.Images[i].Width = pic.Width;
-                        prov.Images[i].Height = pic.Height;
-                        prov.Attachments[i].Size = (pic.Width, pic.Height);
+                        prov.Images[i].Width = (int)pic.Width;
+                        prov.Images[i].Height = (int)pic.Height;
+                        prov.Attachments[i].Size = ((int)pic.Width, (int)pic.Height);
                         prov.Images[i].Size = data.LongLength;
                         prov.Images[i].Blob = data;
                         retry = 0;

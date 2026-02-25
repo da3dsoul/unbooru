@@ -44,8 +44,7 @@ namespace unbooru.Web.Controllers.API
         {
             var blob = await _dbHelper.GetArtistAvatarById(id);
             if (blob == default) return new NotFoundResult();
-            var image = new MagickImage(blob);
-            return File(blob, image.FormatInfo?.MimeType);
+            return File(blob, MagickFormatInfo.Create(blob)?.MimeType ?? "image/jpeg");
         }
 
         [HttpGet("{id:int}/LatestImage")]
