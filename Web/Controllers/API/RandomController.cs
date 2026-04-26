@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -22,46 +23,75 @@ namespace unbooru.Web.Controllers.API
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Image>>> Random(int limit = 1)
+        public async Task<ActionResult<List<Image>>> Random(int limit = 0, int offset = 0, int seed = -1)
         {
             var query = HttpContext.Request.Query;
-
             var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
+            Span<int> filteredIds = await _dbHelper.Search(searchParameters).Select(a => a.ImageId).ToArrayAsync();
+            Shuffle(filteredIds, seed);
+            if (offset > 0 && limit <= 0)
+                filteredIds = filteredIds[offset..];
+            else if (limit > 0 && offset <= 0)
+                filteredIds = filteredIds[..limit];
+            else
+                filteredIds = filteredIds.Slice(offset, limit);
 
-            IQueryable<Image> images = _dbHelper.Search(searchParameters).OrderBy(a => Guid.NewGuid());
-            if(limit > 0) images = images.Take(limit);
-            var results = await images.ToListAsync();
+            var shuffledIds = filteredIds.ToArray();
+
+            var images = await _dbHelper.ExecuteExpression(c =>
+                c.Images.AsNoTracking().Include(a => a.Sources)
+                    .Where(i => ((IEnumerable<int>)shuffledIds).Contains(i.ImageId)).ToDictionaryAsync(a => a.ImageId));
+            var results = shuffledIds.Select(a => images[a]).ToList();
             if (!results.Any()) return new NotFoundResult();
             return results;
         }
-        
+
         [HttpGet("Image")]
-        public async Task<ActionResult> RandomImage()
+        public async Task<ActionResult> RandomImage(int seed = -1)
         {
             var query = HttpContext.Request.Query;
             var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
-            IQueryable<Image> images = _dbHelper.Search(searchParameters).OrderBy(a => Guid.NewGuid());
-            var result = await images.FirstOrDefaultAsync();
+            Span<int> filteredIds = await _dbHelper.Search(searchParameters).Select(a => a.ImageId).ToArrayAsync();
+            var rand = seed == -1 ? new Random() : new Random(seed);
+            var id = filteredIds[rand.Next(0, filteredIds.Length)];
+
+            var result = await _dbHelper.GetImageById(id);
             if (result == null) return new NotFoundResult();
             var blob = await _dbHelper.GetImageBlobById(result.ImageId);
-            if (blob == default) return new NotFoundResult();
-            var source = await _dbHelper.ExecuteExpression(c =>
-                c.Set<ImageSource>().FirstOrDefaultAsync(a => a.Image.ImageId == result.ImageId));
-            var name = source?.OriginalFilename ?? "file.jpg";
+            if (blob == null) return new NotFoundResult();
+            var name = result.Sources.FirstOrDefault(a => Path.HasExtension(a.OriginalFilename))?.OriginalFilename ?? "file.jpg";
             return File(blob, MimeTypes.GetMimeType(name), name);
         }
 
         [HttpGet("Redirect")]
-        public async Task<ActionResult> RandomRedirect()
+        public async Task<ActionResult> RandomRedirect(int seed = -1)
         {
             var query = HttpContext.Request.Query;
             var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
-            IQueryable<Image> images = _dbHelper.Search(searchParameters).Include(a => a.Sources).OrderBy(a => Guid.NewGuid());
-            var result = await images.FirstOrDefaultAsync();
+            Span<int> filteredIds = await _dbHelper.Search(searchParameters).Select(a => a.ImageId).ToArrayAsync();
+            var rand = seed == -1 ? new Random() : new Random(seed);
+            var id = filteredIds[rand.Next(0, filteredIds.Length)];
+
+            var result = await _dbHelper.GetImageById(id);
             if (result == null) return new NotFoundResult();
-            var source = result.Sources?.FirstOrDefault(a => !string.IsNullOrEmpty(a.OriginalFilename));
-            if (source == null) return new NotFoundResult();
-            return RedirectToAction("GetImageById", "Image", new { id = result.ImageId, filename = source.OriginalFilename });
+            var name = result.Sources.FirstOrDefault(a => Path.HasExtension(a.OriginalFilename))?.OriginalFilename ?? "file.jpg";
+            return RedirectToAction("GetImageById", "Image", new { id = result.ImageId, filename = name });
+        }
+
+        /// <summary>
+        /// Fisher-Yates Shuffle a Span
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="seed"></param>
+        /// <typeparam name="T"></typeparam>
+        private static void Shuffle<T>(Span<T> items, int seed)
+        {
+            var rand = seed == -1 ? new Random() : new Random(seed);
+            for (var i = items.Length - 1; i > 0; i--)
+            {
+                var j = rand.Next(0, i + 1);
+                (items[i], items[j]) = (items[j], items[i]);
+            }
         }
     }
 }
