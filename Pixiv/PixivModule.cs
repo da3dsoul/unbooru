@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CommandLine;
 using unbooru.Abstractions.Interfaces;
 using unbooru.Abstractions.Poco;
 using unbooru.Abstractions.Poco.Events;
@@ -22,7 +24,7 @@ using MoreLinq.Extensions;
 
 namespace unbooru.Pixiv
 {
-    public class PixivModule : IModule, IServiceModule, IImageProvider
+    public class PixivModule : IModule, IServiceModule, IImageProvider, ICommandLineParser
     {
         private readonly ILogger<PixivModule> _logger;
 
@@ -413,6 +415,42 @@ namespace unbooru.Pixiv
                     Thread.Sleep(SleepTime);
                 }
             }
+        }
+        public ParserResult<object> ParseArguments(StartupEventArgs args, ParserResult<object> result)
+        {
+            return result.WithParsed<PixivCLIModel>(o =>
+                {
+                    var logger = args.Services.GetRequiredService<ILogger<PixivModule>>();
+                    logger.LogInformation("---- Pixiv Login ----");
+                    logger.LogInformation("A browser will open, F12 to capture the response.");
+
+                    var loggerFactory = args.Services.GetRequiredService<ILoggerFactory>();
+                    var settingsProvider = args.Services.GetRequiredService<ISettingsProvider<PixivSettings>>();
+
+                    var client = new PixivClient(loggerFactory);
+                    var refreshToken = client.LoginAsync(url =>
+                    {
+                        logger.LogInformation("Open this url");
+                        logger.LogInformation(url);
+                        Process.Start(url);
+                        logger.LogInformation("Enter the URL or code:");
+                        var readLine = Console.ReadLine();
+                        if (readLine.Contains("pixiv://") && readLine.Contains("code="))
+                        {
+                            var sub = readLine.Substring(readLine.IndexOf("code=") + 5, readLine.Length - readLine.IndexOf("&") + 5);
+                            return sub;
+                        }
+
+                        return readLine;
+                    }).Result;
+                    
+                    settingsProvider.Update(a =>
+                    {
+                        a.Token = refreshToken;
+                    });
+
+                    args.Cancel = true;
+                });
         }
     }
 }

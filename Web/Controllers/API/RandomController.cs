@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,25 +25,26 @@ namespace unbooru.Web.Controllers.API
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Image>>> Random(int limit = 0, int offset = 0, int seed = -1)
+        public async Task<ActionResult<List<Image>>> Random(int limit = 0, int offset = 0, int currentID = 0, int seed = -1)
         {
             var query = HttpContext.Request.Query;
             var searchParameters = SearchHelper.ParseSearchParameters(query, HttpContext.RequestServices);
-            Span<int> filteredIds = await _dbHelper.Search(searchParameters).Select(a => a.ImageId).ToArrayAsync();
-            Shuffle(filteredIds, seed);
+            IEnumerable<int> filteredIds = await _dbHelper.Search(searchParameters).Select(a => a.ImageId).ToArrayAsync();
+            Span<int> shuffledIds = Shuffle(filteredIds, seed).ToArray();
+            if (currentID <= 0) offset = shuffledIds.IndexOf(currentID) + 1; 
             if (offset > 0 && limit <= 0)
-                filteredIds = filteredIds[offset..];
+                shuffledIds = shuffledIds[offset..];
             else if (limit > 0 && offset <= 0)
-                filteredIds = filteredIds[..limit];
-            else
-                filteredIds = filteredIds.Slice(offset, limit);
+                shuffledIds = shuffledIds[..limit];
+            else if (limit > 0 && offset > 0)
+                shuffledIds = shuffledIds.Slice(offset, Math.Min(limit, shuffledIds.Length - offset));
 
-            var shuffledIds = filteredIds.ToArray();
+            var shuffledArray = shuffledIds.ToArray();
 
             var images = await _dbHelper.ExecuteExpression(c =>
                 c.Images.AsNoTracking().Include(a => a.Sources)
-                    .Where(i => ((IEnumerable<int>)shuffledIds).Contains(i.ImageId)).ToDictionaryAsync(a => a.ImageId));
-            var results = shuffledIds.Select(a => images[a]).ToList();
+                    .Where(i => ((IEnumerable<int>)shuffledArray).Contains(i.ImageId)).ToDictionaryAsync(a => a.ImageId));
+            var results = shuffledArray.Select(a => images[a]).ToList();
             if (!results.Any()) return new NotFoundResult();
             return results;
         }
@@ -84,7 +87,7 @@ namespace unbooru.Web.Controllers.API
         /// <param name="items"></param>
         /// <param name="seed"></param>
         /// <typeparam name="T"></typeparam>
-        private static void Shuffle<T>(Span<T> items, int seed)
+        private static void FisherYatesShuffle<T>(Span<T> items, int seed)
         {
             var rand = seed == -1 ? new Random() : new Random(seed);
             for (var i = items.Length - 1; i > 0; i--)
@@ -93,5 +96,13 @@ namespace unbooru.Web.Controllers.API
                 (items[i], items[j]) = (items[j], items[i]);
             }
         }
+        private static long GetStableHash(string s, int seed)
+        {
+            var bytes = MemoryMarshal.AsBytes(s.AsSpan());
+            return (long)XxHash64.HashToUInt64(bytes, seed: seed);
+        }
+
+        private static IEnumerable<T> Shuffle<T>(IEnumerable<T> items, int seed) =>
+            items.OrderBy(item => GetStableHash(item?.ToString() ?? string.Empty, seed == -1 ? System.Random.Shared.Next() : seed));
     }
 }
