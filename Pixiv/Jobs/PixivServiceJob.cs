@@ -39,6 +39,14 @@ namespace unbooru.Pixiv.Jobs
             var pixivModule = Provider.GetRequiredService<PixivModule>();
             await pixivModule.DownloadBookmarks(Provider, pixivClient,
                 settingsProvider.Get(a => a.MaxImagesToDownloadService), settingsProvider.Get(a => a.MaxExistingFilesBeforeExit), token: context.CancellationToken);
+
+            // A long-running download can trigger a silent internal re-auth (token nearing
+            // expiry), rotating the token again without us knowing - capture it once more.
+            settingsProvider.Update(a =>
+            {
+                a.Token = pixivClient.RefreshToken;
+                a.AccessToken = pixivClient.AccessToken;
+            });
         }
     }
 }

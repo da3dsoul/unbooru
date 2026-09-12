@@ -17,11 +17,14 @@ namespace unbooru.Reimport
     public class ReimportModule : IModule
     {
         private ISettingsProvider<ReimportSettings> SettingsProvider { get; set; }
+        private ISettingsProvider<PixivSettings> PixivSettingsProvider { get; set; }
         private readonly ILogger<ReimportModule> _logger;
-        
-        public ReimportModule(ISettingsProvider<ReimportSettings> settingsProvider, ILogger<ReimportModule> logger)
+
+        public ReimportModule(ISettingsProvider<ReimportSettings> settingsProvider,
+            ISettingsProvider<PixivSettings> pixivSettingsProvider, ILogger<ReimportModule> logger)
         {
             SettingsProvider = settingsProvider;
+            PixivSettingsProvider = pixivSettingsProvider;
             _logger = logger;
         }
 
@@ -29,12 +32,31 @@ namespace unbooru.Reimport
         {
             _logger.LogInformation("Running {ModuleType} module with settings of type {SettingsType}", GetType(),
                 SettingsProvider.GetType().GenericTypeArguments.FirstOrDefault());
+
+            var imagesToDownload = SettingsProvider.Get(a => a.ImagesToImport);
+            if (imagesToDownload == null || imagesToDownload.Count == 0)
+            {
+                _logger.LogInformation("No images to reimport. Skipping!");
+                return;
+            }
+
             try
             {
                 var factory = provider.GetRequiredService<ILoggerFactory>();
                 using var pixivClient = new PixivClient(factory);
-                await pixivClient.LoginAsync(SettingsProvider.Get(a => a.Token) ??
+                await pixivClient.LoginAsync(PixivSettingsProvider.Get(a => a.Token) ??
                                              throw new InvalidOperationException("Settings can't be null"));
+
+                // Pixiv rotates the refresh token on every use, invalidating the one we just
+                // logged in with - persist the new one immediately or every other job that
+                // reads the old token from settings will fail to log in.
+                var refreshToken = pixivClient.RefreshToken;
+                var accessToken = pixivClient.AccessToken;
+                PixivSettingsProvider.Update(a =>
+                {
+                    a.Token = refreshToken;
+                    a.AccessToken = accessToken;
+                });
 
                 var pixivModule = provider.GetService<PixivModule>();
                 if (pixivModule == null)
@@ -43,7 +65,6 @@ namespace unbooru.Reimport
                     return;
                 }
 
-                var imagesToDownload = SettingsProvider.Get(a => a.ImagesToImport);
                 foreach (var grouping in imagesToDownload.ToLookup(a => a[0], a => a[1]))
                 {
                     if (!await ImportPage(provider, pixivModule, pixivClient, grouping, token))

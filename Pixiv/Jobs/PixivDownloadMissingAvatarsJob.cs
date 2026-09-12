@@ -84,6 +84,14 @@ namespace unbooru.Pixiv.Jobs
                     i++;
                     logger.LogInformation("Finished {Count}/{Total}", i*50, artists.Count);
                 }
+
+                // A long-running download can trigger a silent internal re-auth (token nearing
+                // expiry), rotating the token again without us knowing - capture it once more.
+                settingsProvider.Update(a =>
+                {
+                    a.Token = pixivClient.RefreshToken;
+                    a.AccessToken = pixivClient.AccessToken;
+                });
             }
             catch (TaskCanceledException)
             {

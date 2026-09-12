@@ -9,52 +9,69 @@ namespace unbooru.JsonSettingsProvider
 {
     public class JsonSettingsProvider<T> : ISettingsProvider<T> where T : new()
     {
-        private T Settings { get; }
+        private T Settings { get; set; }
         private readonly ILogger<JsonSettingsProvider<T>> _logger;
-    
+        private readonly object _lock = new object();
+        private readonly string _path;
+
         public JsonSettingsProvider(ILogger<JsonSettingsProvider<T>> logger)
         {
             _logger = logger;
-            try
+            _path = Path.Combine(Arguments.DataPath, "Settings", typeof(T).FullName + ".json");
+
+            lock (_lock)
             {
-                var path = Path.Combine(Arguments.DataPath, "Settings", typeof(T).FullName + ".json");
-                if (!File.Exists(path))
+                try
                 {
+                    if (File.Exists(_path))
+                    {
+                        var text = File.ReadAllText(_path);
+                        if (!string.IsNullOrWhiteSpace(text))
+                            Settings = JsonConvert.DeserializeObject<T>(text);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Unable to load settings for {Type}: {Error}", typeof(T).Name, e);
+                }
+
+                if (Settings == null)
+                {
+                    // missing, empty, or corrupt file: fall back to defaults and self-heal the file
+                    // instead of leaving Settings permanently null on disk.
+                    _logger.LogWarning("Settings for {Type} could not be loaded from {Path}; resetting to defaults", typeof(T).Name, _path);
                     Settings = new T();
-                    SaveSettings();
+                    SaveSettingsLocked();
                 }
-                if (File.Exists(path))
-                {
-                    var text = File.ReadAllText(path);
-                    Settings = JsonConvert.DeserializeObject<T>(text);
-                }
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Unable to load settings for {Type}: {Error}", typeof(T).Name, e);
             }
         }
 
         public TResult Get<TResult>(Func<T, TResult> func)
         {
-            return func.Invoke(Settings);
+            lock (_lock)
+            {
+                return func.Invoke(Settings);
+            }
         }
-    
+
         public void Update(Action<T> func)
         {
-            // update via lambda
-            func.Invoke(Settings);
+            lock (_lock)
+            {
+                // update via lambda
+                func.Invoke(Settings);
 
-            SaveSettings();
+                SaveSettingsLocked();
+            }
         }
 
-        private void SaveSettings()
+        private void SaveSettingsLocked()
         {
             try
             {
-                var path = Path.Combine(Arguments.DataPath, "Settings");
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-                path = Path.Combine(path, typeof(T).FullName + ".json");
+                var directory = Path.GetDirectoryName(_path);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
                 var text = JsonConvert.SerializeObject(Settings, new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
@@ -62,7 +79,13 @@ namespace unbooru.JsonSettingsProvider
                     NullValueHandling = NullValueHandling.Include,
                     StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
                 });
-                File.WriteAllText(path, text);
+
+                // Write to a temp file and rename over the real one so a crash or a
+                // concurrent writer can never observe (or leave behind) a truncated/empty file.
+                var tempPath = _path + ".tmp";
+                File.WriteAllText(tempPath, text);
+                if (File.Exists(_path)) File.Replace(tempPath, _path, null);
+                else File.Move(tempPath, _path);
             }
             catch (Exception e)
             {
